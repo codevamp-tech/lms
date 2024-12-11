@@ -1,6 +1,13 @@
+
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { QueryClientProvider } from "@tanstack/react-query";
+import queryClient from "@/lib/react-query";
+import Navbar from "@/components/Navbar"
+import { Provider } from "react-redux";
+import {appStore} from '../store/store'
+import { ThemeProvider } from '@/components/ThemeProvider'
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -25,11 +32,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      {/* <QueryClientProvider client={queryClient}> */}
+      {/* <Provider store={appStore}> */}
+      <ThemeProvider>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <div className="flex flex-col min-h-screen">
+          <Navbar />
+          <div className="flex-1 mt-16">{children}</div>
+        </div>
       </body>
+      </ThemeProvider>
+      {/* </Provider> */}
+        {/* </QueryClientProvider> */}
     </html>
   );
 }
