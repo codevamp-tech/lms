@@ -22,6 +22,8 @@ const Login = () => {
     password: "",
   });
   const [loginInput, setLoginInput] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const changeInputHandler = (e, type) => {
     const { name, value } = e.target;
@@ -32,9 +34,37 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = (type) => {
+  const handleSubmit = async (type) => {
     const inputData = type === "signup" ? signupInput : loginInput;
-    console.log(`${type} data:`, inputData);
+    const endpoint = type === "signup" ? "/users/signup" : "/users/login";
+
+    setLoading(true);
+    setError(""); 
+
+    try {
+      const response = await fetch(`http://localhost:3001${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(inputData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "An error occurred");
+      }
+
+      console.log(`${type} response:`, data);
+
+      if (type === "signup") {
+        // Handle successful signup (e.g., redirect to login or show success message)
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,6 +74,8 @@ const Login = () => {
           <TabsTrigger value="signup">Signup</TabsTrigger>
           <TabsTrigger value="login">Login</TabsTrigger>
         </TabsList>
+
+        {/* Signup Tab */}
         <TabsContent value="signup">
           <Card>
             <CardHeader>
@@ -88,10 +120,15 @@ const Login = () => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={() => handleSubmit("signup")}>Signup</Button>
+              <Button onClick={() => handleSubmit("signup")} disabled={loading}>
+                {loading ? <Loader2 className="animate-spin" /> : "Signup"}
+              </Button>
+              {error && <div className="text-red-500">{error}</div>}
             </CardFooter>
           </Card>
         </TabsContent>
+
+        {/* Login Tab */}
         <TabsContent value="login">
           <Card>
             <CardHeader>
@@ -125,7 +162,10 @@ const Login = () => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={() => handleSubmit("login")}>Login</Button>
+              <Button onClick={() => handleSubmit("login")} disabled={loading}>
+                {loading ? <Loader2 className="animate-spin" /> : "Login"}
+              </Button>
+              {error && <div className="text-red-500">{error}</div>}
             </CardFooter>
           </Card>
         </TabsContent>
