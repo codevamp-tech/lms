@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'; 
-import { Document } from 'mongoose'; // Import Document to extend it
-import * as mongoose from 'mongoose'; // Explicitly import mongoose
+import { Document, Types } from 'mongoose'; // Import Document to extend it
 
 @Schema({ timestamps: true }) // This will automatically add createdAt and updatedAt fields
 export class Lecture extends Document {

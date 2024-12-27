@@ -20,7 +20,7 @@ export class CoursePurchase extends Document {
   })
   status: string;
 
-  @Prop({ required: true })
+  @Prop()
   paymentId: string;
 }
 
