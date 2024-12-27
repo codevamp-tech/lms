@@ -29,11 +29,16 @@ import { toast } from "sonner";
 // import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation"; 
 import Link from "next/link";
+import { useUserProfile } from "@/hooks/useUsers";
+import { getUserIdFromToken } from "@/utils/helpers";
 
 const Navbar = () => {
   // const { user } = useSelector((store) => store.auth);
   // const [logoutUser, { data, isSuccess }] = useLogoutUserMutation();
   const router = useRouter();
+  
+    const userId = getUserIdFromToken();
+    const { data: user, isLoading, error, refetch } = useUserProfile(userId);
 
   const logoutHandler = async () => {
     // await logoutUser();
@@ -46,47 +51,50 @@ const Navbar = () => {
   //     router.push("/login"); // Redirect to login
   //   }
   // }, [isSuccess, data?.message, router]);
-  const user = {
-    _id: "12345",
-    name: "John Doe",
-    email: "johndoe@example.com",
-    photoUrl: "https://via.placeholder.com/50", // Replace with a real URL or placeholder
-    role: "instructor", // Can be "instructor" or "student"
-    courses: [
-      {
-        courseId: "1",
-        courseTitle: "React for Beginners",
-        courseProgress: 75, // Percentage of completion
-      },
-      {
-        courseId: "2",
-        courseTitle: "Advanced JavaScript",
-        courseProgress: 50,
-      },
-    ],
-    learningPath: [
-      {
-        pathId: "101",
-        pathTitle: "Web Development",
-        courses: [
-          { courseId: "1", courseTitle: "React for Beginners" },
-          { courseId: "2", courseTitle: "Advanced JavaScript" },
-        ],
-      },
-    ],
-    notifications: [
-      {
-        notificationId: "1",
-        message: "Your course 'React for Beginners' is 75% completed.",
-        timestamp: new Date().toISOString(),
-      },
-      {
-        notificationId: "2",
-        message: "A new course 'UI/UX Design Essentials' has been added.",
-        timestamp: new Date().toISOString(),
-      },
-    ],
-  };
+  // const user = {
+  //   _id: "12345",
+  //   name: "John Doe",
+  //   email: "johndoe@example.com",
+  //   photoUrl: "https://via.placeholder.com/50", // Replace with a real URL or placeholder
+  //   role: "instructor", // Can be "instructor" or "student"
+  //   courses: [
+  //     {
+  //       courseId: "1",
+  //       courseTitle: "React for Beginners",
+  //       courseProgress: 75, // Percentage of completion
+  //     },
+  //     {
+  //       courseId: "2",
+  //       courseTitle: "Advanced JavaScript",
+  //       courseProgress: 50,
+  //     },
+  //   ],
+  //   learningPath: [
+  //     {
+  //       pathId: "101",
+  //       pathTitle: "Web Development",
+  //       courses: [
+  //         { courseId: "1", courseTitle: "React for Beginners" },
+  //         { courseId: "2", courseTitle: "Advanced JavaScript" },
+  //       ],
+  //     },
+  //   ],
+  //   notifications: [
+  //     {
+  //       notificationId: "1",
+  //       message: "Your course 'React for Beginners' is 75% completed.",
+  //       timestamp: new Date().toISOString(),
+  //     },
+  //     {
+  //       notificationId: "2",
+  //       message: "A new course 'UI/UX Design Essentials' has been added.",
+  //       timestamp: new Date().toISOString(),
+  //     },
+  //   ],
+  // };
+  
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error fetching user profile</p>;
   
 
   return (

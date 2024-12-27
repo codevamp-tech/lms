@@ -1,48 +1,34 @@
 // course/course-detail/[courseId]/page.tsx
-"use client"
+"use client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { BadgeInfo, Lock, PlayCircle } from "lucide-react";
 import React from "react";
 import ReactPlayer from "react-player";
-import { useParams } from "next/navigation";
-
-// Mock data (replace with API call or actual data fetching logic)
-const mockCourses = [
-  {
-    id: 1,
-    courseTitle: "React for Beginners",
-    description: "<p>Learn React from scratch and build amazing apps!</p>",
-    creator: { name: "John Doe" },
-    createdAt: "2024-01-01T12:00:00Z",
-    enrolledStudents: [1, 2, 3],
-    lectures: [
-      { lectureTitle: "Introduction to React", videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
-      { lectureTitle: "State and Props", videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }
-    ],
-    purchased: false, // Mock purchased state
-  },
-  {
-    id: 2,
-    courseTitle: "Advanced JavaScript",
-    description: "<p>Deep dive into JavaScript and become a pro!</p>",
-    creator: { name: "Jane Smith" },
-    createdAt: "2024-01-10T12:00:00Z",
-    enrolledStudents: [4, 5, 6],
-    lectures: [
-      { lectureTitle: "JavaScript Basics", videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
-      { lectureTitle: "Async Programming", videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }
-    ],
-    purchased: true,
-  }
-];
+import { useParams, useRouter } from "next/navigation";
+import { getUserIdFromToken } from "@/utils/helpers";
+import useCoursePurchase from "@/hooks/useCoursePurchase";
+import { createCheckout } from "@/features/api/course-purchase/route";
 
 const CourseDetail = () => {
-  const { courseId } = useParams(); // Get the courseId from the URL
+  const { courseId } = useParams();
+  const router = useRouter()
+  const userId = getUserIdFromToken();
+  const { getCourseDetailsWithPurchaseStatusQuery } = useCoursePurchase();
 
-  // Find the course data based on the courseId
-  const course = mockCourses.find((course) => course.id === parseInt(courseId));
+  const {
+    data: course,
+    isLoading,
+    error,
+  } = getCourseDetailsWithPurchaseStatusQuery(courseId, userId);
 
   // If course not found
   if (!course) {
@@ -56,23 +42,46 @@ const CourseDetail = () => {
     }
   };
 
+  const handleBuyCourse = async () => {
+    try {
+      const data = await createCheckout(courseId, userId);
+      if (data?.success && data?.url) {
+        // Redirect to the checkout URL
+        window.location.href = data.url;
+      } else {
+        console.error("Error: No URL returned from the checkout API.");
+      }
+    } catch (error) {
+      console.error("Error during checkout:", error);
+    }
+  };
+  if (isLoading) {
+    return <div>Loading courses...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
   return (
     <div className="space-y-5">
       <div className="bg-[#2D2F31] text-white">
         <div className="max-w-7xl mx-auto py-8 px-4 md:px-8 flex flex-col gap-2">
-          <h1 className="font-bold text-2xl md:text-3xl">{course?.courseTitle}</h1>
-          <p className="text-base md:text-lg">Course Sub-title</p>
+          <h1 className="font-bold text-2xl md:text-3xl">
+            {course?.course.courseTitle}
+          </h1>
+          <p className="text-base md:text-lg">{course?.course.subTitle}</p>
           <p>
             Created By{" "}
             <span className="text-[#C0C4FC] underline italic">
-              {course?.creator.name}
+              {course?.course.creator.name}
             </span>
           </p>
           <div className="flex items-center gap-2 text-sm">
             <BadgeInfo size={16} />
-            <p>Last updated {course?.createdAt.split("T")[0]}</p>
+            <p>Last updated {course?.course.createdAt.split("T")[0]}</p>
           </div>
-          <p>Students enrolled: {course?.enrolledStudents.length}</p>
+          <p>Students enrolled: {course?.course.enrolledStudents.length}</p>
         </div>
       </div>
       <div className="max-w-7xl mx-auto my-5 px-4 md:px-8 flex flex-col lg:flex-row justify-between gap-10">
@@ -80,17 +89,25 @@ const CourseDetail = () => {
           <h1 className="font-bold text-xl md:text-2xl">Description</h1>
           <p
             className="text-sm"
-            dangerouslySetInnerHTML={{ __html: course.description }}
+            dangerouslySetInnerHTML={{ __html: course.course.description }}
           />
           <Card>
             <CardHeader>
               <CardTitle>Course Content</CardTitle>
-              <CardDescription>{course.lectures.length} lectures</CardDescription>
+              <CardDescription>
+                {course.course.lectures.length} lectures
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {course.lectures.map((lecture, idx) => (
+              {course.course.lectures.map((lecture, idx) => (
                 <div key={idx} className="flex items-center gap-3 text-sm">
-                  <span>{course.purchased ? <PlayCircle size={14} /> : <Lock size={14} />}</span>
+                  <span>
+                    {course?.purchased ? (
+                      <PlayCircle size={14} />
+                    ) : (
+                      <Lock size={14} />
+                    )}
+                  </span>
                   <p>{lecture.lectureTitle}</p>
                 </div>
               ))}
@@ -104,19 +121,21 @@ const CourseDetail = () => {
                 <ReactPlayer
                   width="100%"
                   height={"100%"}
-                  url={course.lectures[0].videoUrl}
+                  url={course?.course.lectures[0].videoUrl}
                   controls={true}
                 />
               </div>
-              <h1>Lecture title</h1>
+              <h1>{course?.course.lectures[0].lectureTitle}</h1>
               <Separator className="my-2" />
-              <h1 className="text-lg md:text-xl font-semibold">Course Price</h1>
+              <h1 className="text-lg md:text-xl font-semibold">$ {course?.course.coursePrice}</h1>
             </CardContent>
             <CardFooter className="flex justify-center p-4">
               {course.purchased ? (
-                <Button onClick={handleContinueCourse} className="w-full">Continue Course</Button>
+                <Button onClick={handleContinueCourse} className="w-full">
+                  Continue Course
+                </Button>
               ) : (
-                <Button className="w-full">Buy Course</Button>
+                <Button onClick={handleBuyCourse} className="w-full">Buy Course</Button>
               )}
             </CardFooter>
           </Card>

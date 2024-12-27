@@ -2,59 +2,64 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import React from "react";
 import Course from "./Course";
+import useCourses from "@/hooks/useCourses";
 
 const Courses = () => {
+  const { getPublishedCoursesQuery } = useCourses()
+  const { data, isLoading, isError} = getPublishedCoursesQuery()
   // Mock data
-  const isLoading = false; // Set to true to simulate loading state
-  const isError = false; // Set to true to simulate error state
-  const data = {
-    courses: [
-      {
-        _id: "1",
-        courseThumbnail: "https://via.placeholder.com/150",
-        courseTitle: "React for Beginners",
-        creator: {
-          photoUrl: "https://via.placeholder.com/50",
-          name: "John Doe",
-        },
-        courseLevel: "Beginner",
-        coursePrice: 499,
-      },
-      {
-        _id: "2",
-        courseThumbnail: "https://via.placeholder.com/150",
-        courseTitle: "Advanced JavaScript",
-        creator: {
-          photoUrl: "https://via.placeholder.com/50",
-          name: "Jane Smith",
-        },
-        courseLevel: "Advanced",
-        coursePrice: 799,
-      },
-      {
-        _id: "3",
-        courseThumbnail: "https://via.placeholder.com/150",
-        courseTitle: "UI/UX Design Essentials",
-        creator: {
-          photoUrl: "https://via.placeholder.com/50",
-          name: "Alex Johnson",
-        },
-        courseLevel: "Intermediate",
-        coursePrice: 599,
-      },
-      {
-        _id: "4",
-        courseThumbnail: "https://via.placeholder.com/150",
-        courseTitle: "Full Stack Development Bootcamp",
-        creator: {
-          photoUrl: "https://via.placeholder.com/50",
-          name: "Emily Davis",
-        },
-        courseLevel: "All Levels",
-        coursePrice: 999,
-      },
-    ],
-  };
+  // const isLoading = false; // Set to true to simulate loading state
+  // const isError = false; // Set to true to simulate error state
+  // const data = {
+  //   courses: [
+  //     {
+  //       _id: "1",
+  //       courseThumbnail: "https://via.placeholder.com/150",
+  //       courseTitle: "React for Beginners",
+  //       creator: {
+  //         photoUrl: "https://via.placeholder.com/50",
+  //         name: "John Doe",
+  //       },
+  //       courseLevel: "Beginner",
+  //       coursePrice: 499,
+  //     },
+  //     {
+  //       _id: "2",
+  //       courseThumbnail: "https://via.placeholder.com/150",
+  //       courseTitle: "Advanced JavaScript",
+  //       creator: {
+  //         photoUrl: "https://via.placeholder.com/50",
+  //         name: "Jane Smith",
+  //       },
+  //       courseLevel: "Advanced",
+  //       coursePrice: 799,
+  //     },
+  //     {
+  //       _id: "3",
+  //       courseThumbnail: "https://via.placeholder.com/150",
+  //       courseTitle: "UI/UX Design Essentials",
+  //       creator: {
+  //         photoUrl: "https://via.placeholder.com/50",
+  //         name: "Alex Johnson",
+  //       },
+  //       courseLevel: "Intermediate",
+  //       coursePrice: 599,
+  //     },
+  //     {
+  //       _id: "4",
+  //       courseThumbnail: "https://via.placeholder.com/150",
+  //       courseTitle: "Full Stack Development Bootcamp",
+  //       creator: {
+  //         photoUrl: "https://via.placeholder.com/50",
+  //         name: "Emily Davis",
+  //       },
+  //       courseLevel: "All Levels",
+  //       coursePrice: 999,
+  //     },
+  //   ],
+  // };
+
+  if(isLoading) return <div>Loading...</div>
 
   if (isError) return <h1>Some error occurred while fetching courses.</h1>;
 
@@ -68,8 +73,8 @@ const Courses = () => {
               <CourseSkeleton key={index} />
             ))
           ) : (
-            data?.courses &&
-            data.courses.map((course) => <Course key={course._id} course={course} />)
+            data &&
+            data?.map((course) => <Course key={course._id} course={course} />)
           )}
         </div>
       </div>
