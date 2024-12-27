@@ -11,8 +11,9 @@ import { CoursePurchase } from './schemas/course-purchase.schema';
 import { User } from 'src/users/schemas/user.schema';
 import { Lecture } from 'src/lectures/schemas/lecture.schema';
 import Stripe from 'stripe';
-import { ConfigService } from '@nestjs/config';
+import * as dotenv from 'dotenv';
 
+dotenv.config();
 @Injectable()
 export class CoursePurchaseService {
   private readonly stripe: Stripe;
@@ -24,8 +25,11 @@ export class CoursePurchaseService {
     @InjectModel(CoursePurchase.name)
     private coursePurchaseModel: Model<CoursePurchase>,
   ) {
-    const secret_key =
-      'sk_test_51QaasEKyN5smze6Wl5NSUn46m8X7d3u5ucnlWwKEuJqWQ0tGrwIunRYa5Q7Ef6XNnvIsdeP1ykoESbIifTI0zhvi004OmnPFan';
+    const secret_key = process.env.STRIPE_SECRET_KEY ;
+
+    if (!secret_key) {
+      throw new Error("Stripe secret key is not defined in the environment variables.");
+    }
     this.stripe = new Stripe(secret_key);
   }
 
@@ -119,7 +123,11 @@ export class CoursePurchaseService {
 
   async handleStripeWebhook(rawBody: Buffer, signature: string) {
     try {
-      const webhookSecret = 'whsec_4RN8UMxqVh03yR2CCWvjR2eHCmCnwzqb';
+      const webhookSecret = process.env.WEBHOOK_ENDPOINT_SECRET;
+
+      if (!webhookSecret) {
+        throw new Error("Stripe secret key is not defined in the environment variables.");
+      }
 
       // Verify the webhook came from Stripe
       const event = this.stripe.webhooks.constructEvent(
