@@ -10,7 +10,7 @@ const EditCourse = () => {
   
 
   if (!courseId) {
-    return <p>Loading...</p>; // Handles cases where courseId might initially be undefined
+    return <p>Loading...</p>;
   }
 
   return (

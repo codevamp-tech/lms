@@ -1,46 +1,35 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Filter from "./Filter";
 import SearchResult from "./SearchResult";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const mockData = {
-  courses: [
-    {
-      _id: "1",
-      title: "Course 1",
-      description: "This is course 1",
-      price: "$50",
-      imageUrl: "/path/to/image1.jpg",
-    },
-    {
-      _id: "2",
-      title: "Course 2",
-      description: "This is course 2",
-      price: "$70",
-      imageUrl: "/path/to/image2.jpg",
-    },
-    {
-      _id: "3",
-      title: "Course 3",
-      description: "This is course 3",
-      price: "$60",
-      imageUrl: "/path/to/image3.jpg",
-    },
-  ],
-};
+import useCourses from "@/hooks/useCourses";
+import { useSearchParams } from "next/navigation";
 
 const SearchPage = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [sortByPrice, setSortByPrice] = useState("");
-  const [query] = useState("Sample Query");
+  const searchParams = useSearchParams();
+  const query = searchParams.get("query");
+  const { getPublishedCoursesQuery } = useCourses();
+  const { data: courses, isLoading, isError } = getPublishedCoursesQuery();
+  const [searchedCourses, setSearchedCourses] = useState(null)
 
-  const data = mockData; // Use the mock data here
-  const isLoading = false; // Set loading state to false as we are using mock data
-  const isEmpty = !isLoading && data?.courses.length === 0;
+  useEffect(() => {
+    if (courses) {
+      const lowerCaseQuery = query?.toLowerCase();
+      const filteredCourses = courses?.filter((course) => {
+        const courseTitle = course?.courseTitle?.toLowerCase();
+        return courseTitle.includes(lowerCaseQuery);
+      });
+      setSearchedCourses(filteredCourses);
+    }
+  }, [courses, query]);
+
+  const isEmpty = !isLoading && searchedCourses?.length === 0;
 
   const handleFilterChange = (categories, price) => {
     setSelectedCategories(categories);
@@ -52,7 +41,7 @@ const SearchPage = () => {
       <div className="my-6">
         <h1 className="font-bold text-xl md:text-2xl">Result for "{query}"</h1>
         <p>
-          Showing results for{""}
+          Showing results for{" "}
           <span className="text-blue-800 font-bold italic">{query}</span>
         </p>
       </div>
@@ -66,7 +55,9 @@ const SearchPage = () => {
           ) : isEmpty ? (
             <CourseNotFound />
           ) : (
-            data?.courses?.map((course) => <SearchResult key={course._id} course={course} />)
+            searchedCourses?.map((course) => (
+              <SearchResult key={course._id} course={course} />
+            ))
           )}
         </div>
       </div>

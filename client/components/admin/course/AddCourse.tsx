@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,11 +15,14 @@ import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import useCourses from "@/hooks/useCourses";
+import { getUserIdFromToken } from "@/utils/helpers";
 
 const AddCourse = () => {
   const [courseTitle, setCourseTitle] = useState("");
   const [category, setCategory] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { createNewCourse, isLoading, error } = useCourses();
+  const userId = getUserIdFromToken();
 
   const router = useRouter();
 
@@ -27,17 +30,15 @@ const AddCourse = () => {
     setCategory(value);
   };
 
-  const createCourseHandler = async () => {
-    setIsLoading(true);
+  const createCourseHandler = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await createNewCourse({ courseTitle, category, creatorId: userId });
       toast.success("Course created successfully.");
-      router.push("/admin/course");
+      router.push("/admin/courses");
     } catch (error) {
       toast.error("Failed to create course.");
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -92,7 +93,10 @@ const AddCourse = () => {
           </Select>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => router.push("/admin/courses")}>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/admin/courses")}
+          >
             Back
           </Button>
           <Button disabled={isLoading} onClick={createCourseHandler}>

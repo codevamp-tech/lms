@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,47 +6,38 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import useCourses from "@/hooks/useCourses";
 import { Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
-
-// Mock data for demonstration
-const mockCourses = [
-  {
-    _id: "1",
-    coursePrice: "$250",
-    isPublished: true,
-    courseTitle: "React for Beginners",
-  },
-  {
-    _id: "2",
-    coursePrice: "$150",
-    isPublished: false,
-    courseTitle: "Next.js Deep Dive",
-  },
-  {
-    _id: "3",
-    coursePrice: "$300",
-    isPublished: true,
-    courseTitle: "Advanced JavaScript",
-  },
-];
+import { getUserIdFromToken } from "@/utils/helpers"; // Assuming you have this helper function
 
 const CourseTable = () => {
+  const { getCreatorCoursesQuery } = useCourses();
   const router = useRouter();
+  const userId = getUserIdFromToken();
+
+  const { data: courses = [], isLoading, error } = getCreatorCoursesQuery(userId);
 
   const handleNavigateToCreate = () => {
     router.push("/admin/courses/create");
   };
 
-  const handleNavigateToEdit = (id) => {
+  const handleNavigateToEdit = (id: string) => {
     router.push(`/admin/courses/${id}`);
   };
+
+  if (isLoading) {
+    return <div>Loading courses...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
 
   return (
     <div>
@@ -62,7 +53,7 @@ const CourseTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {mockCourses.map((course) => (
+          {courses.map((course: any) => (
             <TableRow key={course._id}>
               <TableCell>{course.courseTitle}</TableCell>
               <TableCell className="font-medium">{course.coursePrice || "NA"}</TableCell>

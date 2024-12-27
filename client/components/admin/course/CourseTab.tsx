@@ -1,5 +1,5 @@
-"use client"
-// import RichTextEditor from "@/components/RichTextEditor";
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,122 +19,127 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import useCourses from "@/hooks/useCourses";
 import { Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 
-// Mock Courses Data
-//to be done rich text editor
-
-const mockCoursesData = {
-  '1': {
-    id: '1',
-    courseTitle: "Mastering Next.js 14 Full-Stack Development",
-    subTitle: "Build Production-Ready Web Applications with Next.js and Modern Web Technologies",
-    description: "A comprehensive course covering everything from basics to advanced Next.js techniques, including server-side rendering, API routes, and full-stack application development.",
-    category: "Next JS",
-    courseLevel: "Medium",
-    coursePrice: "299",
-    isPublished: false,
-    lectures: [
-      { id: '1', title: "Introduction to Next.js" },
-      { id: '2', title: "React Foundations" }
-    ],
-    // courseThumbnail: "/path/to/next-js-course-thumbnail.jpg"
-  },
-  '2': {
-    id: '2',
-    courseTitle: "Python for Data Science",
-    subTitle: "From Beginner to Advanced Data Analysis",
-    description: "Learn Python programming with a focus on data science, machine learning, and data visualization.",
-    category: "Data Science",
-    courseLevel: "Beginner",
-    coursePrice: "199",
-    isPublished: true,
-    lectures: [
-      { id: '1', title: "Python Basics" },
-      { id: '2', title: "Data Manipulation with Pandas" }
-    ],
-    // courseThumbnail: "/path/to/python-data-science-thumbnail.jpg"
-  }
-};
-
 const CourseTab = () => {
-  const {courseId} = useParams();
+  const { courseId } = useParams();
   const router = useRouter();
+  const { getCourseByIdQuery, editCourse, publishCourse } = useCourses();
 
-  // Get course data or default to first course
-  const courseData = mockCoursesData[courseId] || mockCoursesData['1'];
+  // Fetch course data
+  const {
+    data: course,
+    isLoading: isCourseLoading,
+    error,
+  } = getCourseByIdQuery(courseId);
 
+  // Local state for form inputs
   const [input, setInput] = useState({
-    courseTitle: courseData.courseTitle,
-    subTitle: courseData.subTitle,
-    description: courseData.description,
-    category: courseData.category,
-    courseLevel: courseData.courseLevel,
-    coursePrice: courseData.coursePrice,
-    courseThumbnail: null as File | null,
+    courseTitle: "",
+    subTitle: "",
+    description: "",
+    category: "",
+    courseLevel: "",
+    coursePrice: "",
   });
 
-  const [previewThumbnail, setPreviewThumbnail] = useState(courseData.courseThumbnail ?? "");
-  const [isLoading, setIsLoading] = useState(false);
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
+  const [previewThumbnail, setPreviewThumbnail] = useState<string | null>("");
 
+  // Populate form with fetched course data
+  useEffect(() => {
+    if (course) {
+      setInput({
+        courseTitle: course.courseTitle || "",
+        subTitle: course.subTitle || "",
+        description: course.description || "",
+        category: course.category || "",
+        courseLevel: course.courseLevel || "",
+        coursePrice: course.coursePrice || "",
+      });
+      setPreviewThumbnail(course.courseThumbnail || "");
+    }
+  }, [course]);
+
+  // Handlers
   const changeEventHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setInput(prev => ({ ...prev, [name]: value }));
+    setInput((prev) => ({ ...prev, [name]: value }));
   };
 
-  const selectCategory = (value: string) => {
-    setInput(prev => ({ ...prev, category: value }));
-  };
+  const selectCategory = (value: string) =>
+    setInput((prev) => ({ ...prev, category: value }));
 
-  const selectCourseLevel = (value: string) => {
-    setInput(prev => ({ ...prev, courseLevel: value }));
-  };
+  const selectCourseLevel = (value: string) =>
+    setInput((prev) => ({ ...prev, courseLevel: value }));
 
   const selectThumbnail = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setInput(prev => ({ ...prev, courseThumbnail: file }));
+      setThumbnail(file);
       const fileReader = new FileReader();
-      fileReader.onloadend = () => setPreviewThumbnail(fileReader.result as string);
+      fileReader.onloadend = () =>
+        setPreviewThumbnail(fileReader.result as string);
       fileReader.readAsDataURL(file);
     }
   };
 
-  const updateCourseHandler = async () => {
-    setIsLoading(true);
-    try {
-      // Simulate API call with mock data update
-      mockCoursesData[courseId] = {
-        ...mockCoursesData[courseId],
-        ...input,
-        courseThumbnail: previewThumbnail || mockCoursesData[courseId].courseThumbnail
-      };
+  const publishCourseHandler = async () => {
+    const status = course.isPublished === true ? false : true
+    console.log("status", status)
+    await publishCourse(
+      { courseId, publish: status },
 
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast.success(`Course ${courseId} updated successfully`);
-    } catch (error) {
-      toast.error(`Failed to update course ${courseId}`);
-    } finally {
-      setIsLoading(false);
-    }
+      {
+        onSuccess: () => {
+          toast.success(
+            `Course ${status ? "published" : "unpublished"} successfully.`
+          );
+          router.refresh(); // Refresh the page or query to get updated course data
+        },
+        onError: () => {
+          toast.error("Failed to update publish state.");
+        },
+      }
+    );
   };
 
-  const publishStatusHandler = () => {
-    try {
-      // Toggle publish status in mock data
-      mockCoursesData[courseId].isPublished = !mockCoursesData[courseId].isPublished;
-      
-      const status = mockCoursesData[courseId].isPublished ? "published" : "unpublished";
-      toast.success(`Course ${courseId} ${status} successfully`);
-    } catch (error) {
-      toast.error(`Failed to change publish status for course ${courseId}`);
+  const updateCourseHandler = () => {
+    if (!input.courseTitle || !input.category || !input.courseLevel) {
+      toast.error("Please fill out all required fields.");
+      return;
     }
+
+    editCourse(
+      { courseId, updatedData: input, thumbnail },
+      {
+        onSuccess: () => {
+          toast.success(`Course ${courseId} updated successfully.`);
+          router.push("/admin/courses");
+        },
+        onError: () => {
+          toast.error(`Failed to update course ${courseId}.`);
+        },
+      }
+    );
   };
+
+  if (isCourseLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+        Loading course data...
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div>Error loading course data: {error.message}</div>;
+  }
 
   return (
     <Card>
@@ -142,16 +147,17 @@ const CourseTab = () => {
         <div>
           <CardTitle>Basic Course Information</CardTitle>
           <CardDescription>
-            Make changes to your course (ID: {courseId}). Click save when you're done.
+            Make changes to your course (ID: {courseId}). Click save when you're
+            done.
           </CardDescription>
         </div>
         <div className="space-x-2">
-          <Button 
-            disabled={courseData.lectures.length === 0} 
-            variant="outline" 
-            onClick={publishStatusHandler}
+          <Button
+            disabled={!course?.lectures?.length}
+            variant="outline"
+            onClick={publishCourseHandler}
           >
-            {courseData.isPublished ? "Unpublish" : "Publish"}
+            {course?.isPublished ? "Unpublish" : "Publish"}
           </Button>
           <Button variant="destructive">Remove Course</Button>
         </div>
@@ -180,37 +186,40 @@ const CourseTab = () => {
           </div>
           <div>
             <Label>Description</Label>
-            {/* <RichTextEditor input={input} setInput={setInput} /> */}
+            <Input
+              name="description"
+              value={input.description}
+              onChange={(e) => changeEventHandler(e as any)}
+              placeholder="Course description here..."
+              className="w-full border rounded-md p-2"
+            />
           </div>
           <div className="flex items-center gap-5">
             <div>
               <Label>Category</Label>
-              <Select
-                value={input.category}
-                onValueChange={selectCategory}
-              >
+              <Select value={input.category} onValueChange={selectCategory}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Category</SelectLabel>
-                    <SelectItem value="Next JS">Next JS</SelectItem>
-                    <SelectItem value="Data Science">Data Science</SelectItem>
-                    <SelectItem value="Frontend Development">
-                      Frontend Development
-                    </SelectItem>
-                    <SelectItem value="Fullstack Development">
-                      Fullstack Development
-                    </SelectItem>
-                    <SelectItem value="MERN Stack Development">
-                      MERN Stack Development
-                    </SelectItem>
-                    <SelectItem value="Javascript">Javascript</SelectItem>
-                    <SelectItem value="Python">Python</SelectItem>
-                    <SelectItem value="Docker">Docker</SelectItem>
-                    <SelectItem value="MongoDB">MongoDB</SelectItem>
-                    <SelectItem value="HTML">HTML</SelectItem>
+                    {[
+                      "Next JS",
+                      "Data Science",
+                      "Frontend Development",
+                      "Fullstack Development",
+                      "MERN Stack Development",
+                      "Javascript",
+                      "Python",
+                      "Docker",
+                      "MongoDB",
+                      "HTML",
+                    ].map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -227,15 +236,17 @@ const CourseTab = () => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Course Level</SelectLabel>
-                    <SelectItem value="Beginner">Beginner</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="Advance">Advance</SelectItem>
+                    {["Beginner", "Medium", "Advance"].map((level) => (
+                      <SelectItem key={level} value={level}>
+                        {level}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Price in (INR)</Label>
+              <Label>Price (INR)</Label>
               <Input
                 type="number"
                 name="coursePrice"
@@ -263,25 +274,13 @@ const CourseTab = () => {
             )}
           </div>
           <div className="space-x-2">
-            <Button 
-              onClick={() => router.push("/admin/courses")} 
+            <Button
+              onClick={() => router.push("/admin/courses")}
               variant="outline"
             >
               Cancel
             </Button>
-            <Button 
-              onClick={updateCourseHandler} 
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Please wait
-                </>
-              ) : (
-                "Save"
-              )}
-            </Button>
+            <Button onClick={updateCourseHandler}>Save</Button>
           </div>
         </div>
       </CardContent>
