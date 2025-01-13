@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,44 +15,36 @@ import { Switch } from "@/components/ui/switch";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-// import { useParams } from "react-router-dom";
-import { useRouter } from "next/navigation"; // Using next/navigation instead of React Router
+import { useParams, useRouter } from "next/navigation"; // Using next/navigation instead of React Router
 import { toast } from "sonner";
-
-// Mock data
-const mockLectureData = {
-  lectureTitle: "Introduction to React",
-  videoInfo: { videoUrl: "http://mock.url/video.mp4", publicId: "12345" },
-  isPreviewFree: true,
-};
-
-const mockCourseId = "1"; // Mock courseId
-const mockLectureId = "1"; // Mock lectureId
-
-const MEDIA_API = "http://localhost:8080/api/v1/media";
+import useLectures from "@/hooks/useLectures";
+import { videoUpload } from "@/features/api/video-upload/route";
 
 const LectureTab = () => {
   const [lectureTitle, setLectureTitle] = useState("");
-  const [uploadVideInfo, setUploadVideoInfo] = useState(null);
+  const [uploadVideoInfo, setUploadVideoInfo] = useState(null);
   const [isFree, setIsFree] = useState(false);
   const [mediaProgress, setMediaProgress] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [btnDisable, setBtnDisable] = useState(true);
-  
-  // Replace `useParams()` with mock data
-  const courseId = mockCourseId;
-  const lectureId = mockLectureId;
+  const { lectureId, courseId } = useParams();
+  const { getLectureByIdQuery, deleteLecture, editLecture } = useLectures();
 
-  // Use mock lecture data
-  const lecture = mockLectureData;
+  const {
+    data: lecture,
+    isLoading,
+    error,
+    refetch,
+  } = getLectureByIdQuery(lectureId);
 
   useEffect(() => {
     if (lecture) {
       setLectureTitle(lecture.lectureTitle);
       setIsFree(lecture.isPreviewFree);
       setUploadVideoInfo(lecture.videoInfo);
+      refetch();
     }
-  }, [lecture]);
+  }, [refetch, lecture]);
 
   // Commenting out the API hooks
   // const [edtiLecture, { data, isLoading, error, isSuccess }] =
@@ -64,28 +56,18 @@ const LectureTab = () => {
   const fileChangeHandler = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const formData = new FormData();
-      formData.append("file", file);
-      setMediaProgress(true);
       try {
-        const res = await axios.post(`${MEDIA_API}/upload-video`, formData, {
-          onUploadProgress: ({ loaded, total }) => {
-            setUploadProgress(Math.round((loaded * 100) / total));
-          },
-        });
+        setMediaProgress(true);
 
-        if (res.data.success) {
-          console.log(res);
+        const video = await videoUpload(file);
+        if (video.success) {
           setUploadVideoInfo({
-            videoUrl: res.data.data.url,
-            publicId: res.data.data.public_id,
+            videoUrl: video.data.url,
+            publicId: video.data.public_id,
           });
-          setBtnDisable(false);
-          toast.success(res.data.message);
         }
       } catch (error) {
         console.log(error);
-        toast.error("Video upload failed");
       } finally {
         setMediaProgress(false);
       }
@@ -93,27 +75,42 @@ const LectureTab = () => {
   };
 
   const editLectureHandler = async () => {
-    console.log({ lectureTitle, uploadVideInfo, isFree, courseId, lectureId });
+    const lectureData = {
+      lectureTitle: lectureTitle,
+      videoInfo: {
+        videoUrl: uploadVideoInfo.videoUrl,
+        publicId: uploadVideoInfo.publicId,
+      },
+      isPreviewFree: isFree,
+    };
     // Commenting out the actual mutation
-    // await edtiLecture({
-    //   lectureTitle,
-    //   videoInfo: uploadVideInfo,
-    //   isPreviewFree: isFree,
-    //   courseId,
-    //   lectureId,
-    // });
-    toast.success("Lecture updated successfully (mock)");
+    await editLecture({ courseId, lectureId, lectureData });
+    toast.success("Lecture updated successfully");
+    router.push(`/admin/courses/${courseId}/lecture`);
   };
 
   const removeLectureHandler = async () => {
-    // Commenting out the actual remove mutation
-    // await removeLecture(lectureId);
+    await deleteLecture(lectureId);
+    router.push(`/admin/courses/${courseId}/lecture`);
     toast.success("Lecture removed successfully (mock)");
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+        Loading course data...
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div>Error loading course data: {error.message}</div>;
+  }
+
   return (
     <Card>
-      <CardHeader className="flex justify-between">
+      <CardHeader className="flex flex-row justify-between">
         <div>
           <CardTitle>Edit Lecture</CardTitle>
           <CardDescription>
@@ -121,11 +118,7 @@ const LectureTab = () => {
           </CardDescription>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            disabled={false} // Mock value
-            variant="destructive"
-            onClick={removeLectureHandler}
-          >
+          <Button disabled={false} onClick={removeLectureHandler}>
             {false ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -160,7 +153,11 @@ const LectureTab = () => {
           />
         </div>
         <div className="flex items-center space-x-2 my-5">
-          <Switch checked={isFree} onCheckedChange={setIsFree} id="airplane-mode" />
+          <Switch
+            checked={isFree}
+            onCheckedChange={setIsFree}
+            id="airplane-mode"
+          />
           <Label htmlFor="airplane-mode">Is this video FREE</Label>
         </div>
 

@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
 import { Document } from 'mongoose';
-import { User } from '../../users/schemas/user.schema';  // Adjust the path if necessary
-import { Lecture } from '../../lectures/schemas/lecture.schema';  // Adjust the path if necessary
+import { User } from '../../users/schemas/user.schema'; // Adjust the path if necessary
+import { Lecture } from '../../lectures/schemas/lecture.schema'; // Adjust the path if necessary
 
 @Schema({ timestamps: true })
 export class Course extends Document {
@@ -26,6 +26,13 @@ export class Course extends Document {
 
   @Prop()
   coursePrice: number;
+
+  @Prop({
+    type: String,
+    enum: ['Active', 'Inactive'],
+    default: 'Inactive',
+  })
+  courseStatus: String;
 
   @Prop()
   courseThumbnail: string;

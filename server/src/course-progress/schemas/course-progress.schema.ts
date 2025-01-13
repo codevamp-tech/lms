@@ -18,8 +18,8 @@ export class CourseProgress extends Document {
   @Prop({ required: true })
   userId: string;
 
-  @Prop({ required: true })
-  courseId: string;
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Course' })
+  courseId: mongoose.Types.ObjectId;
 
   @Prop({ required: true })
   completed: boolean;
@@ -29,5 +29,7 @@ export class CourseProgress extends Document {
 }
 
 // Create the schema from the class
-export const CourseProgressSchema = SchemaFactory.createForClass(CourseProgress);
-export const LectureProgressSchema = SchemaFactory.createForClass(LectureProgress);
+export const CourseProgressSchema =
+  SchemaFactory.createForClass(CourseProgress);
+export const LectureProgressSchema =
+  SchemaFactory.createForClass(LectureProgress);

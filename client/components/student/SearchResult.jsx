@@ -17,11 +17,11 @@ const SearchResult = ({ course }) => {
         />
         <div className="flex flex-col gap-2">
           <h1 className="font-bold text-lg md:text-xl">{course.courseTitle}</h1>
-          <p className="text-sm text-gray-600">{course.subTitle}</p>
-          <p className="text-sm text-gray-700">
-            Intructor: <span className="font-bold">{course.creator?.name}</span>{" "}
+          <p className="text-sm dark:text-white">{course.subTitle}</p>
+          <p className="text-sm dark:text-white">
+            Intructor: <span className="font-bold italic underline">{course.creator?.name}</span>
           </p>
-          <Badge className="w-fit mt-2 md:mt-0">{course.courseLevel}</Badge>
+          <Badge className="w-fit mt-2 md:mt-0 bg-blue-500">{course.courseLevel}</Badge>
         </div>
       </Link>
       <div className="mt-4 md:mt-0 md:text-right w-full md:w-auto">

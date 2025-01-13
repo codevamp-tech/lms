@@ -12,50 +12,56 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Course from "./Course";
 import { toast } from "sonner";
-
-// Mock data for user profile and enrolled courses
-const mockUserData = {
-  user: {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    role: "user",
-    photoUrl: "https://via.placeholder.com/150",
-    enrolledCourses: [
-      {
-        _id: "1",
-        courseThumbnail: "https://via.placeholder.com/150",
-        courseTitle: "React for Beginners",
-        creator: {
-          photoUrl: "https://via.placeholder.com/50",
-          name: "Jane Smith",
-        },
-        courseLevel: "Beginner",
-        coursePrice: 499,
-      },
-      {
-        _id: "2",
-        courseThumbnail: "https://via.placeholder.com/150",
-        courseTitle: "Advanced JavaScript",
-        creator: {
-          photoUrl: "https://via.placeholder.com/50",
-          name: "Alex Johnson",
-        },
-        courseLevel: "Advanced",
-        coursePrice: 799,
-      },
-    ],
-  },
-};
+import { getUserIdFromToken } from "@/utils/helpers";
+import { useUserProfile } from "@/hooks/useUsers";
+import { updateUserProfile } from "@/features/api/users/route";
 
 const Profile = () => {
+  const userId = getUserIdFromToken();
+  const { data: user, isLoading, error, refetch } = useUserProfile(userId);
   const [name, setName] = useState("");
-  const [profilePhoto, setProfilePhoto] = useState("");
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const user = mockUserData.user;
+  // useEffect(() => {
+  //   const fetchUserProfile = async() => {
+  //     console.log("Fteching user profile")
+  //     const response = await fetch('https://2c93-223-233-64-139.ngrok-free.app/users/675ac767944cba1d9bdbb15f/profile', {
+  //       method: 'GET',
+  //       headers: {
+  //         'Content-Type': 'application/json', // Include headers if necessary
+  //         // 'Authorization': `Bearer ${yourToken}`, // If your API requires an auth token
+  //       },
+  //     })
+  //       .then(async(response) => {
+  //         if (!response.ok) {
+  //           throw new Error(`HTTP error! status: ${response.status}`);
+  //         }
+  //         const json = await response.json()
+  //         console.log("response json", json) ; // Parse the response body as JSON
+  //       })
+  //       .then((data) => {
+  //         console.log('Response Data:', data);
+  //         // Use the data as needed in your frontend
+  //       })
+  //       .catch((error) => {
+  //         console.error('Error:', error);
+  //       });
+      
+  //     // console.log("response", response)
+  //   }
+  //   fetchUserProfile();
+  // }, [])
+  
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name);
+    }
+  }, [user]);
 
   const onChangeHandler = (e) => {
     const file = e.target.files?.[0];
@@ -63,9 +69,14 @@ const Profile = () => {
   };
 
   const updateUserHandler = async () => {
-    // Handle profile update here
+    await updateUserProfile(userId, name, profilePhoto);
     toast.success("Profile updated successfully");
+    setIsDialogOpen(false); // Close the dialog box
+    refetch()
   };
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error fetching user profile</p>;
 
   return (
     <div className="max-w-4xl mx-auto px-4 my-10">
@@ -85,7 +96,7 @@ const Profile = () => {
             <h1 className="font-semibold text-gray-900 dark:text-gray-100 ">
               Name:
               <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
-                {user.name}
+                {user?.name}
               </span>
             </h1>
           </div>
@@ -93,7 +104,7 @@ const Profile = () => {
             <h1 className="font-semibold text-gray-900 dark:text-gray-100 ">
               Email:
               <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
-                {user.email}
+                {user?.email}
               </span>
             </h1>
           </div>
@@ -101,11 +112,11 @@ const Profile = () => {
             <h1 className="font-semibold text-gray-900 dark:text-gray-100 ">
               Role:
               <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
-                {user.role.toUpperCase()}
+                {user?.role?.toUpperCase()}
               </span>
             </h1>
           </div>
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="mt-2">
                 Edit Profile
@@ -115,8 +126,7 @@ const Profile = () => {
               <DialogHeader>
                 <DialogTitle>Edit Profile</DialogTitle>
                 <DialogDescription>
-                  Make changes to your profile here. Click save when you're
-                  done.
+                  Make changes to your profile here. Click save when you're done.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -141,9 +151,7 @@ const Profile = () => {
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={updateUserHandler}>
-                  Save Changes
-                </Button>
+                <Button onClick={updateUserHandler}>Save Changes</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -152,10 +160,10 @@ const Profile = () => {
       <div>
         <h1 className="font-medium text-lg">Courses you're enrolled in</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 my-5">
-          {user.enrolledCourses.length === 0 ? (
+          {user?.enrolledCourses?.length === 0 ? (
             <h1>You haven't enrolled yet</h1>
           ) : (
-            user.enrolledCourses.map((course) => (
+            user?.enrolledCourses?.map((course) => (
               <Course course={course} key={course._id} />
             ))
           )}

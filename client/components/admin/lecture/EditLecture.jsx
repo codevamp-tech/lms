@@ -17,7 +17,7 @@ const EditLecture = () => {
               <ArrowLeft size={16} />
             </Button>
           </Link>
-          <h1 className="font-bold text-xl">Update Your Lecture</h1>
+          <h1 className="font-bold text-xl text-blue-500">Update Your Lecture</h1>
         </div>
       </div>
       <LectureTab />

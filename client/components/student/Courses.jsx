@@ -1,75 +1,74 @@
-"use client"
+"use client";
 import { Skeleton } from "@/components/ui/skeleton";
-import React from "react";
+import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
 import Course from "./Course";
+import useCourses from "@/hooks/useCourses";
 
 const Courses = () => {
-  // Mock data
-  const isLoading = false; // Set to true to simulate loading state
-  const isError = false; // Set to true to simulate error state
-  const data = {
-    courses: [
-      {
-        _id: "1",
-        courseThumbnail: "https://via.placeholder.com/150",
-        courseTitle: "React for Beginners",
-        creator: {
-          photoUrl: "https://via.placeholder.com/50",
-          name: "John Doe",
-        },
-        courseLevel: "Beginner",
-        coursePrice: 499,
-      },
-      {
-        _id: "2",
-        courseThumbnail: "https://via.placeholder.com/150",
-        courseTitle: "Advanced JavaScript",
-        creator: {
-          photoUrl: "https://via.placeholder.com/50",
-          name: "Jane Smith",
-        },
-        courseLevel: "Advanced",
-        coursePrice: 799,
-      },
-      {
-        _id: "3",
-        courseThumbnail: "https://via.placeholder.com/150",
-        courseTitle: "UI/UX Design Essentials",
-        creator: {
-          photoUrl: "https://via.placeholder.com/50",
-          name: "Alex Johnson",
-        },
-        courseLevel: "Intermediate",
-        coursePrice: 599,
-      },
-      {
-        _id: "4",
-        courseThumbnail: "https://via.placeholder.com/150",
-        courseTitle: "Full Stack Development Bootcamp",
-        creator: {
-          photoUrl: "https://via.placeholder.com/50",
-          name: "Emily Davis",
-        },
-        courseLevel: "All Levels",
-        coursePrice: 999,
-      },
-    ],
-  };
+  const { getPublishedCoursesQuery } = useCourses();
+  const { data, isLoading, isError } = getPublishedCoursesQuery();
+  const [selectedCategory, setselectedCategory] = useState("");
 
   if (isError) return <h1>Some error occurred while fetching courses.</h1>;
 
+  const courseCategory = data
+    ? [...new Set(data.map((course) => course.category))]
+    : [];
+
+  const filteredCourses = selectedCategory
+    ? data?.filter((course) => course.category === selectedCategory)
+    : data;
+
   return (
-    <div className="bg-gray-50 dark:bg-[#141414]">
+    <div className="bg-homeBackground dark:bg-navBackground">
       <div className="max-w-7xl mx-auto p-6">
-        <h2 className="font-bold text-3xl text-center mb-10">Our Courses</h2>
+        <h2 className="font-bold text-3xl text-center mb-6">Our Courses</h2>
+
+        {!isLoading && (
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
+            <Button
+              onClick={() => setselectedCategory("")}
+              className={`rounded-full ${
+                selectedCategory === ""
+                  ? "bg-blue-500 text-white"
+                  : "bg-white dark:bg-gray-800 hover:bg-gray-500 hover:text-white text-black transform hover:scale-105 transition-all duration-300"
+              }`}
+            >
+              All Category
+            </Button>
+            {courseCategory.map((category) => (
+              <Button
+                key={category}
+                onClick={() => setselectedCategory(category)}
+                className={`rounded-full ${
+                  selectedCategory === category
+                    ? "bg-blue-500 text-white"
+                    : "bg-white dark:bg-gray-800 hover:bg-gray-500 hover:text-white text-black transform hover:scale-105 transition-all duration-300"
+                }`}
+              >
+                {category}
+              </Button>
+            ))}
+          </div>
+        )}
+
+        {/* Courses Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {isLoading ? (
             Array.from({ length: 8 }).map((_, index) => (
               <CourseSkeleton key={index} />
             ))
+          ) : filteredCourses?.length > 0 ? (
+            filteredCourses.map((course) => (
+              <Course key={course._id} course={course} />
+            ))
           ) : (
-            data?.courses &&
-            data.courses.map((course) => <Course key={course._id} course={course} />)
+            <div className="col-span-full text-center py-8">
+              <p className="text-gray-600 dark:text-gray-400">
+                No courses available for {selectedLevel} category.
+              </p>
+            </div>
           )}
         </div>
       </div>
