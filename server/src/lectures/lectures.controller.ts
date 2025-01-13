@@ -1,4 +1,17 @@
-import { BadRequestException, Body, Controller, Delete, Get, HttpException, HttpStatus, InternalServerErrorException, NotFoundException, Param, Patch, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
+  InternalServerErrorException,
+  NotFoundException,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { LecturesService } from './lectures.service';
 import { EditLectureDto } from './dto/edit-lecture.dto';
 
@@ -27,6 +40,7 @@ export class LecturesController {
           'Lecture title and course ID are required',
         );
       }
+
       const lecture = await this.lecturesService.createLecture(
         courseId,
         lectureTitle,
@@ -37,6 +51,8 @@ export class LecturesController {
         message: 'Lecture created successfully',
       };
     } catch (error) {
+      console.error(error); // Log the error message for better insights
+
       if (error.message === 'Course not found') {
         throw new NotFoundException('Course not found');
       }
@@ -49,7 +65,10 @@ export class LecturesController {
     try {
       return await this.lecturesService.removeLecture(lectureId);
     } catch (error) {
-      throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error.message,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -60,7 +79,11 @@ export class LecturesController {
     @Body() editLectureDto: EditLectureDto,
   ) {
     try {
-      const updatedLecture = await this.lecturesService.editLecture(courseId, lectureId, editLectureDto);
+      const updatedLecture = await this.lecturesService.editLecture(
+        courseId,
+        lectureId,
+        editLectureDto,
+      );
       return {
         message: 'Lecture updated successfully.',
         lecture: updatedLecture,

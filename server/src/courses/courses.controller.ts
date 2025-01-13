@@ -12,6 +12,7 @@ import {
   UploadedFile,
   Put,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { Course } from './schemas/course.schema';
@@ -22,6 +23,13 @@ import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('courses')
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
+
+  @Delete(':id')
+  async deleteCourse(
+    @Param('id') courseId: string,
+  ): Promise<{ message: string }> {
+    return this.coursesService.deleteCourse(courseId);
+  }
 
   @Post()
   async createCourse(@Body() createCourseDto: CreateCourseDto) {
@@ -111,7 +119,7 @@ export class CoursesController {
   }
 
   @Get('published/all')
-  async getPublishedCourses(){
+  async getPublishedCourses() {
     try {
       const courses = await this.coursesService.getPublishedCourses();
       return courses;
