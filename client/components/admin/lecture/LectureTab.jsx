@@ -30,15 +30,21 @@ const LectureTab = () => {
   const { lectureId, courseId } = useParams();
   const { getLectureByIdQuery, deleteLecture, editLecture } = useLectures();
 
-  const { data: lecture, isLoading, error } = getLectureByIdQuery(lectureId);
+  const {
+    data: lecture,
+    isLoading,
+    error,
+    refetch,
+  } = getLectureByIdQuery(lectureId);
 
   useEffect(() => {
     if (lecture) {
       setLectureTitle(lecture.lectureTitle);
       setIsFree(lecture.isPreviewFree);
       setUploadVideoInfo(lecture.videoInfo);
+      refetch();
     }
-  }, [lecture]);
+  }, [refetch, lecture]);
 
   // Commenting out the API hooks
   // const [edtiLecture, { data, isLoading, error, isSuccess }] =
@@ -78,8 +84,9 @@ const LectureTab = () => {
       isPreviewFree: isFree,
     };
     // Commenting out the actual mutation
-    await editLecture({courseId, lectureId, lectureData});
-    toast.success("Lecture updated successfully (mock)");
+    await editLecture({ courseId, lectureId, lectureData });
+    toast.success("Lecture updated successfully");
+    router.push(`/admin/courses/${courseId}/lecture`);
   };
 
   const removeLectureHandler = async () => {
@@ -103,7 +110,7 @@ const LectureTab = () => {
 
   return (
     <Card>
-      <CardHeader className="flex justify-between">
+      <CardHeader className="flex flex-row justify-between">
         <div>
           <CardTitle>Edit Lecture</CardTitle>
           <CardDescription>
@@ -111,11 +118,7 @@ const LectureTab = () => {
           </CardDescription>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            disabled={false} // Mock value
-            variant="destructive"
-            onClick={removeLectureHandler}
-          >
+          <Button disabled={false} onClick={removeLectureHandler}>
             {false ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

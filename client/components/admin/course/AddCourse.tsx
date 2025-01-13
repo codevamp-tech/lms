@@ -21,21 +21,55 @@ import { getUserIdFromToken } from "@/utils/helpers";
 const AddCourse = () => {
   const [courseTitle, setCourseTitle] = useState("");
   const [category, setCategory] = useState("");
-  const { createNewCourse, isLoading, error } = useCourses();
-  const userId = getUserIdFromToken();
+  const [addCategory, setAddCategory] = useState("");
+  const [categories, setCategories] = useState([
+    "Next JS",
+    "Data Science",
+    "Frontend Development",
+    "Fullstack Development",
+    "MERN Stack Development",
+    "Javascript",
+    "Python",
+    "Docker",
+    "MongoDB",
+    "HTML",
+  ]);
 
+  const { createNewCourse, isLoading } = useCourses();
+  const userId = getUserIdFromToken();
   const router = useRouter();
 
-  const getSelectedCategory = (value) => {
-    setCategory(value);
+  const handleAddCategory = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && addCategory.trim() !== "") {
+      const newCategory = addCategory.trim();
+
+      if (!categories.includes(newCategory)) {
+        setCategories((prev) => [...prev, newCategory]); // Add new category
+        setCategory(newCategory); // Automatically select the new category
+        setAddCategory(""); // Clear input
+        toast.success(`Category "${newCategory}" added.`);
+      } else {
+        toast.error("Category already exists.");
+      }
+    }
   };
 
   const createCourseHandler = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!category || !courseTitle.trim()) {
+      toast.error("Please provide all required fields.");
+      return;
+    }
+
     try {
       await createNewCourse({ courseTitle, category, creatorId: userId });
       toast.success("Course created successfully.");
+
+      // Keep all categories, and pre-select the current category
+      setCourseTitle(""); // Clear course title
+      setAddCategory(""); // Clear addCategory input
+      setCategory(""); // Reset selected category
       router.push("/admin/courses");
     } catch (error) {
       toast.error("Failed to create course.");
@@ -49,8 +83,7 @@ const AddCourse = () => {
           Let's add a course, add some basic course details for your new course
         </h1>
         <p className="text-sm">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Possimus,
-          laborum!
+          Provide the necessary information to create a new course.
         </p>
       </div>
       <div className="space-y-4">
@@ -65,29 +98,26 @@ const AddCourse = () => {
         </div>
         <div>
           <Label>Category</Label>
-          <Select onValueChange={getSelectedCategory}>
+          <Select onValueChange={(value) => setCategory(value)} value={category}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select a category" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Category</SelectLabel>
-                <SelectItem value="Next JS">Next JS</SelectItem>
-                <SelectItem value="Data Science">Data Science</SelectItem>
-                <SelectItem value="Frontend Development">
-                  Frontend Development
-                </SelectItem>
-                <SelectItem value="Fullstack Development">
-                  Fullstack Development
-                </SelectItem>
-                <SelectItem value="MERN Stack Development">
-                  MERN Stack Development
-                </SelectItem>
-                <SelectItem value="Javascript">Javascript</SelectItem>
-                <SelectItem value="Python">Python</SelectItem>
-                <SelectItem value="Docker">Docker</SelectItem>
-                <SelectItem value="MongoDB">MongoDB</SelectItem>
-                <SelectItem value="HTML">HTML</SelectItem>
+                <Input
+                  type="text"
+                  value={addCategory}
+                  onChange={(e) => setAddCategory(e.target.value)}
+                  onKeyDown={handleAddCategory}
+                  placeholder="Add a new category"
+                  className="p-2"
+                />
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
               </SelectGroup>
             </SelectContent>
           </Select>

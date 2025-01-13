@@ -14,8 +14,6 @@ const PaymentStatus = () => {
       queryParams.forEach((value, key) => {
         data[key] = value;
       });
-
-      console.log("Payment Response Data:", data);
     }
   }, []);
 

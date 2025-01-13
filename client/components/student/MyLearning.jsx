@@ -1,65 +1,38 @@
-import React from "react";
+"use client";
+import React, { useEffect } from "react";
 import Course from "./Course";
-
-// Mock data for enrolled courses
-const mockData = {
-  user: {
-    enrolledCourses: [
-      {
-        _id: "1",
-        courseThumbnail: "https://via.placeholder.com/150",
-        courseTitle: "React for Beginners",
-        creator: {
-          photoUrl: "https://via.placeholder.com/50",
-          name: "John Doe",
-        },
-        courseLevel: "Beginner",
-        coursePrice: 499,
-      },
-      {
-        _id: "2",
-        courseThumbnail: "https://via.placeholder.com/150",
-        courseTitle: "Advanced JavaScript",
-        creator: {
-          photoUrl: "https://via.placeholder.com/50",
-          name: "Jane Smith",
-        },
-        courseLevel: "Advanced",
-        coursePrice: 799,
-      },
-      {
-        _id: "3",
-        courseThumbnail: "https://via.placeholder.com/150",
-        courseTitle: "UI/UX Design Essentials",
-        creator: {
-          photoUrl: "https://via.placeholder.com/50",
-          name: "Alex Johnson",
-        },
-        courseLevel: "Intermediate",
-        coursePrice: 599,
-      },
-    ],
-  },
-};
+import { useUserProfile } from "@/hooks/useUsers";
+import { getUserIdFromToken } from "@/utils/helpers";
 
 const MyLearning = () => {
-  // Replace the hook with mock data
-  const myLearning = mockData.user.enrolledCourses || [];
+  const userId = getUserIdFromToken();
+  const { data: user, isLoading, error, refetch } = useUserProfile(userId);
+
+  useEffect(() => {
+    if (user) {
+      refetch();
+    }
+  }, [refetch, user]);
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error fetching user profile</p>;
 
   return (
-    <div className="max-w-4xl mx-auto my-10 px-4 md:px-0">
-      <h1 className="font-bold text-2xl">MY LEARNING</h1>
-      <div className="my-5">
-        {myLearning.length === 0 ? (
-          <p>You are not enrolled in any course.</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {myLearning.map((course, index) => (
-              <Course key={index} course={course} />
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="overflow-y-hidden h-[80vh]">
+      {user?.enrolledCourses?.length === 0 ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <span className="justify-end">
+            {" "}
+            <h1>You haven't enrolled yet</h1>
+          </span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 m-5">
+          {user.enrolledCourses.map((course) => (
+            <Course course={course} key={course._id} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

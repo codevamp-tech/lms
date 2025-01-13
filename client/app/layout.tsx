@@ -1,9 +1,11 @@
+"use client"
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ReactQueryProvider from "./providers/ReactQueryProvider";
+import { usePathname } from "next/navigation";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -26,20 +28,28 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+
+  const pathname = usePathname();
+  const hideSidebar = pathname === "/login";
+
   return (
     <html lang="en">
-        <ThemeProvider>
-          <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-          >
-            <ReactQueryProvider>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <div className="flex-1 mt-16">{children}</div>
+      <ThemeProvider>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <ReactQueryProvider>
+            <div className="flex flex-col min-h-screen bg-homeBackground dark:bg-card ">
+              {!hideSidebar && <Navbar />}
+              <div
+                className={`w-full h-screen ${!hideSidebar ? "flex-1 mt-16 " : "max-w-full "
+                  }`}
+              >{children}</div>
             </div>
-            </ReactQueryProvider>
-          </body>
-        </ThemeProvider>
+          </ReactQueryProvider>
+        </body>
+      </ThemeProvider>
     </html>
   );
 }

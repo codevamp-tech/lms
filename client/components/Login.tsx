@@ -52,19 +52,29 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center w-full justify-center mt-20">
-      <Tabs defaultValue="login" className="w-[400px]">
-        <TabsList className="grid w-full grid-cols-2">
+    <div className="flex items-center h-full w-full bg-gray-50 justify-center pt-15">
+      <img
+        src="/img/tree-1.png"
+        alt="Left Tree"
+        className="absolute bottom-[0rem] left-20 w-60 md:w-84 lg:w-80 "
+      />
+      <img
+        src="/img/tree-2.png"
+        alt="Right Tree"
+        className="absolute bottom-[0rem] right-20 w-48 md:w-64 lg:w-70"
+      />
+      <Tabs defaultValue="login" className="w-[400px] ">
+        <TabsList className="grid w-full grid-cols-2 !bg-gray-100 !text-black">
           <TabsTrigger value="signup">Signup</TabsTrigger>
           <TabsTrigger value="login">Login</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="signup">
-          <Card>
+        <TabsContent value="signup" >
+          <Card className="!bg-white">
             <CardHeader>
-              <CardTitle>Signup</CardTitle>
+              <CardTitle className="!text-gray-800">Signup</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-2 !text-gray-600">
               <div className="space-y-1">
                 <Label>Name</Label>
                 <Input
@@ -108,11 +118,11 @@ const Login = () => {
         </TabsContent>
 
         <TabsContent value="login">
-          <Card>
+          <Card className="!bg-white">
             <CardHeader>
-              <CardTitle>Login</CardTitle>
+              <CardTitle className="!text-gray-800">Login</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-2 !text-gray-600">
               <div className="space-y-1">
                 <Label>Email</Label>
                 <Input
