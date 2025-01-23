@@ -9,6 +9,9 @@ const Courses = () => {
   const { getPublishedCoursesQuery } = useCourses();
   const { data, isLoading, isError } = getPublishedCoursesQuery();
   const [selectedCategory, setselectedCategory] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 12;
 
   if (isError) return <h1>Some error occurred while fetching courses.</h1>;
 
@@ -19,6 +22,14 @@ const Courses = () => {
   const filteredCourses = selectedCategory
     ? data?.filter((course) => course.category === selectedCategory)
     : data;
+
+  // Calculate pagination
+  const totalPages = Math.ceil((filteredCourses?.length || 0) / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedCourses = filteredCourses?.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   return (
     <div className="bg-homeBackground dark:bg-navBackground">
@@ -40,7 +51,10 @@ const Courses = () => {
             {courseCategory.map((category) => (
               <Button
                 key={category}
-                onClick={() => setselectedCategory(category)}
+                onClick={() => {
+                  setselectedCategory(category);
+                  setCurrentPage(1); // Reset to the first page
+                }}
                 className={`rounded-full ${
                   selectedCategory === category
                     ? "bg-blue-500 text-white"
@@ -59,18 +73,43 @@ const Courses = () => {
             Array.from({ length: 8 }).map((_, index) => (
               <CourseSkeleton key={index} />
             ))
-          ) : filteredCourses?.length > 0 ? (
-            filteredCourses.map((course) => (
+          ) : paginatedCourses?.length > 0 ? (
+            paginatedCourses.map((course) => (
               <Course key={course._id} course={course} />
             ))
           ) : (
             <div className="col-span-full text-center py-8">
               <p className="text-gray-600 dark:text-gray-400">
-                No courses available for {selectedLevel} category.
+                No courses available for {selectedCategory} category.
               </p>
             </div>
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {!isLoading && totalPages > 1 && (
+          <div className="flex justify-end items-end mt-8 ">
+            <span className="text-gray-700 dark:text-white text-center pr-10">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-gray-200 mr-2 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-white rounded"
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-white rounded"
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -9,14 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { BadgeInfo, CalendarDays, Lock, PlayCircle, Users } from "lucide-react";
+import { CalendarDays, Lock, PlayCircle, Users } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
 import { useParams, useRouter } from "next/navigation";
 import { getUserIdFromToken } from "@/utils/helpers";
 import useCoursePurchase from "@/hooks/useCoursePurchase";
 import { createCheckout } from "@/features/api/course-purchase/route";
+import { toast } from "sonner";
 
 const CourseDetail = () => {
   const descriptionRef = useRef(null);
@@ -25,6 +25,7 @@ const CourseDetail = () => {
   const userId = getUserIdFromToken();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
+  const [contentHeight, setContentHeight] = useState(0);
   const { getCourseDetailsWithPurchaseStatusQuery } = useCoursePurchase();
 
   const {
@@ -37,7 +38,8 @@ const CourseDetail = () => {
   useEffect(() => {
     if (descriptionRef.current && course?.course?.description) {
       const actualHeight = descriptionRef.current.scrollHeight;
-      const maxHeight = 150; // h-76 equivalent in pixels
+      const maxHeight = 180; // h-76 equivalent in pixels
+      setContentHeight(actualHeight);
       setIsTruncated(actualHeight > maxHeight);
     }
   }, [course]);
@@ -60,10 +62,10 @@ const CourseDetail = () => {
         // Redirect to the checkout URL
         window.location.href = data.url;
       } else {
-        console.error("Error: No URL returned from the checkout API.");
+        toast.error("Error: No URL returned from the checkout API.");
       }
     } catch (error) {
-      console.error("Error during checkout:", error);
+      toast.error("Error during checkout:", error);
     }
   };
 
@@ -112,7 +114,13 @@ const CourseDetail = () => {
               <div
                 ref={descriptionRef}
                 className={`text-sm p-2 transition-all duration-300 ${
-                  isExpanded ? "h-auto" : "overflow-hidden h-[180px]"
+                  isExpanded
+                    ? "h-auto"
+                    : `overflow-hidden ${
+                        contentHeight > 180
+                          ? "h-[180px]"
+                          : `h-[${contentHeight}px]`
+                      }`
                 }`}
                 dangerouslySetInnerHTML={{
                   __html: course.course.description || "",

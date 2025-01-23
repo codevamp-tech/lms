@@ -13,10 +13,17 @@ const useLectures = () => {
   const createLectureMutation = useMutation<
     any,
     Error,
-    { courseId: string; lectureTitle: string }
+    {
+      courseId: string;
+      lectureData: {
+        lectureTitle?: string;
+        videoInfo?: { videoUrl?: string; publicId?: string };
+        isPreviewFree?: boolean;
+      };
+    }
   >({
-    mutationFn: ({ courseId, lectureTitle }) =>
-      createLecture(courseId, lectureTitle),
+    mutationFn: ({ courseId, lectureData }) =>
+      createLecture(courseId, lectureData),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["lectures", variables.courseId],

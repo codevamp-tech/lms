@@ -9,7 +9,6 @@ import {
   getCourseLectures,
   togglePublishCourse,
   getPublishedCourses,
-  deleteCourses,
   deleteCourse,
 } from "../features/api/courses/route";
 import { toast } from "sonner";

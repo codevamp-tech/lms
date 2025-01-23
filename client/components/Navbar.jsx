@@ -57,7 +57,7 @@ const Navbar = () => {
   useEffect(() => {
     if (!userId) {
       clearCookies();
-      router.push("/login");
+      // router.push("/login");
       refetch();
     }
   }, [userId, router]);
@@ -117,10 +117,14 @@ const Navbar = () => {
       {/* Desktop */}
       <div className="max-w-7xl mx-auto hidden md:flex justify-between items-center gap-10 h-full">
         <div className="flex items-center gap-2">
-          <School size={"30"} className="text-white" />
+          <img
+            src="/img/logo.png"
+            alt="logo"
+            className="h-9 w-9  filter brightness-0 invert "
+          />
           <Link href="/">
             <h1 className="hidden md:block font-extrabold text-2xl text-white">
-              E-Learning
+              LMS
             </h1>
           </Link>
         </div>
@@ -149,7 +153,9 @@ const Navbar = () => {
                   Log out
                 </DropdownMenuItem>
               </DropdownMenuGroup>
-              {user?.role === "instructor" && (
+              {(user?.role === "super admin" ||
+                user?.role === "admin" ||
+                user?.role === "instructor") && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
@@ -164,7 +170,14 @@ const Navbar = () => {
       </div>
       {/* Mobile device */}
       <div className="flex md:hidden items-center justify-between px-4 h-full">
-        <h1 className="font-extrabold text-2xl">E-learning</h1>
+        <div className="flex gap-3">
+          <img
+            src="/img/logo.png"
+            alt="logo"
+            className="h-9 w-9  filter brightness-0 invert "
+          />
+          <h1 className="font-extrabold text-2xl">LMS</h1>
+        </div>
         <MobileNavbar user={user} />
       </div>
     </div>
