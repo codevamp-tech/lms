@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { deleteCourses } from "@/features/api/courses/route";
+// import { deleteCourses } from "@/features/api/courses/route";
 import useCourses from "@/hooks/useCourses";
 import { Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -38,6 +38,7 @@ const CourseTab = () => {
     error,
     refetch,
   } = getCourseByIdQuery(courseId);
+
 
   // Local state for form inputs
   const [input, setInput] = useState({

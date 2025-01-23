@@ -16,12 +16,14 @@ import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const Login = () => {
   const [signupInput, setSignupInput] = useState({
     name: "",
     email: "",
     password: "",
+    role: "student",
   });
   const [loginInput, setLoginInput] = useState({ email: "", password: "" });
   const router = useRouter()
@@ -36,18 +38,35 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = (type: "signup" | "login") => {
+  const handleSubmit = async (type: "signup" | "login") => {
     if (type === "signup") {
-      signupUser(signupInput)
-      setSignupInput({
-        name: "",
-        email: "",
-        password: "",
-      })
+      try {
+        await signupUser(signupInput);
+        setSignupInput({ name: "", email: "", password: "", role: "student" });
+        toast.success("Signup successful! You can now log in.");
+      } catch (error) {
+        console.error("Signup error:", error);
+        toast.error("Signup failed. Please try again.");
+      }
     } else {
-      loginUser(loginInput)
-      setLoginInput({ email: "", password: "" })
-      router.push('/')
+      try {
+        const response = await loginUser(loginInput);
+        setLoginInput({ email: "", password: "" })
+        if (response?.user.role === "instructor") {
+          router.push("/admin/dashboard");
+        } else if (response?.user.role === "student") {
+          router.push("/");
+        } else if (response?.user.role === "admin") {
+          router.push("/admin/dashboard");
+        }
+        else {
+          toast.error("Unsupported role detected. Please contact support.");
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        toast.error("Login failed. Please check your credentials.");
+
+      }
     }
   };
 
@@ -106,6 +125,18 @@ const Login = () => {
                   required
                 />
               </div>
+              <div className="space-y-1">
+                <Label>Role</Label>
+                <select
+                  name="role"
+                  value={signupInput.role}
+                  onChange={(e) => changeInputHandler(e, "signup")}
+                  className="border border-gray-300 rounded-md p-2 w-full"
+                >
+                  <option value="student">Student</option>
+                  <option value="instructor">Instructor</option>
+                </select>
+              </div>
             </CardContent>
             <CardFooter>
               <Button
@@ -143,6 +174,9 @@ const Login = () => {
                   type="password"
                   required
                 />
+              </div>
+              <div>
+                <Link href="/forgot-password" className="hover:underline mt-4 ">Forgot password?</Link>
               </div>
             </CardContent>
             <CardFooter>

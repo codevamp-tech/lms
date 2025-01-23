@@ -31,7 +31,7 @@ export default function RootLayout({
 
 
   const pathname = usePathname();
-  const hideSidebar = pathname === "/login";
+  const hideSidebar = pathname === "/login" || pathname === "/reset-password" || pathname === "/forgot-password";
 
   return (
     <html lang="en">
