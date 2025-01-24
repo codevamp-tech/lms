@@ -5,6 +5,7 @@ import { Course } from 'src/courses/schemas/course.schema';
 import { Lecture } from './schemas/lecture.schema';
 import { deleteVideoFromCloudinary } from 'utils/cloudinary';
 import { EditLectureDto } from './dto/edit-lecture.dto';
+import { CreateLectureDto } from './dto/create-lecture.dto';
 
 @Injectable()
 export class LecturesService {
@@ -18,28 +19,6 @@ export class LecturesService {
     if (!lecture) {
       throw new NotFoundException('Lecture not found!');
     }
-    return lecture;
-  }
-
-  async createLecture(
-    courseId: string,
-    lectureTitle: string,
-  ): Promise<Lecture> {
-    const lecture = new this.lectureModel({
-      lectureTitle,
-      courseId, // Ensure you're passing courseId here
-    });
-
-    await lecture.save(); // Save the lecture to the database
-
-    const course = await this.courseModel.findById(courseId).exec();
-    if (!course) {
-      throw new Error('Course not found');
-    }
-
-    course.lectures.push(lecture._id as any);
-    await course.save();
-
     return lecture;
   }
 
@@ -61,6 +40,31 @@ export class LecturesService {
     );
 
     return { message: 'Lecture removed successfully.' };
+  }
+
+  async createLecture(courseId: string, createLectureDto: CreateLectureDto) {
+    const { lectureTitle, videoInfo, isPreviewFree } = createLectureDto;
+
+    const lecture = new this.lectureModel({
+      courseId, // Ensure you're passing courseId here
+    });
+
+    if (lectureTitle) lecture.lectureTitle = lectureTitle;
+    if (videoInfo?.videoUrl) lecture.videoUrl = videoInfo.videoUrl;
+    if (videoInfo?.publicId) lecture.publicId = videoInfo.publicId;
+    if (isPreviewFree !== undefined) lecture.isPreviewFree = isPreviewFree;
+
+    await lecture.save(); // Save the lecture to the database
+
+    const course = await this.courseModel.findById(courseId).exec();
+    if (!course) {
+      throw new Error('Course not found');
+    }
+
+    course.lectures.push(lecture._id as any);
+    await course.save();
+
+    return lecture;
   }
 
   async editLecture(
