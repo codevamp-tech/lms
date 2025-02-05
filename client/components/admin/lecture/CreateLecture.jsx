@@ -65,7 +65,7 @@ const CreateLecture = () => {
       toast.error("Please provide all required fields.");
       return;
     }
-
+    const companyId = localStorage.getItem("companyId");
     const lectureData = {
       lectureTitle,
       videoInfo: uploadVideoInfo,
@@ -73,7 +73,7 @@ const CreateLecture = () => {
     };
 
     try {
-      await createLecture({ courseId, lectureData });
+      await createLecture({ courseId, lectureData, companyId });
       setLectureTitle("");
       setUploadVideoInfo(null);
       setIsFree(false);

@@ -120,8 +120,13 @@ export const togglePublishCourse = async (
 };
 
 export const getPublishedCourses = async () => {
+  const companyId = localStorage.getItem("companyId");
   try {
-    const { data } = await axios.get(`${API_BASE_URL}/published/all`);
+    const { data } = await axios.get(`${API_BASE_URL}/published/all`, {
+      headers: {
+        Authorization: `Bearer ${companyId}`, // Send companyId in Authorization header
+      },
+    });
     return data;
   } catch (error) {
     console.error("Error fetching course:", error);

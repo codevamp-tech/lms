@@ -27,6 +27,7 @@ const Login = () => {
   });
   const [loginInput, setLoginInput] = useState({ email: "", password: "" });
   const router = useRouter()
+  const [signupError, setSignupError] = useState<string | null>(null);
 
 
   const changeInputHandler = (e: React.ChangeEvent<HTMLInputElement>, type: "signup" | "login") => {
@@ -43,21 +44,32 @@ const Login = () => {
       try {
         await signupUser(signupInput);
         setSignupInput({ name: "", email: "", password: "", role: "student" });
+        setSignupError(null);
         toast.success("Signup successful! You can now log in.");
-      } catch (error) {
-        console.error("Signup error:", error);
-        toast.error("Signup failed. Please try again.");
+      } catch (error: any) {
+        if (error.response?.data?.message === 'Email already in use') {
+          setSignupError("Email is already registered. Please try a different email.");
+        } else {
+          setSignupError("Email is already registered.Please try a different email.");
+        }
       }
     } else {
       try {
         const response = await loginUser(loginInput);
         setLoginInput({ email: "", password: "" })
+
+        if (response?.user?.companyId) {
+          localStorage.setItem("companyId", response.user.companyId);
+        }
+
         if (response?.user.role === "instructor") {
           router.push("/admin/dashboard");
         } else if (response?.user.role === "student") {
           router.push("/");
         } else if (response?.user.role === "admin") {
           router.push("/admin/dashboard");
+        } else if (response?.user.role === "superadmin") {
+          router.push("/admin/company");
         }
         else {
           toast.error("Unsupported role detected. Please contact support.");
@@ -88,7 +100,7 @@ const Login = () => {
           <TabsTrigger value="login">Login</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="signup" >
+        <TabsContent value="signup">
           <Card className="!bg-white">
             <CardHeader>
               <CardTitle className="!text-gray-800">Signup</CardTitle>
@@ -127,27 +139,24 @@ const Login = () => {
               </div>
               <div className="space-y-1">
                 <Label>Role</Label>
-                <select
-                  name="role"
-                  value={signupInput.role}
-                  onChange={(e) => changeInputHandler(e, "signup")}
-                  className="border border-gray-300 rounded-md p-2 w-full"
-                >
-                  <option value="student">Student</option>
-                  <option value="instructor">Instructor</option>
-                </select>
+                <Input
+                  type="text"
+                  value="Student"
+                  readOnly
+                  className="border border-gray-300 rounded-md p-2 w-full bg-gray-100 cursor-not-allowed"
+                />
               </div>
+              {signupError && (
+                <p className="text-red-500 text-sm mt-1">{signupError}</p>
+              )}
             </CardContent>
             <CardFooter>
-              <Button
-                onClick={() => handleSubmit("signup")}
-              >
+              <Button onClick={() => handleSubmit("signup")}>
                 {"Signup"}
               </Button>
             </CardFooter>
           </Card>
         </TabsContent>
-
         <TabsContent value="login">
           <Card className="!bg-white">
             <CardHeader>

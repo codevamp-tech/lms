@@ -127,10 +127,10 @@ export class CoursesService {
     return course.lectures;
   }
 
-  async getPublishedCourses() {
+  async getPublishedCourses(companyId: string) {
     try {
       const courses = await this.courseModel
-        .find({ isPublished: true })
+        .find({ isPublished: true, companyId })
         .populate({ path: 'creator', select: 'name photoUrl' });
 
       if (!courses || courses.length === 0) {

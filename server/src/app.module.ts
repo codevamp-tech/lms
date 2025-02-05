@@ -13,6 +13,7 @@ import * as multer from 'multer';
 import * as path from 'path';
 import * as fs from 'fs';
 import { StripeWebhookMiddleware } from './middlewares/stripe-webhook.middleware';
+import { CompanyModule } from './company/company.module';
 
 // Ensure uploads directory exists
 const uploadDir = './uploads';
@@ -62,7 +63,8 @@ if (!fs.existsSync(uploadDir)){
     LecturesModule,
     CoursePurchaseModule,
     CourseProgressModule,
-    VideoUploadModule
+    VideoUploadModule,
+    CompanyModule
   ],
   controllers: [AppController],
   providers: [AppService],

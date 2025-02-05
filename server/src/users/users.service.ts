@@ -2,17 +2,21 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { User } from './schemas/user.schema';
 import * as jwt from 'jsonwebtoken';
 import { deleteMediaFromCloudinary, uploadMedia } from 'utils/cloudinary';
 import * as nodemailer from 'nodemailer';
 import { createTransport } from 'nodemailer';
-import { CreateInstructorDto } from './dto/create-user';
+import { CreateInstructorDto } from './dto/create-instructor';
+import { CreateAdminDto } from './dto/create-admin';
+import { exec } from 'child_process';
+import { Company } from 'src/company/schemas/company.schema';
 // import { uploadMedia, deleteMediaFromCloudinary } from './media.service';
 
 @Injectable()
@@ -29,6 +33,13 @@ export class UsersService {
   });
 
   async signup(data: { name: string; email: string; password: string }) {
+    const existingUser = await this.userModel
+      .findOne({ email: data.email })
+      .exec();
+    if (existingUser) {
+      throw new Error('Email is already registered');
+    }
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const newUser = new this.userModel({
       ...data,
@@ -77,34 +88,107 @@ export class UsersService {
     }
   }
 
-  async addInstructor(createInstructorDto: CreateInstructorDto) {
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(createInstructorDto.password, 10);
+  async createAdmin(createAdminDto: CreateAdminDto) {
+    const existingAdmin = await this.userModel.findOne({
+      email: createAdminDto.email,
+    });
 
-    // Create new instructor
-    const newInstructor = new this.userModel({
-      ...createInstructorDto,
+    if (existingAdmin) {
+      throw new HttpException(
+        'Email is already registered',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(createAdminDto.password, 10);
+
+    const newAdmin = new this.userModel({
+      ...createAdminDto,
       password: hashedPassword,
     });
 
-    // Save the instructor to the database
-    const savedInstructor = await newInstructor.save();
+    if (createAdminDto.companyId) {
+      newAdmin.companyId = new Types.ObjectId(createAdminDto.companyId);
+    }
+
+    const savedAdmin = await newAdmin.save();
 
     // Send welcome email to the instructor
-    await this.sendWelcomeEmail(
-      createInstructorDto.email,
-      savedInstructor.name,
-      createInstructorDto.password,
-      savedInstructor._id as string,
+    await this.sendAdminEmail(
+      createAdminDto.email,
+      savedAdmin.name,
+      createAdminDto.password,
+      createAdminDto.companyId,
+      savedAdmin._id as string,
     );
 
-    return savedInstructor;
+    return newAdmin.save();
   }
 
-  async getInstructors() {
+  async getAdmins() {
+    try {
+      const admins = await this.userModel
+        .find({ role: 'admin' })
+        .select('-password')
+        .populate('companyId');
+      if (!admins.length) {
+        throw new Error('No admins found');
+      }
+
+      return {
+        success: true,
+        admins,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new Error('Failed to load admins');
+    }
+  }
+
+  async addInstructor(createInstructorDto: CreateInstructorDto) {
+    try {
+      const existingInstructor = await this.userModel.findOne({
+        email: createInstructorDto.email,
+      });
+
+      if (existingInstructor) {
+        throw new Error('Email already in use');
+      }
+
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(
+        createInstructorDto.password,
+        10,
+      );
+
+      // Create new instructor
+      const newInstructor = new this.userModel({
+        ...createInstructorDto,
+        password: hashedPassword,
+      });
+
+      // Save the instructor to the database
+      const savedInstructor = await newInstructor.save();
+
+      // Send welcome email to the instructor
+      await this.sendWelcomeEmail(
+        createInstructorDto.email,
+        savedInstructor.name,
+        createInstructorDto.password,
+        savedInstructor._id as string,
+      );
+
+      return savedInstructor;
+    } catch (error) {
+      console.error('Error in addInstructor:', error); // Log the error
+      throw new Error('Internal server error');
+    }
+  }
+
+  async getInstructors(companyId: string) {
     try {
       const instructors = await this.userModel
-        .find({ role: 'instructor' })
+        .find({ role: 'instructor', companyId: new Types.ObjectId(companyId) })
         .select('-password');
 
       if (!instructors.length) {
@@ -119,6 +203,26 @@ export class UsersService {
       console.error(error);
       throw new Error('Failed to load instructors');
     }
+  }
+
+  async toggleInstructorStatus(
+    id: string,
+    isStatus: boolean,
+  ): Promise<{ status: boolean; message: string }> {
+    console.log(` New Status: ${isStatus}`);
+
+    const user = await this.userModel
+      .findByIdAndUpdate(id, { isStatus: isStatus }, { new: true })
+      .exec();
+
+    if (!user) throw new NotFoundException('User not found');
+
+    console.log(`Updated User:`, user); // Debugging output
+
+    return {
+      status: user.isStatus,
+      message: user.isStatus ? 'Active' : 'Inactive',
+    };
   }
 
   async updateProfile(
@@ -299,6 +403,58 @@ export class UsersService {
     } catch (error) {
       console.error(`Failed to send reset password email to ${email}`, error);
       throw new Error('Could not send reset password email');
+    }
+  }
+
+  private async sendAdminEmail(
+    email: string,
+    name: string,
+    password: string,
+    userId: string,
+    companyname: string,
+  ) {
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET is not defined');
+    }
+    const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+    const mailOptions = {
+      from: 'mohsinansari4843@gmail.com',
+      to: `${email}`,
+      subject: 'Welcome to Our Platform and Reset Your Password',
+      html: `
+      <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+        <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+          <h2 style="color: #007BFF; text-align: center;">Welcome, ${name}</h2>
+          <p>Dear ${name},</p>
+          <p>We are excited to inform you that you have been successfully added as an Admin to our platform.</p>
+          <p><strong>Your Temporary Password:</strong></p>
+          <div style="background-color: #f8f9fa; padding: 10px; border: 1px solid #ccc; border-radius: 5px; text-align: center; font-size: 16px;">
+            <strong>${password}</strong>
+          </div>
+          <p>For security reasons, we recommend resetting your password as soon as possible.</p>
+          <div style="text-align: center; margin-top: 20px;">
+            <a href="${resetLink}" 
+               style="background-color: #007BFF; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px; display: inline-block; font-size: 16px;">
+               Reset Password
+            </a>
+          </div>
+          <p>If you did not request this, you can safely ignore this email.</p>
+          <p style="margin-top: 20px;">This link will expire in 1 hour.</p>
+          <p>Best Regards,</p>
+          <p>The LMS Team</p>
+        </div>
+      </div>
+    `,
+    };
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Welcome and reset email sent to ${email}`);
+    } catch (error) {
+      console.error(`Failed to send welcome email to ${email}`, error);
+      throw new Error('Could not send welcome email');
     }
   }
 }

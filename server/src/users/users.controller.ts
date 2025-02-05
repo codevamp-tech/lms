@@ -12,6 +12,8 @@ import {
   HttpException,
   HttpStatus,
   HttpCode,
+  BadRequestException,
+  Headers,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 // import { AuthGuard } from '../auth/auth.guard';
@@ -19,9 +21,10 @@ import { UsersService } from './users.service';
 import { User } from './schemas/user.schema';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UseInterceptors } from '@nestjs/common';
-import { CreateInstructorDto } from './dto/create-user';
+import { CreateInstructorDto } from './dto/create-instructor';
 import { ResetPasswordDto } from './dto/reset-password';
 import { ForgotPasswordDto } from './dto/forgot-password';
+import { CreateAdminDto } from './dto/create-admin';
 
 @Controller('users')
 export class UsersController {
@@ -31,12 +34,32 @@ export class UsersController {
   async signup(
     @Body() body: { name: string; email: string; password: string },
   ) {
-    return this.usersService.signup(body);
+    try {
+      return await this.usersService.signup(body);
+    } catch (error) {
+      // Check if the error is related to an existing email
+      if (error.message === 'Email is already registered') {
+        throw new HttpException(
+          'Email is already registered',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      // If it's a different error, send a generic internal server error
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Post('addinstructor')
   async addInstructor(@Body() createInstructorDto: CreateInstructorDto) {
     return await this.usersService.addInstructor(createInstructorDto);
+  }
+
+  @Post('addAdmin')
+  async createAdmin(@Body() createAdminDto: CreateAdminDto) {
+    return this.usersService.createAdmin(createAdminDto);
   }
 
   @Post('login')
@@ -53,6 +76,7 @@ export class UsersController {
           email: user.email,
           role: user.role,
           name: user.name,
+          companyId: user.companyId,
         },
         token,
       };
@@ -77,8 +101,43 @@ export class UsersController {
   }
 
   @Get('instructors')
-  async getInstructors() {
-    return this.usersService.getInstructors();
+  async getInstructors(@Headers('Authorization') Auth: string) {
+    const companyId = Auth.split(' ')[1];
+    return this.usersService.getInstructors(companyId);
+  }
+
+  @Get('admins')
+  async getAdmins() {
+    try {
+      const response = await this.usersService.getAdmins();
+      return response;
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  @Put('toggle-status/:id')
+  async toggleInstructorStatus(
+    @Param('id') id: string,
+    @Query('status') status: string,
+  ) {
+    if (status !== 'true' && status !== 'false') {
+      throw new BadRequestException('Invalid status value');
+    }
+
+    const isStatus = status === 'true'; // Convert string to boolean
+
+    const statusMessage = await this.usersService.toggleInstructorStatus(
+      id,
+      isStatus,
+    );
+
+    return {
+      message: `Instructor is ${statusMessage.message}`,
+    };
   }
 
   @Post('forgot-password')
