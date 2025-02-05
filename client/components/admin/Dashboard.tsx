@@ -4,25 +4,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { getUserIdFromToken } from "@/utils/helpers";
 import useCourses from "@/hooks/useCourses";
+import Link from "next/link";
+
 
 const Dashboard: React.FC = () => {
 
   const { getCreatorCoursesQuery } = useCourses();
   const userId = getUserIdFromToken();
   const { data: purchasedCourse, isLoading, error } = getCreatorCoursesQuery(userId);
+
+  const totalCourses = purchasedCourse?.length || 0;
+
   const courseData = purchasedCourse?.map((course) => ({
     name: course.courseTitle,
     price: course.coursePrice,
   }));
 
   const totalRevenue = purchasedCourse?.reduce((acc, course) => {
-    const enrolledStudents = course.enrolledStudents?.length || 0; // Safely handle missing fields
+    const enrolledStudents = course.enrolledStudents?.length || 0;
     return acc + course.coursePrice * enrolledStudents;
   }, 0) || 0;
 
   const totalSales = purchasedCourse?.reduce((acc, course) => {
-    const enrolledStudents = course.enrolledStudents?.length || 0; // Safely handle missing fields
-    return acc + enrolledStudents;
+    const enrolledStudents = course.enrolledStudents?.length || 0;
   }, 0) || 0;
 
   if (isLoading) {
@@ -35,6 +39,16 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <Link href="/admin/courses" >
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <CardHeader>
+            <CardTitle>Total Courses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-blue-600">{totalCourses}</p>
+          </CardContent>
+        </Card>
+      </Link>
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader>
           <CardTitle>Total Sales</CardTitle>

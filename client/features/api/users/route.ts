@@ -55,27 +55,6 @@ export const signupUser = async (signupInput: {
   }
 };
 
-export const createInstructor = async (instructorData: {
-  name: string;
-  email: string;
-  role: string;
-}) => {
-  try {
-    const { data } = await axios.post(
-      `${API_BASE_URL}/addinstructor`,
-      instructorData,
-      {
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-    return data; // Return the server's response
-  } catch (error: any) {
-    throw new Error(
-      error.response?.data?.message || "Failed to add instructor"
-    );
-  }
-};
-
 export const fetchUserProfile = async (userId: string | null) => {
   if (!userId) {
     return null; // or an empty object {} depending on your preference
@@ -93,11 +72,18 @@ export const fetchUserProfile = async (userId: string | null) => {
 
 export const getInstructor = async () => {
   try {
-    const { data } = await axios.get(`${API_BASE_URL}/instructors`);
+    const companyId = localStorage.getItem("companyId"); // Retrieve companyId from localStorage
+
+    const { data } = await axios.get(`${API_BASE_URL}/instructors`, {
+      headers: {
+        Authorization: `Bearer ${companyId}`, // Send companyId in Authorization header
+      },
+    });
+
     return data;
   } catch (error: any) {
     throw new Error(
-      error.response?.data?.message || "Failed to fetch user profile"
+      error.response?.data?.message || "Failed to fetch instructors"
     );
   }
 };

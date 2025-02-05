@@ -185,7 +185,7 @@ const CourseTab = () => {
         >
           {course?.courseStatus}
         </Button>
-        <div className="space-x-2">
+        <div className="space-x-1">
           <Button
             disabled={!course?.lectures?.length}
             variant="outline"

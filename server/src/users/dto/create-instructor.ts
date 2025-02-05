@@ -14,4 +14,7 @@ export class CreateInstructorDto {
 
   @IsNotEmpty()
   password: string;
+
+  @IsNotEmpty()
+  companyId: string;
 }

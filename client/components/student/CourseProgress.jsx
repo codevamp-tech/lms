@@ -115,7 +115,7 @@ const CourseProgress = () => {
         {/* Lecture Sidebar  */}
         <div className="flex flex-col w-full mb-10 h-[490px] md:w-2/5 border-t md:border-t-0 md:border-l border-gray-400 md:pl-4 pt-4 md:pt-0">
           <h2 className="font-semibold text-xl mb-4 text-blue-500">
-            Course Lecture
+            Course Content
           </h2>
           <div className="flex-1 overflow-y-auto">
             {data?.courseDetails.lectures.map((lecture) => (
