@@ -52,7 +52,7 @@ export class CoursesService {
 
   async getCourseById(courseId: string): Promise<Course> {
     const course = await this.courseModel.findById(courseId).exec();
-    if (!course) {  
+    if (!course) {
       throw new NotFoundException('Course not found!');
     }
     return course;
@@ -67,26 +67,29 @@ export class CoursesService {
     if (!course) {
       throw new NotFoundException('Course not found!');
     }
-  
+
     let courseThumbnail = course.courseThumbnail;
-  
+
     // Handle thumbnail upload
     if (thumbnail) {
       try {
         // Delete existing thumbnail if any
         if (course.courseThumbnail) {
-          const publicId = course.courseThumbnail.split('/').pop()?.split('.')[0];
+          const publicId = course.courseThumbnail
+            .split('/')
+            .pop()
+            ?.split('.')[0];
           if (publicId) {
             await deleteMediaFromCloudinary(publicId);
           }
         }
-  
+
         // Upload buffer to Cloudinary
         const uploaded = await uploadMedia(thumbnail.buffer, {
           folder: 'course_thumbnails',
-          resource_type: 'image'
+          resource_type: 'image',
         });
-  
+
         if (uploaded && uploaded.secure_url) {
           courseThumbnail = uploaded.secure_url;
         } else {
@@ -124,10 +127,10 @@ export class CoursesService {
     return course.lectures;
   }
 
-  async getPublishedCourses() {
+  async getPublishedCourses(companyId: string) {
     try {
       const courses = await this.courseModel
-        .find({ isPublished: true })
+        .find({ isPublished: true, companyId })
         .populate({ path: 'creator', select: 'name photoUrl' });
 
       if (!courses || courses.length === 0) {
@@ -137,11 +140,16 @@ export class CoursesService {
       return courses;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException('Failed to fetch published courses');
+      throw new InternalServerErrorException(
+        'Failed to fetch published courses',
+      );
     }
   }
 
-  async togglePublishStatus(courseId: string, isPublished: boolean): Promise<string> {
+  async togglePublishStatus(
+    courseId: string,
+    isPublished: boolean,
+  ): Promise<string> {
     const course = await this.courseModel.findById(courseId);
 
     if (!course) {
@@ -162,5 +170,28 @@ export class CoursesService {
       .exec();
   }
 
-  // Add methods for updating, deleting, or finding a single course
+  async deleteCourse(courseId: string): Promise<{ message: string }> {
+    try {
+      // Check if the course exists
+      const course = await this.courseModel.findById(courseId);
+      if (!course) {
+        throw new NotFoundException(`Course with ID ${courseId} not found.`);
+      }
+
+      // Delete all associated lectures
+      await this.lectureModel.deleteMany({ courseId });
+
+      // Delete the course itself
+      await this.courseModel.findByIdAndDelete(courseId);
+
+      return {
+        message: 'Course and all associated data deleted successfully.',
+      };
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      throw new InternalServerErrorException('Failed to delete course.');
+    }
+  }
 }
+
+// Add methods for updating, deleting, or finding a single course

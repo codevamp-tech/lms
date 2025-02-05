@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+// import { deleteCourses } from "@/features/api/courses/route";
 import useCourses from "@/hooks/useCourses";
 import { Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -28,14 +29,16 @@ import { toast } from "sonner";
 const CourseTab = () => {
   const { courseId } = useParams();
   const router = useRouter();
-  const { getCourseByIdQuery, editCourse, publishCourse } = useCourses();
+  const { getCourseByIdQuery, editCourse, publishCourse, deleteCourse } = useCourses();
 
   // Fetch course data
   const {
     data: course,
     isLoading: isCourseLoading,
     error,
+    refetch,
   } = getCourseByIdQuery(courseId);
+
 
   // Local state for form inputs
   const [input, setInput] = useState({
@@ -48,8 +51,23 @@ const CourseTab = () => {
   });
 
   const [thumbnail, setThumbnail] = useState<File | null>(null);
+  const [courseStatus, setCourseStatus] = useState();
   const [previewThumbnail, setPreviewThumbnail] = useState<string | null>("");
 
+  const [categories, setCategories] = useState([
+    ...new Set([
+      "Next JS",
+      "Data Science",
+      "Frontend Development",
+      "Fullstack Development",
+      "MERN Stack Development",
+      "Javascript",
+      "Python",
+      "Docker",
+      "MongoDB",
+      "HTML",
+    ])
+  ]);
   // Populate form with fetched course data
   useEffect(() => {
     if (course) {
@@ -62,8 +80,14 @@ const CourseTab = () => {
         coursePrice: course.coursePrice || "",
       });
       setPreviewThumbnail(course.courseThumbnail || "");
+      setCourseStatus(course.courseStatus);
+      if (course.category && !categories.includes(course.category)) {
+        setCategories((prev) => [...new Set([...prev, course.category])]);
+      }
+      refetch();
     }
-  }, [course]);
+  }, [refetch, course, categories]);
+
 
   // Handlers
   const changeEventHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,7 +114,6 @@ const CourseTab = () => {
 
   const publishCourseHandler = async () => {
     const status = course.isPublished === true ? false : true
-    console.log("status", status)
     await publishCourse(
       { courseId, publish: status },
 
@@ -99,7 +122,7 @@ const CourseTab = () => {
           toast.success(
             `Course ${status ? "published" : "unpublished"} successfully.`
           );
-          router.refresh(); // Refresh the page or query to get updated course data
+          refetch();
         },
         onError: () => {
           toast.error("Failed to update publish state.");
@@ -128,6 +151,10 @@ const CourseTab = () => {
     );
   };
 
+
+
+
+
   if (isCourseLoading) {
     return (
       <div className="flex justify-center items-center h-full">
@@ -151,7 +178,14 @@ const CourseTab = () => {
             done.
           </CardDescription>
         </div>
-        <div className="space-x-2">
+        <Button
+          disabled
+          variant="outline"
+          value={courseStatus}
+        >
+          {course?.courseStatus}
+        </Button>
+        <div className="space-x-1">
           <Button
             disabled={!course?.lectures?.length}
             variant="outline"
@@ -159,7 +193,12 @@ const CourseTab = () => {
           >
             {course?.isPublished ? "Unpublish" : "Publish"}
           </Button>
-          <Button variant="destructive">Remove Course</Button>
+          <Button variant="default"
+            onClick={(e) => {
+              e.stopPropagation(),
+                router.push("/admin/courses"),
+                deleteCourse({ courseId });
+            }}>Remove Course</Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -204,18 +243,7 @@ const CourseTab = () => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Category</SelectLabel>
-                    {[
-                      "Next JS",
-                      "Data Science",
-                      "Frontend Development",
-                      "Fullstack Development",
-                      "MERN Stack Development",
-                      "Javascript",
-                      "Python",
-                      "Docker",
-                      "MongoDB",
-                      "HTML",
-                    ].map((cat) => (
+                    {categories.map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         {cat}
                       </SelectItem>

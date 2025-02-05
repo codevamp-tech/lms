@@ -25,7 +25,6 @@ const CourseProgress = () => {
 
   useEffect(() => {
     if (data) {
-      console.log("course", data);
       setCurrentLecture(data?.courseDetails.lectures[0]);
     }
   }, [data]);
@@ -33,8 +32,8 @@ const CourseProgress = () => {
   const isLectureCompleted = (lectureId) => {
     const lectureProgress = data?.progress.find(
       (lecture) => lecture.lectureId === lectureId
-    )
-    return lectureProgress ? lectureProgress.viewed : false
+    );
+    return lectureProgress ? lectureProgress.viewed : false;
   };
 
   const handleSelectLecture = (lecture) => {
@@ -57,20 +56,19 @@ const CourseProgress = () => {
     <div className="max-w-7xl mx-auto p-4">
       {/* Display course name  */}
       <div className="flex justify-between mb-4">
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-2xl font-bold text-blue-500">
           {data?.courseDetails.courseTitle}
         </h1>
         <Button
           onClick={
-            data?.completed
-              ? handleInCompleteCourse
-              : handleCompleteCourse
+            data?.completed ? handleInCompleteCourse : handleCompleteCourse
           }
           variant={data?.courseDetails.completed ? "outline" : "default"}
         >
           {data?.completed ? (
             <div className="flex items-center">
-              <CheckCircle className="h-4 w-4 mr-2" /> <span>Mark as InCompleted</span>{" "}
+              <CheckCircle className="h-4 w-4 mr-2" />{" "}
+              <span>Mark as InCompleted</span>{" "}
             </div>
           ) : (
             "Mark as completed"
@@ -97,24 +95,28 @@ const CourseProgress = () => {
                 ) + 1
               } : ${currentLecture?.lectureTitle}`}
             </h3>
-            {!isLectureCompleted(currentLecture?._id) && (<Button
-              variant={"outline"}
-              onClick={() => {
-                updateLectureProgress({
-                  courseId,
-                  userId,
-                  lectureId: currentLecture._id,
-                });
-              }}
-            >
-              Mark lecture as complete
-            </Button>)}
+            {!isLectureCompleted(currentLecture?._id) && (
+              <Button
+                variant={"outline"}
+                onClick={() => {
+                  updateLectureProgress({
+                    courseId,
+                    userId,
+                    lectureId: currentLecture._id,
+                  });
+                }}
+              >
+                Mark lecture as complete
+              </Button>
+            )}
           </div>
         </div>
 
         {/* Lecture Sidebar  */}
-        <div className="flex flex-col w-full md:w-2/5 border-t md:border-t-0 md:border-l border-gray-200 md:pl-4 pt-4 md:pt-0">
-          <h2 className="font-semibold text-xl mb-4">Course Lecture</h2>
+        <div className="flex flex-col w-full mb-10 h-[490px] md:w-2/5 border-t md:border-t-0 md:border-l border-gray-400 md:pl-4 pt-4 md:pt-0">
+          <h2 className="font-semibold text-xl mb-4 text-blue-500">
+            Course Content
+          </h2>
           <div className="flex-1 overflow-y-auto">
             {data?.courseDetails.lectures.map((lecture) => (
               <Card

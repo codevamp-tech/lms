@@ -1,7 +1,9 @@
 import axios from "axios";
 import { setCookie } from "@/utils/helpers";
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/users`;
+const API_BASE_URL = `${
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
+}/users`;
 
 export const loginUser = async (loginInput: {
   email: string;
@@ -11,10 +13,30 @@ export const loginUser = async (loginInput: {
     const { data } = await axios.post(`${API_BASE_URL}/login`, loginInput, {
       headers: { "Content-Type": "application/json" },
     });
-    setCookie("token", data.token);
+    setCookie("token", data.token); // Save the JWT token
     return data;
   } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Login failed");
+    // Check if error response exists
+    if (error.response) {
+      console.error("Login API Error:", error.response);
+      // Handle specific error cases
+      if (error.response.status === 500) {
+        throw new Error(
+          "An internal server error occurred. Please try again later."
+        );
+      } else {
+        throw new Error(
+          error.response.data?.message ||
+            "Login failed. Please check your credentials."
+        );
+      }
+    } else {
+      // Handle network or other errors
+      console.error("Login API Error:", error.message);
+      throw new Error(
+        "An error occurred while connecting to the server. Please try again later."
+      );
+    }
   }
 };
 
@@ -33,13 +55,35 @@ export const signupUser = async (signupInput: {
   }
 };
 
-export const fetchUserProfile = async (userId: string) => {
+export const fetchUserProfile = async (userId: string | null) => {
+  if (!userId) {
+    return null; // or an empty object {} depending on your preference
+  }
+
   try {
     const { data } = await axios.get(`${API_BASE_URL}/${userId}/profile`);
     return data;
   } catch (error: any) {
     throw new Error(
       error.response?.data?.message || "Failed to fetch user profile"
+    );
+  }
+};
+
+export const getInstructor = async () => {
+  try {
+    const companyId = localStorage.getItem("companyId"); // Retrieve companyId from localStorage
+
+    const { data } = await axios.get(`${API_BASE_URL}/instructors`, {
+      headers: {
+        Authorization: `Bearer ${companyId}`, // Send companyId in Authorization header
+      },
+    });
+
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || "Failed to fetch instructors"
     );
   }
 };

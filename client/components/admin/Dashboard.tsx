@@ -1,28 +1,54 @@
 "use client"
-import React from "react";
+import React, { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { getUserIdFromToken } from "@/utils/helpers";
+import useCourses from "@/hooks/useCourses";
+import Link from "next/link";
+
 
 const Dashboard: React.FC = () => {
-  // Mock data for purchased courses
-  const purchasedCourse = [
-    { courseId: { courseTitle: "React Basics", coursePrice: 500 }, amount: 500 },
-    { courseId: { courseTitle: "Advanced JavaScript", coursePrice: 800 }, amount: 800 },
-    { courseId: { courseTitle: "Next.js Essentials", coursePrice: 1200 }, amount: 1200 },
-    { courseId: { courseTitle: "Tailwind Mastery", coursePrice: 700 }, amount: 700 },
-  ];
 
-  const courseData = purchasedCourse.map((course) => ({
-    name: course.courseId.courseTitle,
-    price: course.courseId.coursePrice,
+  const { getCreatorCoursesQuery } = useCourses();
+  const userId = getUserIdFromToken();
+  const { data: purchasedCourse, isLoading, error } = getCreatorCoursesQuery(userId);
+
+  const totalCourses = purchasedCourse?.length || 0;
+
+  const courseData = purchasedCourse?.map((course) => ({
+    name: course.courseTitle,
+    price: course.coursePrice,
   }));
 
-  const totalRevenue = purchasedCourse.reduce((acc, element) => acc + (element.amount || 0), 0);
+  const totalRevenue = purchasedCourse?.reduce((acc, course) => {
+    const enrolledStudents = course.enrolledStudents?.length || 0;
+    return acc + course.coursePrice * enrolledStudents;
+  }, 0) || 0;
 
-  const totalSales = purchasedCourse.length;
+  const totalSales = purchasedCourse?.reduce((acc, course) => {
+    const enrolledStudents = course.enrolledStudents?.length || 0;
+  }, 0) || 0;
+
+  if (isLoading) {
+    return <div>Loading courses...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
 
   return (
     <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <Link href="/admin/courses" >
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <CardHeader>
+            <CardTitle>Total Courses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-blue-600">{totalCourses}</p>
+          </CardContent>
+        </Card>
+      </Link>
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader>
           <CardTitle>Total Sales</CardTitle>
@@ -37,7 +63,7 @@ const Dashboard: React.FC = () => {
           <CardTitle>Total Revenue</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold text-blue-600">₹{totalRevenue}</p>
+          <p className="text-3xl font-bold text-blue-600">₹ {totalRevenue}</p>
         </CardContent>
       </Card>
 
@@ -55,8 +81,8 @@ const Dashboard: React.FC = () => {
               <XAxis
                 dataKey="name"
                 stroke="#6b7280"
-                angle={-30} // Rotated labels for better visibility
-                textAnchor="end"
+                angle={10} // Rotated labels for better visibility
+                textAnchor="start"
                 interval={0} // Display all labels
               />
               <YAxis stroke="#6b7280" />

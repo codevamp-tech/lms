@@ -9,8 +9,8 @@ export default function Home() {
   const dehydratedState = dehydrate(queryClient);
   return (
     <Hydrate state={dehydratedState}>
-    <HeroSection />
-    <Courses />
+      <HeroSection />
+      <Courses />
     </Hydrate>
   );
 }

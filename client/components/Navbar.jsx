@@ -27,7 +27,7 @@ import { Separator } from "@radix-ui/react-dropdown-menu";
 // import { useLogoutUserMutation } from "@/features/api/authApi";
 import { toast } from "sonner";
 // import { useSelector } from "react-redux";
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useUserProfile } from "@/hooks/useUsers";
 import { getUserIdFromToken } from "@/utils/helpers";
@@ -36,15 +36,31 @@ const Navbar = () => {
   // const { user } = useSelector((store) => store.auth);
   // const [logoutUser, { data, isSuccess }] = useLogoutUserMutation();
   const router = useRouter();
-  
-    const userId = getUserIdFromToken();
-    const { data: user, isLoading, error, refetch } = useUserProfile(userId);
 
-  const logoutHandler = async () => {
-    // await logoutUser();
-    console.log("LOGOUT")
+  const userId = getUserIdFromToken();
+  const { data: user, isLoading, error, refetch } = useUserProfile(userId);
+
+  const clearCookies = () => {
+    const cookies = document.cookie.split("; ");
+    cookies.forEach((cookie) => {
+      const [name] = cookie.split("=");
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    });
   };
 
+  const logoutHandler = async () => {
+    clearCookies();
+    router.push("/login");
+    toast.success("You have been logged out.");
+  };
+
+  useEffect(() => {
+    if (!userId) {
+      clearCookies();
+      // router.push("/login");
+      refetch();
+    }
+  }, [userId, router]);
   // useEffect(() => {
   //   if (isSuccess) {
   //     toast.success(data?.message || "User logged out.");
@@ -92,74 +108,76 @@ const Navbar = () => {
   //     },
   //   ],
   // };
-  
+
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error fetching user profile</p>;
-  
 
   return (
-    <div className="h-16 dark:bg-[#020817] bg-white border-b dark:border-b-gray-800 border-b-gray-200 fixed top-0 left-0 right-0 duration-300 z-10">
+    <div className="h-16 dark:bg-navBackground bg-blue-500 fixed top-0 left-0 right-0 duration-300 z-10">
       {/* Desktop */}
       <div className="max-w-7xl mx-auto hidden md:flex justify-between items-center gap-10 h-full">
         <div className="flex items-center gap-2">
-          <School size={"30"} />
+          <img
+            src="/img/logo.png"
+            alt="logo"
+            className="h-9 w-9  filter brightness-0 invert "
+          />
           <Link href="/">
-            <h1 className="hidden md:block font-extrabold text-2xl">
-              E-Learning
+            <h1 className="hidden md:block font-extrabold text-2xl text-white">
+              LMS
             </h1>
           </Link>
         </div>
-        {/* User icons and dark mode icon */}
         <div className="flex items-center gap-8">
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Avatar>
-                  <AvatarImage
-                    src={user?.photoUrl || "https://github.com/shadcn.png"}
-                    alt="@shadcn"
-                  />
-                  <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Avatar>
+                <AvatarImage
+                  src={user?.photoUrl || "https://github.com/shadcn.png"}
+                  alt="@shadcn"
+                />
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem>
+                  <Link href="/my-learning">My Learning</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link href="/profile">Edit Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={logoutHandler}>
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              {(user?.role === "super admin" ||
+                user?.role === "admin" ||
+                user?.role === "instructor") && (
+                <>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem>
-                    <Link href="/my-learning">My Learning</Link>
+                    <Link href="/admin/dashboard">Dashboard</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link href="/profile">Edit Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={logoutHandler}>
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-                {user?.role === "instructor" && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <Link href="/admin/dashboard">Dashboard</Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => router.push("/login")}>
-                Login
-              </Button>
-              <Button onClick={() => router.push("/signup")}>Signup</Button>
-            </div>
-          )}
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <DarkMode />
         </div>
       </div>
       {/* Mobile device */}
       <div className="flex md:hidden items-center justify-between px-4 h-full">
-        <h1 className="font-extrabold text-2xl">E-learning</h1>
+        <div className="flex gap-3">
+          <img
+            src="/img/logo.png"
+            alt="logo"
+            className="h-9 w-9  filter brightness-0 invert "
+          />
+          <h1 className="font-extrabold text-2xl">LMS</h1>
+        </div>
         <MobileNavbar user={user} />
       </div>
     </div>
@@ -198,7 +216,10 @@ const MobileNavbar = ({ user }) => {
         {user?.role === "instructor" && (
           <SheetFooter>
             <SheetClose asChild>
-              <Button type="submit" onClick={() => router.push("/admin/dashboard")}>
+              <Button
+                type="submit"
+                onClick={() => router.push("/admin/dashboard")}
+              >
                 Dashboard
               </Button>
             </SheetClose>

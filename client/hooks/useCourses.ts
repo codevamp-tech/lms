@@ -9,7 +9,9 @@ import {
   getCourseLectures,
   togglePublishCourse,
   getPublishedCourses,
+  deleteCourse,
 } from "../features/api/courses/route";
+import { toast } from "sonner";
 
 const useCourses = () => {
   const queryClient = useQueryClient();
@@ -44,13 +46,13 @@ const useCourses = () => {
     },
   });
 
-    // Mutation for publishing a course
-    const publishCourseMutation = useMutation<
+  // Mutation for publishing a course
+  const publishCourseMutation = useMutation<
     any,
     Error,
-    { courseId: string; publish: boolean;}
+    { courseId: string; publish: boolean }
   >({
-    mutationFn: ({ courseId, publish}) =>
+    mutationFn: ({ courseId, publish }) =>
       togglePublishCourse(courseId, publish),
     onSuccess: () => {
       console.log("Course updated successfully");
@@ -59,8 +61,6 @@ const useCourses = () => {
       console.error("Error updating course:", error.message);
     },
   });
-
-
 
   // Query for fetching courses by userId
   const getCreatorCoursesQuery = (userId: string) => {
@@ -104,8 +104,8 @@ const useCourses = () => {
     });
   };
 
-   // Query for fetching published courses
-   const getPublishedCoursesQuery = () => {
+  // Query for fetching published courses
+  const getPublishedCoursesQuery = () => {
     return useQuery({
       queryKey: ["publishedCourses"],
       queryFn: () => getPublishedCourses(),
@@ -118,10 +118,23 @@ const useCourses = () => {
     });
   };
 
+  const deleteCourseMutation = useMutation({
+    mutationFn: ({ courseId }: { courseId: string }) => deleteCourse(courseId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["courses"], // Fixed typo: `querykey` -> `queryKey`
+      });
+    },
+    onError: (error: any) => {
+      toast.error("Failed to delete course:", error);
+    },
+  });
+
   return {
     createNewCourse: createCourseMutation.mutate,
     editCourse: editCourseMutation.mutate,
     publishCourse: publishCourseMutation.mutate,
+    deleteCourse: deleteCourseMutation.mutate,
     getCreatorCoursesQuery,
     getCourseByIdQuery,
     getCourseLecturesQuery,

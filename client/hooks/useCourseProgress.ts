@@ -13,9 +13,7 @@ const useCourseProgress = () => {
       queryKey: ["course-progress", courseId],
       queryFn: () => getCourseProgress(courseId, userId),
       enabled: !!courseId,
-      onSuccess: (data) => {
-        console.log("Course fetched successfully:", data);
-      },
+      onSuccess: (data) => {},
       onError: (error) => {
         console.error("Error fetching course by ID:", error);
       },
@@ -36,7 +34,6 @@ const useCourseProgress = () => {
       queryClient.invalidateQueries({
         queryKey: ["course-progress"], // Adjust query key as needed
       });
-      console.log("Marked as complete successfully:", data);
     },
     onError: (error) => {
       console.error("Error marking course as complete:", error);
@@ -50,7 +47,6 @@ const useCourseProgress = () => {
       queryClient.invalidateQueries({
         queryKey: ["course-progress"], // Adjust query key as needed
       });
-      console.log("Marked as complete successfully:", data);
     },
     onError: (error) => {
       console.error("Error marking course as complete:", error);
@@ -64,7 +60,6 @@ const useCourseProgress = () => {
       queryClient.invalidateQueries({
         queryKey: ["course-progress"],
       });
-      console.log("Marked as complete successfully:", data);
     },
     onError: (error) => {
       console.error("Error fetching course by ID:", error);
