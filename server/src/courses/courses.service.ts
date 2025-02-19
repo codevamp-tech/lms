@@ -20,7 +20,7 @@ export class CoursesService {
 
   async createCourse(createCourseDto: CreateCourseDto) {
     try {
-      const { courseTitle, category, creatorId } = createCourseDto;
+      const { courseTitle, category, creatorId, companyId } = createCourseDto;
 
       if (!courseTitle || !category) {
         throw new Error('Course title and category are required.');
@@ -29,7 +29,8 @@ export class CoursesService {
       const course = await this.courseModel.create({
         courseTitle,
         category,
-        creator: creatorId, // You can pass the creator ID
+        creator: creatorId,
+        companyId,
       });
 
       return {
@@ -127,10 +128,21 @@ export class CoursesService {
     return course.lectures;
   }
 
-  async getPublishedCourses(companyId: string) {
+  async getPublishedCourses(companyId: any) {
     try {
+      const query =
+        companyId == null
+          ? { isPublished: true, isPrivate: false }
+          : {
+              isPublished: true,
+              $or: [
+                { companyId }, // Courses from the given company
+                { isPrivate: false }, // Public courses from any company
+              ],
+            };
+
       const courses = await this.courseModel
-        .find({ isPublished: true, companyId })
+        .find(query)
         .populate({ path: 'creator', select: 'name photoUrl' });
 
       if (!courses || courses.length === 0) {
@@ -161,6 +173,23 @@ export class CoursesService {
     await course.save();
 
     return isPublished ? 'Published' : 'Unpublished';
+  }
+
+  async togglePrivateStatus(
+    courseId: string,
+    isPrivate: boolean,
+  ): Promise<string> {
+    const course = await this.courseModel.findById(courseId);
+
+    if (!course) {
+      throw new NotFoundException('Course not found!');
+    }
+
+    // Update the publication status
+    course.isPrivate = isPrivate;
+    await course.save();
+
+    return isPrivate ? 'Private' : 'Public';
   }
 
   async findAll(): Promise<Course[]> {

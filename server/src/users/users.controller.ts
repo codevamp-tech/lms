@@ -14,6 +14,7 @@ import {
   HttpCode,
   BadRequestException,
   Headers,
+  Delete,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 // import { AuthGuard } from '../auth/auth.guard';
@@ -104,6 +105,11 @@ export class UsersController {
   async getInstructors(@Headers('Authorization') Auth: string) {
     const companyId = Auth.split(' ')[1];
     return this.usersService.getInstructors(companyId);
+  }
+
+  @Delete('/admin/:id')
+  async removeAdmin(@Param('id') Id: string) {
+    return this.usersService.deleteAdmin(Id);
   }
 
   @Get('admins')

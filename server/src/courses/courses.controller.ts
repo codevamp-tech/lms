@@ -36,6 +36,7 @@ export class CoursesController {
   async createCourse(@Body() createCourseDto: CreateCourseDto) {
     try {
       const response = await this.coursesService.createCourse(createCourseDto);
+      console.log('cmid', response);
       return response;
     } catch (error) {
       return {
@@ -119,9 +120,24 @@ export class CoursesController {
     };
   }
 
+  @Put(':courseId/toggle-private')
+  async togglePrivateCourse(
+    @Param('courseId') courseId: string,
+    @Query('privated') privated: string,
+  ) {
+    const isPrivate = privated === 'true';
+    const statusMessage = await this.coursesService.togglePrivateStatus(
+      courseId,
+      isPrivate,
+    );
+
+    return {
+      message: `Course is ${statusMessage}`,
+    };
+  }
+
   @Get('published/all')
-  async getPublishedCourses(@Headers('Authorization') Auth: string) {
-    const companyId = Auth.split(' ')[1];
+  async getPublishedCourses(@Query('companyId') companyId: string) {
     try {
       const courses = await this.coursesService.getPublishedCourses(companyId);
       return courses;

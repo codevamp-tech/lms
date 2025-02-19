@@ -22,10 +22,14 @@ export class CompanyService {
     return this.companyModel.find().exec();
   }
 
+  // company.service.ts
   async findOne(id: string): Promise<Company> {
+    if (!id) {
+      throw new Error('No company ID provided');
+    }
     const company = await this.companyModel.findById(id).exec();
     if (!company) {
-      throw new Error('Company not found');
+      throw new NotFoundException(`Company with ID ${id} not found`);
     }
     return company;
   }

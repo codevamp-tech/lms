@@ -45,8 +45,9 @@ export class CompanyController {
     return this.companyService.findAll();
   }
 
+  // company.controller.ts
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Company> {
+  async findOne(@Param('id') id: string) {
     return this.companyService.findOne(id);
   }
 

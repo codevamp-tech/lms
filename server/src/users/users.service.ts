@@ -188,7 +188,7 @@ export class UsersService {
   async getInstructors(companyId: string) {
     try {
       const instructors = await this.userModel
-        .find({ role: 'instructor', companyId: new Types.ObjectId(companyId) })
+        .find({ role: 'instructor', companyId })
         .select('-password');
 
       if (!instructors.length) {
@@ -209,15 +209,11 @@ export class UsersService {
     id: string,
     isStatus: boolean,
   ): Promise<{ status: boolean; message: string }> {
-    console.log(` New Status: ${isStatus}`);
-
     const user = await this.userModel
       .findByIdAndUpdate(id, { isStatus: isStatus }, { new: true })
       .exec();
 
     if (!user) throw new NotFoundException('User not found');
-
-    console.log(`Updated User:`, user); // Debugging output
 
     return {
       status: user.isStatus,
@@ -266,6 +262,21 @@ export class UsersService {
     } catch (error) {
       console.error(error);
       throw new Error('Failed to update profile');
+    }
+  }
+
+  async deleteAdmin(Id: string) {
+    try {
+      const admin = await this.userModel.findById(Id);
+      if (!admin || admin.role !== 'admin') {
+        throw new NotFoundException('Admin not found');
+      }
+
+      await this.userModel.findByIdAndDelete(Id);
+      return { success: true, message: 'Admin deleted successfully' };
+    } catch (error) {
+      console.error(error);
+      throw new Error('Failed to delete admin');
     }
   }
 
