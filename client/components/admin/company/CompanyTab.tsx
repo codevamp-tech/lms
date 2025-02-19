@@ -2,16 +2,12 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 
-
-interface EditCompanyFormProps {
-  companyId: string;
-}
-
-const EditCompanyForm = ({ companyId }: EditCompanyFormProps) => {
+const EditCompanyForm = () => {
+  const { companyId } = useParams();
   const router = useRouter()
   const [formData, setFormData] = useState({
     name: '',
@@ -21,6 +17,7 @@ const EditCompanyForm = ({ companyId }: EditCompanyFormProps) => {
     billingAddress: '',
     gst: '',
     subscriptionType: '',
+    trialDuration: '',
     date: '',
     status: '',
   })
@@ -32,6 +29,7 @@ const EditCompanyForm = ({ companyId }: EditCompanyFormProps) => {
       try {
         const response = await fetch(`http://localhost:3001/companies/${companyId}`)
         const data = await response.json()
+
         setFormData({
           name: data.name,
           website: data.website || '',
@@ -39,8 +37,9 @@ const EditCompanyForm = ({ companyId }: EditCompanyFormProps) => {
           phone: data.phone,
           billingAddress: data.billingAddress,
           gst: data.gst,
+          trialDuration: data.trialDuration || '',
           subscriptionType: data.subscriptionType,
-          date: data.date,
+          date: data.date ? data.date.split("T")[0] : "",
           status: data.status,
         })
         setLoading(false)
@@ -143,6 +142,17 @@ const EditCompanyForm = ({ companyId }: EditCompanyFormProps) => {
             <option value="Trial" className='text-gray-500'>Trial</option>
           </select>
 
+          {formData.subscriptionType === 'Trial' && (
+            <Input
+              className="w-full p-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 dark:border-gray-600 dark:text-gray-400 bg-transparent"
+              placeholder="Trial Duration (in days)"
+              name="trialDuration"
+              value={formData.trialDuration}
+              onChange={handleChange}
+              required
+            />
+          )}
+
           {/* Row 4 */}
 
           <Input
@@ -177,18 +187,19 @@ const EditCompanyForm = ({ companyId }: EditCompanyFormProps) => {
           required
         />
 
-        <Link href="/admin/company">
-          <Button
-            className='mr-4'>
-            Cancel
-          </Button>
-        </Link>
+
         <Button
           type="submit"
           disabled={loading}
         >
           {loading ? 'Updating...' : 'Update Company'}
         </Button>
+        <Link href="/admin/company">
+          <button
+            className='ml-4 border border-black px-3 py-1 rounded'>
+            Cancel
+          </button>
+        </Link>
 
       </form>
     </div>

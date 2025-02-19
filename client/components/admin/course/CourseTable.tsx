@@ -194,7 +194,11 @@ const CourseTable = () => {
       </Table>
 
       {filteredCourses.length > ITEMS_PER_PAGE && (
-        <div className="flex justify-between items-center mt-4">
+        <div className="flex  justify-end items-center mt-4 gap-3" >
+
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
           <Button
             size="sm"
             variant="outline"
@@ -203,9 +207,6 @@ const CourseTable = () => {
           >
             Previous
           </Button>
-          <span>
-            Page {currentPage} of {totalPages}
-          </span>
           <Button
             size="sm"
             variant="outline"

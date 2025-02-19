@@ -1,7 +1,7 @@
 "use client";
 
-import { Menu, School } from "lucide-react";
-import React, { useEffect } from "react";
+import { LogOut, Menu, School } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +39,7 @@ const Navbar = () => {
 
   const userId = getUserIdFromToken();
   const { data: user, isLoading, error, refetch } = useUserProfile(userId);
+  const [logo, setLogo] = useState<string>("/img/logo.png");
 
   const clearCookies = () => {
     const cookies = document.cookie.split("; ");
@@ -61,6 +62,42 @@ const Navbar = () => {
       refetch();
     }
   }, [userId, router]);
+
+  const fetchLogo = async () => {
+    const companyId = localStorage.getItem("companyId");
+    if (!companyId) {
+      console.log("No companyId found in localStorage");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/configurations/company/${companyId}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch company logo: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+
+      if (Array.isArray(data) && data.length > 0 && data[0].image) {
+        setLogo(data[0].image);
+      } else {
+        console.log("Image URL not found in the response");
+      }
+    } catch (error) {
+      console.error("Error fetching logo:", error);
+    }
+  };
+
+
+
+  useEffect(() => {
+    fetchLogo();
+  }, []);
+
   // useEffect(() => {
   //   if (isSuccess) {
   //     toast.success(data?.message || "User logged out.");
@@ -118,9 +155,9 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto hidden md:flex justify-between items-center gap-10 h-full">
         <div className="flex items-center gap-2">
           <img
-            src="/img/logo.png"
-            alt="logo"
-            className="h-9 w-9  filter brightness-0 invert "
+            src={logo}
+            alt="Company Logo"
+            className=" w-10 h-10  object-contain"
           />
           <Link href="/">
             <h1 className="hidden md:block font-extrabold text-2xl text-white">
@@ -129,6 +166,7 @@ const Navbar = () => {
           </Link>
         </div>
         <div className="flex items-center gap-8">
+          <DarkMode />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar>
@@ -143,29 +181,50 @@ const Navbar = () => {
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem>
-                  <Link href="/my-learning">My Learning</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/profile">Edit Profile</Link>
-                </DropdownMenuItem>
+                {user?.role === "superadmin" && (
+                  <>
+                    <DropdownMenuItem>
+                      <Link href="/admin/company">Add Company</Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {user?.role === "admin" && (
+                  <>
+                    <DropdownMenuItem>
+                      <Link href="/admin/addinstructor">Add Instructor</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link href="/admin/configuration">Settings</Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {user?.role === "instructor" && (
+                  <>
+                    <DropdownMenuItem>
+                      <Link href="/profile">Edit Profile</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link href="/admin/dashboard">Dashboard</Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {user?.role === "student" && (
+                  <>
+                    <DropdownMenuItem>
+                      <Link href="/my-learning">My Learning</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link href="/profile">Edit Profile</Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logoutHandler}>
-                  Log out
+                  <LogOut className="text-red-600" /> Log out
                 </DropdownMenuItem>
               </DropdownMenuGroup>
-              {(user?.role === "super admin" ||
-                user?.role === "admin" ||
-                user?.role === "instructor") && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Link href="/admin/dashboard">Dashboard</Link>
-                  </DropdownMenuItem>
-                </>
-              )}
             </DropdownMenuContent>
           </DropdownMenu>
-          <DarkMode />
         </div>
       </div>
       {/* Mobile device */}

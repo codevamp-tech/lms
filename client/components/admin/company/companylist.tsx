@@ -7,6 +7,7 @@ import CreateCompanyForm from './createCompany';
 import Link from 'next/link';
 
 interface Company {
+  subscriptionType: string;
   _id: string;
   name: string;
   email: string;
@@ -134,6 +135,7 @@ const CompanyList = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subscription</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
@@ -144,6 +146,7 @@ const CompanyList = () => {
                 <td className="px-6 py-4 whitespace-nowrap">{company.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{company.email}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{company.phone}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{company.subscriptionType}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg ${company.status === 'Active'
                     ? 'bg-green-800 text-white'
@@ -154,6 +157,7 @@ const CompanyList = () => {
                     {company.status}
                   </span>
                 </td>
+
                 <td className="px-6 py-4 whitespace-nowrap">
                   <Link href={`/admin/company/${company._id}`}>
                     <button
