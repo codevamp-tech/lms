@@ -3,10 +3,7 @@ import React from "react";
 import { getQueryClient } from "@/lib/react-query";
 import { dehydrate } from "@tanstack/react-query";
 import { Hydrate } from "@/lib/hydrate";
-import EditCompanyForm from "@/components/admin/company/editCompany";
-
-
-
+import EditCompanyForm from "@/components/admin/company/CompanyTab";
 
 const EditCompanyPage = () => {
   const queryClient = getQueryClient();
