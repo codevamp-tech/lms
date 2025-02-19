@@ -20,9 +20,13 @@ export interface CreateCourseResponse {
 }
 
 export const createCourse = async (courseData: CourseData) => {
+  const companyId = localStorage.getItem("companyId");
   try {
     const { data } = await axios.post(`${API_BASE_URL}`, courseData, {
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${companyId}`,
+        "Content-Type": "application/json",
+      },
     });
     return data;
   } catch (error: any) {
@@ -98,11 +102,15 @@ export const togglePublishCourse = async (
   courseId: string,
   publish: boolean
 ): Promise<string> => {
+  const companyId = localStorage.getItem("companyId");
   try {
     const response = await axios.put(
       `${API_BASE_URL}/${courseId}/toggle-publish`,
       null,
       {
+        headers: {
+          Authorization: `Bearer ${companyId}`, // Send companyId in Authorization header
+        },
         params: { publish: publish?.toString() },
       }
     );
@@ -119,13 +127,36 @@ export const togglePublishCourse = async (
   }
 };
 
+export const togglePrivateCourse = async (
+  courseId: string,
+  privated: boolean
+): Promise<string> => {
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}/${courseId}/toggle-private`,
+      null,
+      {
+        params: { privated: privated?.toString() },
+      }
+    );
+
+    return response.data.message;
+  } catch (error: any) {
+    console.error(
+      "Error toggling course private status:",
+      error.response?.data?.message || error.message
+    );
+    throw new Error(
+      error.response?.data?.message || "Failed to toggle private status"
+    );
+  }
+};
+
 export const getPublishedCourses = async () => {
-  const companyId = localStorage.getItem("companyId");
+  const companyId = localStorage.getItem("companyId") || null;
   try {
     const { data } = await axios.get(`${API_BASE_URL}/published/all`, {
-      headers: {
-        Authorization: `Bearer ${companyId}`, // Send companyId in Authorization header
-      },
+      params: { companyId },
     });
     return data;
   } catch (error) {

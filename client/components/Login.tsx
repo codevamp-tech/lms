@@ -67,7 +67,7 @@ const Login = () => {
         } else if (response?.user.role === "student") {
           router.push("/");
         } else if (response?.user.role === "admin") {
-          router.push("/admin/dashboard");
+          router.push("/admin/addinstructor");
         } else if (response?.user.role === "superadmin") {
           router.push("/admin/company");
         }

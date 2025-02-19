@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { toast } from "sonner";
-import { Search, X } from "lucide-react";
+import { Search, Trash2, X } from "lucide-react";
 import { Input } from "../ui/input";
 
 interface Company {
@@ -81,13 +81,6 @@ const AddUser: React.FC = () => {
     fetchAdmins();
   }, []);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>{error}</div>;
-  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -138,6 +131,31 @@ const AddUser: React.FC = () => {
     }
   };
 
+
+  const handleDeleteAdmin = async (adminId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3001/users/admin/${adminId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to delete admin");
+      }
+      toast.success("Admin deleted successfully");
+      fetchAdmins();
+    } catch (err) {
+      toast.error("Error deleting admin");
+    }
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+
   return (
     <div className="p-6 space-y-8 bg-card rounded-xl ">
       <div className="flex justify-between">
@@ -173,6 +191,7 @@ const AddUser: React.FC = () => {
                 onChange={handleInputChange}
                 className="mt-1 block w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+
             </div>
 
             <div className="flex flex-col">
@@ -185,25 +204,27 @@ const AddUser: React.FC = () => {
                 className="mt-1 block w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+
+            <div className="flex flex-col">
+              <Label className="block text-sm font-medium text-gray-500 ">Company</Label>
+              <select
+                name="companyId"
+                value={newUser.companyId}
+                onChange={handleCompanyChange}
+                className="mt-1 block w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 bg-card text-gray-500 dark:text-white"
+              >
+                <option value="">Select a company</option>
+                {companies.map((company) => (
+                  <option key={company._id} value={company._id}>
+                    {company.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Company Section */}
-          <div className="mt-4">
-            <Label className="block text-sm font-medium text-gray-500 ">Company</Label>
-            <select
-              name="companyId"
-              value={newUser.companyId}
-              onChange={handleCompanyChange}
-              className="mt-1 block w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 bg-card text-gray-500 dark:text-white"
-            >
-              <option value="">Select a company</option>
-              {companies.map((company) => (
-                <option key={company._id} value={company._id}>
-                  {company.name}
-                </option>
-              ))}
-            </select>
-          </div>
+
 
           {/* Add User Button */}
           <Button
@@ -222,6 +243,7 @@ const AddUser: React.FC = () => {
               <th className="py-3 px-4">Email</th>
               <th className="py-3 px-4">Role</th>
               <th className="py-3 px-4">Company</th>
+              <th className="py-3 px-4 text-center">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -237,6 +259,15 @@ const AddUser: React.FC = () => {
                     ) : (
                       'No company'
                     )}
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleDeleteAdmin(admin._id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 size={18} />
+                    </Button>
                   </td>
                 </tr>
               ))

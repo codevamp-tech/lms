@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 // import { deleteCourses } from "@/features/api/courses/route";
 import useCourses from "@/hooks/useCourses";
 import { Loader2 } from "lucide-react";
@@ -29,7 +30,7 @@ import { toast } from "sonner";
 const CourseTab = () => {
   const { courseId } = useParams();
   const router = useRouter();
-  const { getCourseByIdQuery, editCourse, publishCourse, deleteCourse } = useCourses();
+  const { getCourseByIdQuery, editCourse, publishCourse, deleteCourse, privateCourse } = useCourses();
 
   // Fetch course data
   const {
@@ -40,6 +41,7 @@ const CourseTab = () => {
   } = getCourseByIdQuery(courseId);
 
 
+  const companyId = localStorage.getItem("companyId");
   // Local state for form inputs
   const [input, setInput] = useState({
     courseTitle: "",
@@ -48,11 +50,14 @@ const CourseTab = () => {
     category: "",
     courseLevel: "",
     coursePrice: "",
+    companyId: companyId,
   });
 
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [courseStatus, setCourseStatus] = useState();
   const [previewThumbnail, setPreviewThumbnail] = useState<string | null>("");
+
+
 
   const [categories, setCategories] = useState([
     ...new Set([
@@ -78,6 +83,7 @@ const CourseTab = () => {
         category: course.category || "",
         courseLevel: course.courseLevel || "",
         coursePrice: course.coursePrice || "",
+        companyId: companyId,
       });
       setPreviewThumbnail(course.courseThumbnail || "");
       setCourseStatus(course.courseStatus);
@@ -87,7 +93,6 @@ const CourseTab = () => {
       refetch();
     }
   }, [refetch, course, categories]);
-
 
   // Handlers
   const changeEventHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,12 +120,31 @@ const CourseTab = () => {
   const publishCourseHandler = async () => {
     const status = course.isPublished === true ? false : true
     await publishCourse(
-      { courseId, publish: status },
+      { courseId, publish: status, companyId },
 
       {
         onSuccess: () => {
           toast.success(
             `Course ${status ? "published" : "unpublished"} successfully.`
+          );
+          refetch();
+        },
+        onError: () => {
+          toast.error("Failed to update publish state.");
+        },
+      }
+    );
+  };
+
+  const privateCourseHandler = async () => {
+    const status = course.isPrivate === true ? false : true
+    await privateCourse(
+      { courseId, privated: status, companyId },
+
+      {
+        onSuccess: () => {
+          toast.success(
+            `Course ${status ? "public" : "private"} successfully.`
           );
           refetch();
         },
@@ -178,13 +202,15 @@ const CourseTab = () => {
             done.
           </CardDescription>
         </div>
-        <Button
+        {/* <Button
           disabled
           variant="outline"
           value={courseStatus}
         >
           {course?.courseStatus}
-        </Button>
+        </Button> */}
+
+
         <div className="space-x-1">
           <Button
             disabled={!course?.lectures?.length}
@@ -283,6 +309,20 @@ const CourseTab = () => {
                 placeholder="199"
                 className="w-fit"
               />
+            </div>
+            <div className="flex flex-col space-y-2">
+
+              <div className="flex items-center mt-2 space-x-2 bg-slate-50 p-3 rounded-lg">
+                <span className="text-sm font-medium">
+                  {course?.isPrivate ? 'Private Course' : 'Public Course'}
+                </span>
+                <Switch
+                  checked={course?.isPrivate}
+                  onCheckedChange={privateCourseHandler}
+                  className="data-[state=checked]:bg-blue-600"
+                />
+              </div>
+
             </div>
           </div>
           <div>

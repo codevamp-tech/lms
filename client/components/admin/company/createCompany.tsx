@@ -16,6 +16,7 @@ const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onSuccess }) => {
     billingAddress: '',
     gst: '',
     subscriptionType: '',
+    trialDuration: '',
     date: '',
     status: '',
   });
@@ -46,6 +47,7 @@ const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onSuccess }) => {
           billingAddress: '',
           gst: '',
           subscriptionType: '',
+          trialDuration: '',
           date: '',
           status: '',
         });
@@ -120,6 +122,17 @@ const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({ onSuccess }) => {
             <option value="Annually" className='text-gray-500'>Annually</option>
             <option value="Trial" className='text-gray-500'>Trial</option>
           </select>
+
+          {formData.subscriptionType === 'Trial' && (
+            <Input
+              className="w-full p-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 dark:border-gray-600 dark:text-gray-400 bg-transparent"
+              placeholder="Trial Duration (in days)"
+              name="trialDuration"
+              value={formData.trialDuration}
+              onChange={handleChange}
+              required
+            />
+          )}
 
           {/* Row 4 */}
           <Input

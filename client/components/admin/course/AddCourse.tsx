@@ -39,6 +39,7 @@ const AddCourse = () => {
   const userId = getUserIdFromToken();
   const router = useRouter();
 
+
   const handleAddCategory = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && addCategory.trim() !== "") {
       const newCategory = addCategory.trim();
@@ -53,7 +54,7 @@ const AddCourse = () => {
       }
     }
   };
-
+  const companyId = localStorage.getItem("companyId");
   const createCourseHandler = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -63,7 +64,7 @@ const AddCourse = () => {
     }
 
     try {
-      await createNewCourse({ courseTitle, category, creatorId: userId });
+      await createNewCourse({ courseTitle, category, creatorId: userId, companyId });
       toast.success("Course created successfully.");
 
       // Keep all categories, and pre-select the current category

@@ -10,6 +10,7 @@ import {
   togglePublishCourse,
   getPublishedCourses,
   deleteCourse,
+  togglePrivateCourse,
 } from "../features/api/courses/route";
 import { toast } from "sonner";
 
@@ -62,6 +63,21 @@ const useCourses = () => {
     },
   });
 
+  const privateCourseMutation = useMutation<
+    any,
+    Error,
+    { courseId: string; privated: boolean }
+  >({
+    mutationFn: ({ courseId, privated }) =>
+      togglePrivateCourse(courseId, privated),
+    onSuccess: () => {
+      console.log("Course updated successfully");
+    },
+    onError: (error) => {
+      console.error("Error updating course:", error.message);
+    },
+  });
+
   // Query for fetching courses by userId
   const getCreatorCoursesQuery = (userId: string) => {
     return useQuery({
@@ -76,6 +92,7 @@ const useCourses = () => {
       },
     });
   };
+
   // Query for fetching a course by ID
   const getCourseByIdQuery = (courseId: string) => {
     return useQuery({
@@ -135,6 +152,7 @@ const useCourses = () => {
     editCourse: editCourseMutation.mutate,
     publishCourse: publishCourseMutation.mutate,
     deleteCourse: deleteCourseMutation.mutate,
+    privateCourse: privateCourseMutation.mutate,
     getCreatorCoursesQuery,
     getCourseByIdQuery,
     getCourseLecturesQuery,
