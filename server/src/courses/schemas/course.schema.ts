@@ -27,6 +27,9 @@ export class Course extends Document {
   @Prop()
   coursePrice: number;
 
+  @Prop()
+  courseMRP: number;
+
   @Prop({
     type: String,
     enum: ['Active', 'Inactive'],

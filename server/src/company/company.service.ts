@@ -34,8 +34,18 @@ export class CompanyService {
     return company;
   }
 
-  async getAllCompanies(): Promise<Company[]> {
-    return this.companyModel.find().exec();
+  async getAllCompanies(
+    page: number = 1,
+    limit: number = 5,
+  ): Promise<{ companies: Company[]; total: number }> {
+    const skip = (page - 1) * limit;
+    const companies = await this.companyModel
+      .find()
+      .skip(skip)
+      .limit(limit)
+      .exec();
+    const total = await this.companyModel.countDocuments();
+    return { companies, total };
   }
 
   async update(

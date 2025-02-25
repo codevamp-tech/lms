@@ -46,17 +46,28 @@ export class CoursesController {
   }
 
   @Post('get-creator-courses')
-  async getCreatorCourses(@Body() body: { userId: string }) {
-    const { userId } = body;
+  async getCreatorCourses(
+    @Body() body: { userId: string; page?: number; limit?: number },
+  ) {
+    const { userId, page = 1, limit = 7 } = body;
     try {
-      const courses = await this.coursesService.getCreatorCourses(userId);
-      if (courses.length === 0) {
+      const result = await this.coursesService.getCreatorCourses(
+        userId,
+        page,
+        limit,
+      );
+
+      if (result.courses.length === 0) {
         return {
           courses: [],
           message: 'Course not found',
+          totalPages: result.totalPages,
+          currentPage: result.currentPage,
+          totalCourses: result.totalCourses,
         };
       }
-      return { courses };
+
+      return result;
     } catch (error) {
       return { message: 'Failed to fetch courses' };
     }
@@ -137,9 +148,17 @@ export class CoursesController {
   }
 
   @Get('published/all')
-  async getPublishedCourses(@Query('companyId') companyId: string) {
+  async getPublishedCourses(
+    @Query('companyId') companyId: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 12,
+  ) {
     try {
-      const courses = await this.coursesService.getPublishedCourses(companyId);
+      const courses = await this.coursesService.getPublishedCourses(
+        companyId,
+        Number(page),
+        Number(limit),
+      );
       return courses;
     } catch (error) {
       throw new NotFoundException(error.message);

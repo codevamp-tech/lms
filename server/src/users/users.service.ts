@@ -125,19 +125,25 @@ export class UsersService {
     return newAdmin.save();
   }
 
-  async getAdmins() {
+  async getAdmins(page = 1, limit = 7) {
     try {
+      const skip = (page - 1) * limit;
       const admins = await this.userModel
         .find({ role: 'admin' })
         .select('-password')
-        .populate('companyId');
-      if (!admins.length) {
-        throw new Error('No admins found');
-      }
+        .populate('companyId')
+        .skip(skip)
+        .limit(limit);
+
+      const totalAdmins = await this.userModel.countDocuments({
+        role: 'admin',
+      });
 
       return {
         success: true,
         admins,
+        totalPages: Math.ceil(totalAdmins / limit),
+        currentPage: page,
       };
     } catch (error) {
       console.error(error);
@@ -185,19 +191,27 @@ export class UsersService {
     }
   }
 
-  async getInstructors(companyId: string) {
+  async getInstructors(companyId: string, page: number = 1, limit: number = 7) {
     try {
+      const skip = (page - 1) * limit;
+
       const instructors = await this.userModel
         .find({ role: 'instructor', companyId })
-        .select('-password');
+        .select('-password')
+        .skip(skip)
+        .limit(limit);
 
-      if (!instructors.length) {
-        throw new Error('No instructors found');
-      }
+      const totalInstructors = await this.userModel.countDocuments({
+        role: 'instructor',
+        companyId,
+      });
 
       return {
         success: true,
         instructors,
+        totalPages: Math.ceil(totalInstructors / limit),
+        currentPage: page,
+        totalInstructors,
       };
     } catch (error) {
       console.error(error);

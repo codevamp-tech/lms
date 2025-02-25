@@ -18,6 +18,7 @@ import { ConfigurationModule } from './configuration/configuration.module';
 import { ImageUploadController } from './image-upload/image-upload.controller';
 import { ImageUploadService } from './image-upload/image-upload.service';
 import { ImageUploadModule } from './image-upload/image-upload.module';
+import { RatingsModule } from './rating/rating.module';
 
 // Ensure uploads directory exists
 const uploadDir = './uploads';
@@ -73,6 +74,7 @@ if (!fs.existsSync(uploadDir)) {
     CompanyModule,
     ConfigurationModule,
     ImageUploadModule,
+    RatingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

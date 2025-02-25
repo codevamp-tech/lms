@@ -42,15 +42,6 @@ export class CoursesService {
     }
   }
 
-  async getCreatorCourses(userId: string): Promise<Course[]> {
-    try {
-      const courses = await this.courseModel.find({ creator: userId }).exec();
-      return courses;
-    } catch (error) {
-      throw new Error('Failed to fetch courses');
-    }
-  }
-
   async getCourseById(courseId: string): Promise<Course> {
     const course = await this.courseModel.findById(courseId).exec();
     if (!course) {
@@ -128,33 +119,72 @@ export class CoursesService {
     return course.lectures;
   }
 
-  async getPublishedCourses(companyId: any) {
+  async getPublishedCourses(
+    companyId: string,
+    page: number = 1,
+    limit: number = 12,
+  ) {
     try {
-      const query =
-        companyId == null
-          ? { isPublished: true, isPrivate: false }
-          : {
-              isPublished: true,
-              $or: [
-                { companyId }, // Courses from the given company
-                { isPrivate: false }, // Public courses from any company
-              ],
-            };
+      const skip = (page - 1) * limit;
+
+      const query = companyId
+        ? {
+            isPublished: true,
+            $or: [{ companyId }, { isPrivate: false }],
+          }
+        : { isPublished: true, isPrivate: false };
 
       const courses = await this.courseModel
         .find(query)
-        .populate({ path: 'creator', select: 'name photoUrl' });
+        .populate({ path: 'creator', select: 'name photoUrl' })
+        .skip(skip)
+        .limit(limit);
 
-      if (!courses || courses.length === 0) {
-        throw new NotFoundException('No published courses found');
-      }
+      const totalCourses = await this.courseModel.countDocuments(query);
 
-      return courses;
+      return {
+        courses,
+        totalPages: Math.ceil(totalCourses / limit),
+        currentPage: page,
+        totalCourses,
+      };
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(
         'Failed to fetch published courses',
       );
+    }
+  }
+
+  async getCreatorCourses(
+    userId: string,
+    page: number = 1,
+    limit: number = 7,
+  ): Promise<{
+    courses: Course[];
+    totalPages: number;
+    currentPage: number;
+    totalCourses: number;
+  }> {
+    try {
+      const skip = (page - 1) * limit;
+      const query = { creator: userId };
+
+      const courses = await this.courseModel
+        .find(query)
+        .skip(skip)
+        .limit(limit)
+        .exec();
+      const totalCourses = await this.courseModel.countDocuments(query);
+
+      return {
+        courses,
+        totalPages: Math.ceil(totalCourses / limit),
+        currentPage: page,
+        totalCourses,
+      };
+    } catch (error) {
+      throw new Error('Failed to fetch courses');
     }
   }
 

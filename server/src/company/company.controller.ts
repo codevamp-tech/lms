@@ -8,6 +8,7 @@ import {
   Patch,
   Delete,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company';
@@ -24,8 +25,11 @@ export class CompanyController {
   }
 
   @Get('all-company')
-  async getAllCompanies(): Promise<Company[]> {
-    return this.companyService.getAllCompanies();
+  async getAllCompanies(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 5,
+  ): Promise<{ companies: Company[]; total: number }> {
+    return this.companyService.getAllCompanies(Number(page), Number(limit));
   }
 
   @Patch('edit-company/:id') // "id" must match exactly

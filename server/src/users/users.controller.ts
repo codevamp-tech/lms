@@ -15,6 +15,7 @@ import {
   BadRequestException,
   Headers,
   Delete,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 // import { AuthGuard } from '../auth/auth.guard';
@@ -102,9 +103,17 @@ export class UsersController {
   }
 
   @Get('instructors')
-  async getInstructors(@Headers('Authorization') Auth: string) {
+  async getInstructors(
+    @Headers('Authorization') Auth: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 7,
+  ) {
     const companyId = Auth.split(' ')[1];
-    return this.usersService.getInstructors(companyId);
+    return this.usersService.getInstructors(
+      companyId,
+      Number(page),
+      Number(limit),
+    );
   }
 
   @Delete('/admin/:id')
@@ -113,15 +122,14 @@ export class UsersController {
   }
 
   @Get('admins')
-  async getAdmins() {
+  async getAdmins(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 7,
+  ) {
     try {
-      const response = await this.usersService.getAdmins();
-      return response;
+      return await this.usersService.getAdmins(Number(page), Number(limit));
     } catch (error) {
-      return {
-        success: false,
-        message: error.message,
-      };
+      throw new InternalServerErrorException(error.message);
     }
   }
 
