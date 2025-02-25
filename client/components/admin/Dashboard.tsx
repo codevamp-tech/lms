@@ -9,29 +9,41 @@ import Link from "next/link";
 
 const Dashboard: React.FC = () => {
 
+
   const { getCreatorCoursesQuery } = useCourses();
   const userId = getUserIdFromToken();
-  const { data: purchasedCourse, isLoading, error } = getCreatorCoursesQuery(userId);
+  const { data: response, isLoading, error } = getCreatorCoursesQuery(userId, 1);
+  const purchasedCourse = response?.courses || [];
+  console.log("PuchasedCoure", purchasedCourse);
 
   const totalCourses = purchasedCourse?.length || 0;
-
-  const courseData = purchasedCourse?.map((course) => ({
-    name: course.courseTitle,
-    price: course.coursePrice,
-  }));
-
-  const totalRevenue = purchasedCourse?.reduce((acc, course) => {
-    const enrolledStudents = course.enrolledStudents?.length || 0;
-    return acc + course.coursePrice * enrolledStudents;
-  }, 0) || 0;
-
-  const totalSales = purchasedCourse?.reduce((acc, course) => {
-    const enrolledStudents = course.enrolledStudents?.length || 0;
-  }, 0) || 0;
 
   if (isLoading) {
     return <div>Loading courses...</div>;
   }
+
+  const courseData = Array.isArray(purchasedCourse) ? purchasedCourse.map((course) => ({
+    name: course.courseTitle,
+    price: course.coursePrice,
+  })) : [];
+
+
+  const totalRevenue = Array.isArray(purchasedCourse)
+    ? purchasedCourse.reduce((acc, course) => {
+      const enrolledStudents = course.enrolledStudents?.length || 0;
+      return acc + course.coursePrice * enrolledStudents;
+    }, 0)
+    : 0;
+
+
+  const totalSales = Array.isArray(purchasedCourse)
+    ? purchasedCourse.reduce((acc, course) => {
+      const enrolledStudents = course.enrolledStudents?.length || 0;
+      return acc + enrolledStudents;
+    }, 0)
+    : 0;
+
+
 
   if (error) {
     return <div>Error: {error.message}</div>;

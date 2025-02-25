@@ -7,9 +7,10 @@ import React, { ReactNode, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { toast } from "sonner";
 import { headers } from "next/headers";
 import { Search, X } from "lucide-react";
+import toast from "react-hot-toast";
+import { error } from "console";
 
 interface Instructor {
   createdAt: ReactNode;
@@ -27,8 +28,7 @@ const AddInstructor: React.FC = () => {
   const userId = getUserIdFromToken();
   const { data: user, refetch } = useUserProfile(userId);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [emailError, setEmailError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -49,15 +49,14 @@ const AddInstructor: React.FC = () => {
 
   const handleAddInstructor = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setEmailError(null); // Reset previous errors
+
 
     const emailExists = instructors.some(
       (instructor) =>
         instructor.email.toLowerCase() === newInstructor.email.toLowerCase()
     );
     if (emailExists) {
-      setEmailError("This email is already registered");
+      toast.error("This email is already registered");
       return;
     }
 
@@ -75,12 +74,12 @@ const AddInstructor: React.FC = () => {
         setNewInstructor({ name: "", email: "", password: "", role: "instructor", companyId });
         setShowAddForm(false);
       } else if (data.error?.includes('Email already in use')) {
-        setEmailError("This email is already registered. Please use a different email.");
+        toast.error("This email is already registered. Please use a different email.");
       } else {
-        setError("This email is already registered. Please use a different email.");
+        toast.error("This email is already registered. Please use a different email.");
       }
     } catch (err: any) {
-      setError(err.message || "An unknown error occurred");
+      toast.error(err.message || "An unknown error occurred");
     }
   };
 
@@ -106,50 +105,47 @@ const AddInstructor: React.FC = () => {
       toast.error("Failed to toggle instructor status");
     }
   };
-  const ITEMS_PER_PAGE = 5;
+  const ITEMS_PER_PAGE = 7;
 
   const filteredInstructors = instructors.filter(instructor =>
     instructor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     instructor.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const totalItems = filteredInstructors.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
 
-  const fetchInstructors = async () => {
+
+
+  const fetchInstructors = async (page = 1) => {
     try {
-      const data = await getInstructor();
-
+      const data = await getInstructor(page,);
       if (data.success && Array.isArray(data.instructors)) {
         setInstructors(data.instructors);
+        setTotalPages(data.totalPages); // Use totalPages from the API
       } else {
-        setError("Unexpected response format");
+        toast.error("Unexpected response format");
       }
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unknown error occurred");
-      }
+      toast.error("Failed to fetch instructors");
     }
   };
 
   useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
+    fetchInstructors(currentPage);
+  }, [currentPage]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
     }
-    fetchInstructors();
-  }, [totalPages, currentPage]);
+  };
+
+
 
   const paginatedInstructors = filteredInstructors.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-    }
-  };
+  console.log("paginated", paginatedInstructors);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -221,11 +217,11 @@ const AddInstructor: React.FC = () => {
             </button>
           </div>
 
-          {error && (
+          {/* {error && (
             <div className="p-4 text-red-500 text-sm bg-red-100 dark:bg-red-900 rounded-lg">
               {error}
             </div>
-          )}
+          )} */}
 
           {showAddForm && (
             <div className="p-6">
@@ -333,24 +329,15 @@ const AddInstructor: React.FC = () => {
                     </tbody>
                   </table>
                 </div>
-                <div className="flex justify-between items-center mt-4">
-                  <Button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className={`px-4 py-2 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'bg-blue-500 text-white'}`}
-                  >
+                <div className="flex justify-end gap-2 mt-4">
+
+                  <span>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
                     Previous
                   </Button>
-
-                  <div className="text-gray-600 dark:text-white">
-                    Page {currentPage} of {totalPages}
-                  </div>
-
-                  <Button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage >= totalPages}
-                    className={`px-4 py-2 ${currentPage >= totalPages ? 'opacity-50 cursor-not-allowed' : 'bg-blue-500 text-white'}`}
-                  >
+                  <Button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
                     Next
                   </Button>
                 </div>

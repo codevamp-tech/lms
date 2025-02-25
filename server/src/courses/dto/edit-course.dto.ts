@@ -23,4 +23,8 @@ export class EditCourseDto {
   @IsOptional()
   @IsNumber()
   coursePrice?: number;
+
+  @IsOptional()
+  @IsNumber()
+  courseMRP?: number;
 }

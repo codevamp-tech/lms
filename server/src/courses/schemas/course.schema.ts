@@ -27,6 +27,9 @@ export class Course extends Document {
   @Prop()
   coursePrice: number;
 
+  @Prop()
+  courseMRP: number;
+
   @Prop({
     type: String,
     enum: ['Active', 'Inactive'],
@@ -36,6 +39,9 @@ export class Course extends Document {
 
   @Prop()
   courseThumbnail: string;
+
+  @Prop()
+  companyId: string;
 
   @Prop([{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }])
   enrolledStudents: User[];
@@ -48,6 +54,9 @@ export class Course extends Document {
 
   @Prop({ default: false })
   isPublished: boolean;
+
+  @Prop({ default: false })
+  isPrivate: boolean;
 }
 
 export const CourseSchema = SchemaFactory.createForClass(Course);

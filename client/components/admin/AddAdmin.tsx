@@ -2,9 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
-import { toast } from "sonner";
+
 import { Search, Trash2, X } from "lucide-react";
 import { Input } from "../ui/input";
+import toast from "react-hot-toast";
 
 interface Company {
   _id: string;
@@ -30,6 +31,8 @@ const AddUser: React.FC = () => {
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const companyId = localStorage.getItem("companyId");
   const [newUser, setNewUser] = useState({
     name: "",
@@ -42,6 +45,7 @@ const AddUser: React.FC = () => {
   useEffect(() => {
     // Fetch companies when the component mounts
     const fetchCompanies = async () => {
+
       try {
         const response = await fetch('http://localhost:3001/companies/all-company');
         const data = await response.json();
@@ -58,29 +62,34 @@ const AddUser: React.FC = () => {
     fetchCompanies();
   }, []);
 
-  const fetchAdmins = async () => {
+  const fetchAdmins = async (page = 1) => {
+    setLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/users/admins', {
+      const response = await fetch(`http://localhost:3001/users/admins?page=${page}&limit=10`, {
         headers: {
-          Authorization: `Bearer ${companyId}`, // Send companyId in Authorization header
+          Authorization: `Bearer ${companyId}`, // Ensure companyId is a valid token
+          "Content-Type": "application/json",
         }
-      }); // Replace with your backend API URL
+      });
+
       if (!response.ok) {
-        throw new Error('Failed to fetch data');
+        throw new Error("Failed to fetch data");
       }
+
       const data = await response.json();
-      setAdmins(data.admins); // Assuming the response is an array of admins
-      setLoading(false);
+      setAdmins(data.admins); // Set state
+      setTotalPages(data.totalPages);
+      setCurrentPage(data.currentPage);
     } catch (err: any) {
       setError(err.message);
-      setLoading(false);
+    } finally {
+      setLoading(false); // Stop loading after fetch completes
     }
   };
 
   useEffect(() => {
-    fetchAdmins();
-  }, []);
-
+    fetchAdmins(currentPage);
+  }, [currentPage]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

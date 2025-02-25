@@ -15,8 +15,8 @@ cloudinary.config({
 
 // Upload media to Cloudinary (Buffer or file path)
 export const uploadMedia = async (
-  file: Buffer | string, 
-  options: UploadApiOptions = {}
+  file: Buffer | string,
+  options: UploadApiOptions = {},
 ): Promise<UploadApiResponse> => {
   try {
     // If the file is a Buffer, use upload_stream (for large files or direct streams)
@@ -25,13 +25,13 @@ export const uploadMedia = async (
         const uploadStream = cloudinary.uploader.upload_stream(
           {
             folder: options.folder || 'uploads', // Folder name in Cloudinary
-            resource_type: options.resource_type || 'auto' // Auto-detect the resource type (image, video, etc.)
+            resource_type: options.resource_type || 'auto', // Auto-detect the resource type (image, video, etc.)
           },
           (error, result) => {
             if (error) reject(error);
             else if (result) resolve(result);
             else reject(new Error('No upload result'));
-          }
+          },
         );
 
         // Create a readable stream from the buffer and pipe it to Cloudinary
@@ -45,7 +45,7 @@ export const uploadMedia = async (
     const uploadResponse = await cloudinary.uploader.upload(file as string, {
       ...options,
       resource_type: options.resource_type || 'auto',
-      folder: options.folder || 'uploads'
+      folder: options.folder || 'uploads',
     });
     return uploadResponse;
   } catch (error) {
@@ -58,7 +58,7 @@ export const uploadMedia = async (
 export const uploadVideoToCloudinary = async (filePath: string) => {
   try {
     const result = await cloudinary.uploader.upload(filePath, {
-        folder: 'lecture_videos',
+      folder: 'lecture_videos',
       resource_type: 'video',
     });
 
@@ -74,7 +74,9 @@ export const uploadVideoToCloudinary = async (filePath: string) => {
 };
 
 // Utility for deleting media from Cloudinary by public ID
-export const deleteMediaFromCloudinary = async (publicId: string): Promise<void> => {
+export const deleteMediaFromCloudinary = async (
+  publicId: string,
+): Promise<void> => {
   try {
     await cloudinary.uploader.destroy(publicId); // Delete media by public ID
   } catch (error) {
@@ -84,11 +86,28 @@ export const deleteMediaFromCloudinary = async (publicId: string): Promise<void>
 };
 
 // Utility for deleting videos from Cloudinary by public ID
-export const deleteVideoFromCloudinary = async (publicId: string): Promise<void> => {
+export const deleteVideoFromCloudinary = async (
+  publicId: string,
+): Promise<void> => {
   try {
-    await cloudinary.uploader.destroy(publicId, { resource_type: "video" }); // Specify resource type as video
+    await cloudinary.uploader.destroy(publicId, { resource_type: 'video' }); // Specify resource type as video
   } catch (error) {
     console.error('Cloudinary video delete error:', error);
     throw new Error('Cloudinary video delete failed');
   }
 };
+
+export async function uploadImageToCloudinary(filePath: string) {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.upload(
+      filePath,
+      { resource_type: 'image' },
+      (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+        resolve(result);
+      },
+    );
+  });
+}

@@ -14,9 +14,10 @@ import {
 import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+
 import useCourses from "@/hooks/useCourses";
 import { getUserIdFromToken } from "@/utils/helpers";
+import toast from "react-hot-toast";
 
 const AddCourse = () => {
   const [courseTitle, setCourseTitle] = useState("");

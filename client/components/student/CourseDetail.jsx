@@ -16,9 +16,11 @@ import { useParams, useRouter } from "next/navigation";
 import { getUserIdFromToken } from "@/utils/helpers";
 import useCoursePurchase from "@/hooks/useCoursePurchase";
 import { createCheckout } from "@/features/api/course-purchase/route";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
+import { useCart } from "@/contexts/CartContext";
 
 const CourseDetail = () => {
+  const { cart, addToCart } = useCart();
   const descriptionRef = useRef(null);
   const { courseId } = useParams();
   const router = useRouter();
@@ -44,9 +46,7 @@ const CourseDetail = () => {
     }
   }, [course]);
 
-  // if (!course) {
-  //   return <h1>Course not found</h1>;
-  // }
+  const isInCart = cart.some((item) => item.course._id === course?.course._id);
 
   const handleContinueCourse = () => {
     if (course.purchased) {
@@ -175,16 +175,34 @@ const CourseDetail = () => {
               />
             </div>
             <h1 className="text-xl md:text-2xl font-semibold text-center">
-              $ {course?.course.coursePrice}
+              ₹{course?.course.coursePrice}
             </h1>
           </CardContent>
-          <CardFooter className="flex justify-center pb-4">
+          <CardFooter className="flex-col gap-3 pb-4">
+            <Button
+              onClick={() => {
+                addToCart(course), toast.success("Course added to cart!");
+              }}
+              className="w-full"
+              disabled={isInCart}
+            >
+              {isInCart ? "Already in Cart" : "Add to Cart"}
+            </Button>
+
             {course.purchased ? (
-              <Button onClick={handleContinueCourse} className="w-full">
+              <Button
+                variant="outline"
+                onClick={handleContinueCourse}
+                className="w-full"
+              >
                 Continue Course
               </Button>
             ) : (
-              <Button onClick={handleBuyCourse} className="w-full">
+              <Button
+                variant="outline"
+                onClick={handleBuyCourse}
+                className="w-full"
+              >
                 Buy Course
               </Button>
             )}

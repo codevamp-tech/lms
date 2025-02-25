@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { toast } from "sonner";
+
 import { imageUpload } from "@/features/api/image-upload/route";
+import toast from "react-hot-toast";
 
 const EditConfigurationForm = () => {
   const router = useRouter();
