@@ -14,9 +14,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 const Login = () => {
   const [signupInput, setSignupInput] = useState({
@@ -44,13 +44,13 @@ const Login = () => {
       try {
         await signupUser(signupInput);
         setSignupInput({ name: "", email: "", password: "", role: "student" });
-        setSignupError(null);
+
         toast.success("Signup successful! You can now log in.");
       } catch (error: any) {
         if (error.response?.data?.message === 'Email already in use') {
-          setSignupError("Email is already registered. Please try a different email.");
+          toast.error("Email is already registered. Please try a different email.");
         } else {
-          setSignupError("Email is already registered.Please try a different email.");
+          toast.error("Email is already registered.Please try a different email.");
         }
       }
     } else {
@@ -61,6 +61,8 @@ const Login = () => {
         if (response?.user?.companyId) {
           localStorage.setItem("companyId", response.user.companyId);
         }
+
+        toast.success("Login successful!");
 
         if (response?.user.role === "instructor") {
           router.push("/admin/dashboard");

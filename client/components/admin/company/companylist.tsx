@@ -22,15 +22,18 @@ const CompanyList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+
 
   const ITEMS_PER_PAGE = 5;
 
-  const fetchCompanies = async () => {
+  const fetchCompanies = async (page = 1) => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/companies/all-company');
+      const response = await fetch(`http://localhost:3001/companies/all-company?page=${page}&limit=${ITEMS_PER_PAGE}`);
       const data = await response.json();
-      setCompanies(data);
+      setCompanies(data.companies);
+      setTotalPages(Math.ceil(data.total / ITEMS_PER_PAGE)); // Update total pages
     } catch (err) {
       setError('Failed to fetch companies.');
     }
@@ -38,8 +41,9 @@ const CompanyList = () => {
   };
 
   useEffect(() => {
-    fetchCompanies();
-  }, []);
+    fetchCompanies(currentPage);
+  }, [currentPage]);
+  ;
 
 
   const handleDelete = async (id: string) => {
@@ -67,7 +71,7 @@ const CompanyList = () => {
     company.phone.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredCompanies.length / ITEMS_PER_PAGE);
+
   const paginatedCompanies = filteredCompanies.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE

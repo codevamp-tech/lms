@@ -17,16 +17,17 @@ import React, { useEffect, useState } from "react";
 import { getUserIdFromToken } from "@/utils/helpers";
 import { getInstructor } from "@/features/api/users/route";
 
+const ITEMS_PER_PAGE = 7; // Define items per page
+
 const CourseTable = () => {
   const { getCreatorCoursesQuery } = useCourses();
   const router = useRouter();
   const userId = getUserIdFromToken();
-  const ITEMS_PER_PAGE = 7;
 
-  const { data: courses = [], isLoading, error } = getCreatorCoursesQuery(userId);
+  const [currentPage, setCurrentPage] = useState(1);
+  const { data, isLoading, error } = getCreatorCoursesQuery(userId, currentPage);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [instructorStatus, setInstructorStatus] = useState(false);
   const [statusLoading, setStatusLoading] = useState(true);
 
@@ -34,20 +35,14 @@ const CourseTable = () => {
     const fetchInstructorStatus = async () => {
       try {
         const data = await getInstructor();
-
         if (data.success) {
-          // Find current user in instructors array
-          const currentInstructor = data.instructors.find(
-            (inst: any) => inst._id === userId
-          );
-
+          const currentInstructor = data.instructors.find((inst: any) => inst._id === userId);
           if (currentInstructor) {
             setInstructorStatus(currentInstructor.isStatus);
           }
         }
       } catch (err) {
         console.error("Error fetching instructor status:", err);
-        setError("Failed to verify instructor status");
       } finally {
         setStatusLoading(false);
       }
@@ -55,18 +50,26 @@ const CourseTable = () => {
     };
 
     fetchInstructorStatus();
-  }, [userId, searchTerm]);
+  }, [userId]);
 
+  const courses = data?.courses || [];
+  const totalPages = data?.totalPages || 1;
 
-  const filteredCourses = courses.filter((course: { courseTitle: string; }) =>
+  const filteredCourses = courses.filter((course: { courseTitle: string }) =>
     course.courseTitle.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedCourses = filteredCourses.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(filteredCourses.length / ITEMS_PER_PAGE);
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
 
   const handleNavigateToCreate = () => {
     router.push("/admin/courses/create");
@@ -74,18 +77,6 @@ const CourseTable = () => {
 
   const handleNavigateToEdit = (id: string) => {
     router.push(`/admin/courses/${id}`);
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
   };
 
   const handleSuggestionClick = (title: string) => {
@@ -106,15 +97,12 @@ const CourseTable = () => {
   return (
     <div>
       <div className="flex items-center gap-4 mb-4">
-        <Button
-          onClick={handleNavigateToCreate}
-          disabled={statusLoading || !instructorStatus}
-        >
+        <Button onClick={handleNavigateToCreate} disabled={statusLoading || !instructorStatus}>
           {statusLoading ? "Checking Status..." : "Create New Course"}
         </Button>
         {!instructorStatus && !statusLoading && (
           <span className="text-sm text-red-500">
-            Your account is inactive. Please contact admin to active your account .
+            Your account is inactive. Please contact admin to activate your account.
           </span>
         )}
         <div className="flex-1 flex items-center gap-2">
@@ -143,13 +131,8 @@ const CourseTable = () => {
             )}
           </div>
           {searchTerm && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearSearch}
-              className="px-2"
-            >
-              <X className="h-30 w-30" />
+            <Button variant="ghost" size="sm" onClick={clearSearch} className="px-2">
+              <X className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -172,7 +155,7 @@ const CourseTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedCourses.map((course: any) => (
+          {courses.map((course: any) => (
             <TableRow key={course._id}>
               <TableCell>{course.courseTitle}</TableCell>
               <TableCell className="font-medium">{course.coursePrice || "NA"}</TableCell>
@@ -180,11 +163,7 @@ const CourseTable = () => {
                 <Badge>{course.isPublished ? "Published" : "Draft"}</Badge>
               </TableCell>
               <TableCell className="text-right">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleNavigateToEdit(course._id)}
-                >
+                <Button size="sm" variant="ghost" onClick={() => handleNavigateToEdit(course._id)}>
                   <Edit />
                 </Button>
               </TableCell>
@@ -193,26 +172,16 @@ const CourseTable = () => {
         </TableBody>
       </Table>
 
-      {filteredCourses.length > ITEMS_PER_PAGE && (
-        <div className="flex  justify-end items-center mt-4 gap-3" >
-
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-end items-center mt-4 gap-3">
           <span>
             Page {currentPage} of {totalPages}
           </span>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={currentPage === 1}
-            onClick={handlePreviousPage}
-          >
+          <Button size="sm" variant="outline" disabled={currentPage === 1} onClick={handlePreviousPage}>
             Previous
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={currentPage === totalPages}
-            onClick={handleNextPage}
-          >
+          <Button size="sm" variant="outline" disabled={currentPage === totalPages} onClick={handleNextPage}>
             Next
           </Button>
         </div>
@@ -222,7 +191,3 @@ const CourseTable = () => {
 };
 
 export default CourseTable;
-
-function setError(arg0: string) {
-  throw new Error("Function not implemented.");
-}

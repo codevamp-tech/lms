@@ -7,6 +7,11 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import ReactQueryProvider from "./providers/ReactQueryProvider";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import { Toaster } from 'react-hot-toast';
+import { CartProvider } from "@/contexts/CartContext";
+
+
+
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -41,14 +46,18 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           <ReactQueryProvider>
-            <div className="flex flex-col min-h-screen bg-homeBackground dark:bg-card ">
-              {!hideSidebar && <Navbar />}
-              <div
-                className={`w-full h-screen ${!hideSidebar ? "flex-1 mt-16 " : "max-w-full "
-                  }`}
-              >{children}</div>
-            </div>
+            <CartProvider>
+              <div className="flex flex-col min-h-screen bg-homeBackground dark:bg-card ">
+                {!hideSidebar && <Navbar />}
+                <Toaster />
+                <div
+                  className={`w-full h-screen ${!hideSidebar ? "flex-1 mt-16 " : "max-w-full "
+                    }`}
+                >{children}</div>
+              </div>
+            </CartProvider>
           </ReactQueryProvider>
+
         </body>
       </ThemeProvider>
     </html>

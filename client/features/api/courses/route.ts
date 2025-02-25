@@ -1,3 +1,4 @@
+import Course from "@/components/Course";
 import axios from "axios";
 
 const API_BASE_URL = `${
@@ -34,14 +35,21 @@ export const createCourse = async (courseData: CourseData) => {
   }
 };
 
-export const getCreatorCourses = async (userId: string) => {
+export const getCreatorCourses = async (
+  userId: string,
+  page: number = 1,
+  limit: number = 7
+) => {
   try {
     const { data } = await axios.post(`${API_BASE_URL}/get-creator-courses`, {
       userId,
+      page,
+      limit,
     });
-    return data.courses;
+
+    return data;
   } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Signup failed");
+    throw new Error(error.response?.data?.message || "Failed to fetch courses");
   }
 };
 
@@ -152,15 +160,16 @@ export const togglePrivateCourse = async (
   }
 };
 
-export const getPublishedCourses = async () => {
+export const getPublishedCourses = async (page = 1, limit = 12) => {
   const companyId = localStorage.getItem("companyId") || null;
   try {
     const { data } = await axios.get(`${API_BASE_URL}/published/all`, {
-      params: { companyId },
+      params: { companyId, page, limit },
     });
     return data;
   } catch (error) {
-    console.error("Error fetching course:", error);
+    console.error("Error fetching courses:", error);
+    throw error;
   }
 };
 

@@ -6,24 +6,22 @@ import Course from "./Course";
 import useCourses from "@/hooks/useCourses";
 
 const Courses = () => {
-  const { getPublishedCoursesQuery } = useCourses();
-  const { data, isLoading } = getPublishedCoursesQuery();
-  const companyId = localStorage.getItem("companyId");
-
   const [selectedCategory, setselectedCategory] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
   const [showOtherCompanies, setShowOtherCompanies] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const { getPublishedCoursesQuery } = useCourses();
+  const { data, isLoading } = getPublishedCoursesQuery(currentPage); // Pass currentPage
 
-  const itemsPerPage = 12;
-
-  const publicCourses = data?.filter((course) => !course.isPrivate) || [];
+  const companyId = localStorage.getItem("companyId");
+  const publicCourses =
+    data?.courses?.filter((course) => !course.isPrivate) || [];
 
   const courseCategory = [
     ...new Set(publicCourses.map((course) => course.category)),
   ];
 
   const filteredCourses = companyId
-    ? data?.filter((course) =>
+    ? data?.courses?.filter((course) =>
         showOtherCompanies ? true : course.companyId === companyId
       ) || []
     : publicCourses;
@@ -31,13 +29,6 @@ const Courses = () => {
   const categoryFilteredCourses = selectedCategory
     ? filteredCourses.filter((course) => course.category === selectedCategory)
     : filteredCourses;
-
-  const totalPages = Math.ceil(categoryFilteredCourses.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedCourses = categoryFilteredCourses.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
 
   return (
     <div className="bg-homeBackground dark:bg-navBackground">
@@ -93,8 +84,8 @@ const Courses = () => {
             Array.from({ length: 8 }).map((_, index) => (
               <CourseSkeleton key={index} />
             ))
-          ) : paginatedCourses.length > 0 ? (
-            paginatedCourses.map((course) => (
+          ) : categoryFilteredCourses.length > 0 ? (
+            categoryFilteredCourses.map((course) => (
               <Course key={course._id} course={course} />
             ))
           ) : (
@@ -106,10 +97,10 @@ const Courses = () => {
           )}
         </div>
 
-        {!isLoading && totalPages > 1 && (
+        {!isLoading && data?.totalPages > 1 && (
           <div className="flex justify-end items-end gap-2 mt-8">
             <span className="text-gray-700 dark:text-white text-center pr-5">
-              Page {currentPage} of {totalPages}
+              Page {currentPage} of {data?.totalPages}
             </span>
             <Button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -119,9 +110,9 @@ const Courses = () => {
             </Button>
             <Button
               onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                setCurrentPage((prev) => Math.min(prev + 1, data?.totalPages))
               }
-              disabled={currentPage === totalPages}
+              disabled={currentPage === data?.totalPages}
             >
               Next
             </Button>
