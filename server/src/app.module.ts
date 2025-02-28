@@ -19,6 +19,10 @@ import { ImageUploadController } from './image-upload/image-upload.controller';
 import { ImageUploadService } from './image-upload/image-upload.service';
 import { ImageUploadModule } from './image-upload/image-upload.module';
 import { RatingsModule } from './rating/rating.module';
+import { FavoritesModule } from './favorites/favorites.module';
+import { CartController } from './cart/cart.controller';
+import { CartService } from './cart/cart.service';
+import { CartModule } from './cart/cart.module';
 
 // Ensure uploads directory exists
 const uploadDir = './uploads';
@@ -75,9 +79,9 @@ if (!fs.existsSync(uploadDir)) {
     ConfigurationModule,
     ImageUploadModule,
     RatingsModule,
+    FavoritesModule,
+    CartModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
