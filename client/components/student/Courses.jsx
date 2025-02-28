@@ -1,27 +1,40 @@
 "use client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Course from "./Course";
 import useCourses from "@/hooks/useCourses";
+import { getUserIdFromToken } from "@/utils/helpers";
 
 const Courses = () => {
-  const [selectedCategory, setselectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [showOtherCompanies, setShowOtherCompanies] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [courses, setCourses] = useState([]);
+  const observerRef = useRef(null);
+  const bottomRef = useRef(null);
+
   const { getPublishedCoursesQuery } = useCourses();
-  const { data, isLoading } = getPublishedCoursesQuery(currentPage); // Pass currentPage
+  const userId = getUserIdFromToken();
+  const { data, isLoading } = getPublishedCoursesQuery(currentPage);
+
+  useEffect(() => {
+    if (data?.courses) {
+      setCourses((prev) =>
+        currentPage === 1 ? data.courses : [...prev, ...data.courses]
+      );
+    }
+  }, [data]);
 
   const companyId = localStorage.getItem("companyId");
-  const publicCourses =
-    data?.courses?.filter((course) => !course.isPrivate) || [];
+  const publicCourses = courses?.filter((course) => !course.isPrivate) || [];
 
   const courseCategory = [
     ...new Set(publicCourses.map((course) => course.category)),
   ];
 
   const filteredCourses = companyId
-    ? data?.courses?.filter((course) =>
+    ? courses?.filter((course) =>
         showOtherCompanies ? true : course.companyId === companyId
       ) || []
     : publicCourses;
@@ -30,6 +43,27 @@ const Courses = () => {
     ? filteredCourses.filter((course) => course.category === selectedCategory)
     : filteredCourses;
 
+  useEffect(() => {
+    if (isLoading) return;
+    if (observerRef.current) observerRef.current.disconnect();
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && currentPage < data?.totalPages) {
+          setCurrentPage((prev) => prev + 1);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (bottomRef.current) observerRef.current.observe(bottomRef.current);
+  }, [isLoading, currentPage, data?.totalPages]);
+
+  useEffect(() => {
+    setCourses([]);
+    setCurrentPage(1);
+  }, [selectedCategory]);
+
   return (
     <div className="bg-homeBackground dark:bg-navBackground">
       <div className="max-w-7xl mx-auto p-6">
@@ -37,21 +71,20 @@ const Courses = () => {
 
         {!isLoading && (
           <div className="flex flex-wrap justify-center gap-2 mb-8">
-            {!isLoading && companyId && (
+            {companyId && (
               <Button
-                checked={showOtherCompanies}
                 onClick={() => setShowOtherCompanies((prev) => !prev)}
                 className={`px-4 py-2 rounded-full border transition-colors ${
                   showOtherCompanies
-                    ? "bg-blue-500  text-white "
-                    : " bg-white dark:bg-gray-800 hover:bg-gray-500 hover:text-white text-black"
+                    ? "bg-blue-500  text-white"
+                    : "bg-white dark:bg-gray-800 hover:bg-gray-500 hover:text-white text-black"
                 }`}
               >
                 Show All Courses
               </Button>
             )}
             <Button
-              onClick={() => setselectedCategory("")}
+              onClick={() => setSelectedCategory("")}
               className={`rounded-full ${
                 selectedCategory === ""
                   ? "bg-blue-500 text-white"
@@ -64,8 +97,7 @@ const Courses = () => {
               <Button
                 key={category}
                 onClick={() => {
-                  setselectedCategory(category);
-                  setCurrentPage(1);
+                  setSelectedCategory(category);
                 }}
                 className={`rounded-full ${
                   selectedCategory === category
@@ -80,14 +112,16 @@ const Courses = () => {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {isLoading ? (
+          {isLoading && courses.length === 0 ? (
             Array.from({ length: 8 }).map((_, index) => (
               <CourseSkeleton key={index} />
             ))
           ) : categoryFilteredCourses.length > 0 ? (
-            categoryFilteredCourses.map((course) => (
-              <Course key={course._id} course={course} />
-            ))
+            categoryFilteredCourses.map((course, index) => {
+              return (
+                <Course key={course._id} course={course} userId={userId} />
+              );
+            })
           ) : (
             <div className="col-span-full text-center py-8">
               <p className="text-gray-600 dark:text-gray-400">
@@ -95,29 +129,16 @@ const Courses = () => {
               </p>
             </div>
           )}
-        </div>
 
-        {!isLoading && data?.totalPages > 1 && (
-          <div className="flex justify-end items-end gap-2 mt-8">
-            <span className="text-gray-700 dark:text-white text-center pr-5">
-              Page {currentPage} of {data?.totalPages}
-            </span>
-            <Button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-            <Button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, data?.totalPages))
-              }
-              disabled={currentPage === data?.totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        )}
+          {isLoading && courses.length > 0 && (
+            <div className="col-span-full flex justify-center py-4">
+              <div className="animate-pulse flex space-x-4">
+                <div className="rounded-full bg-gray-200 h-10 w-10"></div>
+              </div>
+            </div>
+          )}
+          <div ref={bottomRef} className="h-10 w-full"></div>
+        </div>
       </div>
     </div>
   );

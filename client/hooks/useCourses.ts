@@ -17,7 +17,6 @@ import toast from "react-hot-toast";
 
 const useCourses = () => {
   const queryClient = useQueryClient();
-  const limit = 12;
 
   // Mutation for creating a course
   const createCourseMutation = useMutation<
@@ -130,7 +129,7 @@ const useCourses = () => {
   };
 
   // Query for fetching published courses
-  const getPublishedCoursesQuery = (page: number) => {
+  const getPublishedCoursesQuery = (page: number, limit: number) => {
     return useQuery({
       queryKey: ["publishedCourses", page], // Pass page as part of query key
       queryFn: () => getPublishedCourses(page, limit),

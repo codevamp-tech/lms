@@ -17,10 +17,8 @@ import { getUserIdFromToken } from "@/utils/helpers";
 import useCoursePurchase from "@/hooks/useCoursePurchase";
 import { createCheckout } from "@/features/api/course-purchase/route";
 import toast from "react-hot-toast";
-import { useCart } from "@/contexts/CartContext";
 
 const CourseDetail = () => {
-  const { cart, addToCart } = useCart();
   const descriptionRef = useRef(null);
   const { courseId } = useParams();
   const router = useRouter();
@@ -29,6 +27,7 @@ const CourseDetail = () => {
   const [isTruncated, setIsTruncated] = useState(false);
   const [contentHeight, setContentHeight] = useState(0);
   const { getCourseDetailsWithPurchaseStatusQuery } = useCoursePurchase();
+  const [isInCart, setIsInCart] = useState(false);
 
   const {
     data: course,
@@ -46,8 +45,6 @@ const CourseDetail = () => {
     }
   }, [course]);
 
-  const isInCart = cart.some((item) => item.course._id === course?.course._id);
-
   const handleContinueCourse = () => {
     if (course.purchased) {
       // Navigate to the course progress page
@@ -55,11 +52,57 @@ const CourseDetail = () => {
     }
   };
 
+  useEffect(() => {
+    const checkCartStatus = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3001/cart/${userId}/check`
+        );
+        const data = await response.json();
+        if (response.ok) {
+          setIsInCart(data.some((item) => item.courseId === courseId));
+        }
+      } catch (error) {
+        console.error("Error checking cart status:", error);
+      }
+    };
+
+    if (userId) {
+      checkCartStatus();
+    }
+  }, [courseId, userId, isInCart]); // ✅ Re-check when `isInCart` updates
+
+  const addToCart = async (course) => {
+    if (isInCart) return;
+    try {
+      const response = await fetch(
+        `http://localhost:3001/cart/${courseId}/add-to-cart`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success("Course added to cart!");
+        setIsInCart(true);
+      } else {
+        toast.error(data.message || "Failed to add to cart.");
+      }
+    } catch (error) {
+      toast.error("Error adding course to cart.");
+    }
+  };
+
   const handleBuyCourse = async () => {
     try {
       const data = await createCheckout(courseId, userId);
       if (data?.success && data?.url) {
-        // Redirect to the checkout URL
         window.location.href = data.url;
       } else {
         toast.error("Error: No URL returned from the checkout API.");
@@ -180,9 +223,7 @@ const CourseDetail = () => {
           </CardContent>
           <CardFooter className="flex-col gap-3 pb-4">
             <Button
-              onClick={() => {
-                addToCart(course), toast.success("Course added to cart!");
-              }}
+              onClick={() => addToCart(course)}
               className="w-full"
               disabled={isInCart}
             >
