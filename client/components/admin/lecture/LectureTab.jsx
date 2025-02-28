@@ -16,9 +16,10 @@ import axios from "axios";
 import { Loader2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation"; // Using next/navigation instead of React Router
-import { toast } from "sonner";
+
 import useLectures from "@/hooks/useLectures";
 import { videoUpload } from "@/features/api/video-upload/route";
+import toast from "react-hot-toast";
 
 const LectureTab = () => {
   const [lectureTitle, setLectureTitle] = useState("");

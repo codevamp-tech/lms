@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { toast } from "sonner";
 import Lecture from "./Lecture";
 
 import useCourses from "@/hooks/useCourses";
@@ -13,6 +12,7 @@ import useLectures from "@/hooks/useLectures";
 import { Switch } from "@/components/ui/switch";
 import { videoUpload } from "@/features/api/video-upload/route";
 import { Progress } from "@/components/ui/progress";
+import toast from "react-hot-toast";
 
 const CreateLecture = () => {
   const [lectureTitle, setLectureTitle] = useState("");

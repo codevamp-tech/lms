@@ -70,15 +70,18 @@ export const fetchUserProfile = async (userId: string | null) => {
   }
 };
 
-export const getInstructor = async () => {
+export const getInstructor = async (page = 1, limit = 7) => {
   try {
-    const companyId = localStorage.getItem("companyId"); // Retrieve companyId from localStorage
+    const companyId = localStorage.getItem("companyId");
 
-    const { data } = await axios.get(`${API_BASE_URL}/instructors`, {
-      headers: {
-        Authorization: `Bearer ${companyId}`, // Send companyId in Authorization header
-      },
-    });
+    const { data } = await axios.get(
+      `${API_BASE_URL}/instructors?page=${page}&limit=${limit}`,
+      {
+        headers: {
+          Authorization: `Bearer ${companyId}`,
+        },
+      }
+    );
 
     return data;
   } catch (error: any) {

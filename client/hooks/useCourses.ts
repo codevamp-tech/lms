@@ -11,11 +11,13 @@ import {
   getPublishedCourses,
   deleteCourse,
   togglePrivateCourse,
+  courseRating,
 } from "../features/api/courses/route";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 
 const useCourses = () => {
   const queryClient = useQueryClient();
+
   // Mutation for creating a course
   const createCourseMutation = useMutation<
     CreateCourseResponse,
@@ -79,11 +81,16 @@ const useCourses = () => {
   });
 
   // Query for fetching courses by userId
-  const getCreatorCoursesQuery = (userId: string) => {
+  const getCreatorCoursesQuery = (
+    userId: string,
+    page: number,
+    limit: number = 7
+  ) => {
     return useQuery({
-      queryKey: ["creatorCourses", userId],
-      queryFn: () => getCreatorCourses(userId),
-      enabled: !!userId, // Ensure the query runs only if userId is provided
+      queryKey: ["creatorCourses", userId, page], // Add page as a dependency
+      queryFn: () => getCreatorCourses(userId, page, limit),
+      enabled: !!userId, // Runs only if userId is provided
+      keepPreviousData: true, // Keeps previous data while fetching new page
       onSuccess: (data) => {
         console.log("Courses fetched successfully:", data);
       },
@@ -122,10 +129,11 @@ const useCourses = () => {
   };
 
   // Query for fetching published courses
-  const getPublishedCoursesQuery = () => {
+  const getPublishedCoursesQuery = (page: number, limit: number) => {
     return useQuery({
-      queryKey: ["publishedCourses"],
-      queryFn: () => getPublishedCourses(),
+      queryKey: ["publishedCourses", page], // Pass page as part of query key
+      queryFn: () => getPublishedCourses(page, limit),
+      staleTime: 5000, // Prevents UI flicker when switching pages
       onSuccess: (data) => {
         console.log("Courses fetched successfully:", data);
       },

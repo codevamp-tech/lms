@@ -10,5 +10,8 @@ export class CreateCourseDto {
   category: string;
 
   @IsString()
-  creatorId: string; // This will be passed from the frontend
+  creatorId: string;
+
+  @IsNotEmpty()
+  companyId: string; // This will be passed from the frontend
 }

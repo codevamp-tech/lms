@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Menu, School } from "lucide-react";
+import { Heart, LogOut, Menu, School, ShoppingCart } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import {
   DropdownMenu,
@@ -25,12 +25,13 @@ import {
 } from "./ui/sheet";
 import { Separator } from "@radix-ui/react-dropdown-menu";
 // import { useLogoutUserMutation } from "@/features/api/authApi";
-import { toast } from "sonner";
+
 // import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useUserProfile } from "@/hooks/useUsers";
 import { getUserIdFromToken } from "@/utils/helpers";
+import toast from "react-hot-toast";
 
 const Navbar = () => {
   // const { user } = useSelector((store) => store.auth);
@@ -66,7 +67,7 @@ const Navbar = () => {
   const fetchLogo = async () => {
     const companyId = localStorage.getItem("companyId");
     if (!companyId) {
-      console.log("No companyId found in localStorage");
+      toast.error("No companyId found in localStorage");
       return;
     }
 
@@ -88,7 +89,7 @@ const Navbar = () => {
         console.log("Image URL not found in the response");
       }
     } catch (error) {
-      console.error("Error fetching logo:", error);
+      toast.error(`Error fetching logo:, ${error}`);
     }
   };
 
@@ -165,7 +166,10 @@ const Navbar = () => {
             </h1>
           </Link>
         </div>
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-4">
+          <Link href="/favorites"> <Heart /></Link>
+          <Link href="/cart"> <ShoppingCart /></Link>
+
           <DarkMode />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

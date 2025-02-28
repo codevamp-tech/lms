@@ -14,10 +14,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import React, { useEffect, useState } from "react";
 import Course from "./Course";
-import { toast } from "sonner";
 import { getUserIdFromToken } from "@/utils/helpers";
 import { useUserProfile } from "@/hooks/useUsers";
 import { updateUserProfile } from "@/features/api/users/route";
+import toast from "react-hot-toast";
 
 const Profile = () => {
   const userId = getUserIdFromToken();
@@ -50,12 +50,11 @@ const Profile = () => {
   //       .catch((error) => {
   //         console.error('Error:', error);
   //       });
-      
+
   //     // console.log("response", response)
   //   }
   //   fetchUserProfile();
   // }, [])
-  
 
   useEffect(() => {
     if (user) {
@@ -72,7 +71,7 @@ const Profile = () => {
     await updateUserProfile(userId, name, profilePhoto);
     toast.success("Profile updated successfully");
     setIsDialogOpen(false); // Close the dialog box
-    refetch()
+    refetch();
   };
 
   if (isLoading) return <p>Loading...</p>;
@@ -126,7 +125,8 @@ const Profile = () => {
               <DialogHeader>
                 <DialogTitle>Edit Profile</DialogTitle>
                 <DialogDescription>
-                  Make changes to your profile here. Click save when you're done.
+                  Make changes to your profile here. Click save when you're
+                  done.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">

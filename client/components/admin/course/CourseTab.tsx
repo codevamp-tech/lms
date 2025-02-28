@@ -25,7 +25,8 @@ import useCourses from "@/hooks/useCourses";
 import { Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
+
 
 const CourseTab = () => {
   const { courseId } = useParams();
@@ -50,11 +51,11 @@ const CourseTab = () => {
     category: "",
     courseLevel: "",
     coursePrice: "",
+    courseMRP: "",
     companyId: companyId,
   });
 
   const [thumbnail, setThumbnail] = useState<File | null>(null);
-  const [courseStatus, setCourseStatus] = useState();
   const [previewThumbnail, setPreviewThumbnail] = useState<string | null>("");
 
 
@@ -83,10 +84,10 @@ const CourseTab = () => {
         category: course.category || "",
         courseLevel: course.courseLevel || "",
         coursePrice: course.coursePrice || "",
+        courseMRP: course.courseMRP || "",
         companyId: companyId,
       });
       setPreviewThumbnail(course.courseThumbnail || "");
-      setCourseStatus(course.courseStatus);
       if (course.category && !categories.includes(course.category)) {
         setCategories((prev) => [...new Set([...prev, course.category])]);
       }
@@ -144,7 +145,7 @@ const CourseTab = () => {
       {
         onSuccess: () => {
           toast.success(
-            `Course ${status ? "public" : "private"} successfully.`
+            `Course ${status ? "private" : "public"} successfully.`
           );
           refetch();
         },
@@ -162,7 +163,7 @@ const CourseTab = () => {
     }
 
     editCourse(
-      { courseId, updatedData: input, thumbnail },
+      { courseId, updatedData: input, thumbnail: thumbnail || undefined },
       {
         onSuccess: () => {
           toast.success(`Course ${courseId} updated successfully.`);
@@ -202,15 +203,6 @@ const CourseTab = () => {
             done.
           </CardDescription>
         </div>
-        {/* <Button
-          disabled
-          variant="outline"
-          value={courseStatus}
-        >
-          {course?.courseStatus}
-        </Button> */}
-
-
         <div className="space-x-1">
           <Button
             disabled={!course?.lectures?.length}
@@ -300,13 +292,24 @@ const CourseTab = () => {
               </Select>
             </div>
             <div>
-              <Label>Price (INR)</Label>
+              <Label>Offer Price (INR)</Label>
               <Input
                 type="number"
                 name="coursePrice"
                 value={input.coursePrice}
                 onChange={changeEventHandler}
                 placeholder="199"
+                className="w-fit"
+              />
+            </div>
+            <div>
+              <Label>Price (INR)</Label>
+              <Input
+                type="number"
+                name="courseMRP"
+                value={input.courseMRP}
+                onChange={changeEventHandler}
+                placeholder="599"
                 className="w-fit"
               />
             </div>

@@ -7,6 +7,11 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import ReactQueryProvider from "./providers/ReactQueryProvider";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import { Toaster } from 'react-hot-toast';
+
+
+
+
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -43,6 +48,7 @@ export default function RootLayout({
           <ReactQueryProvider>
             <div className="flex flex-col min-h-screen bg-homeBackground dark:bg-card ">
               {!hideSidebar && <Navbar />}
+              <Toaster />
               <div
                 className={`w-full h-screen ${!hideSidebar ? "flex-1 mt-16 " : "max-w-full "
                   }`}

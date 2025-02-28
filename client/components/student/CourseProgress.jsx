@@ -2,7 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { CheckCircle, CheckCircle2, CirclePlay } from "lucide-react";
+import { CheckCircle, CheckCircle2, CirclePlay, Star } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation"; // Use Next.js router
 import { getUserIdFromToken } from "@/utils/helpers";
@@ -22,12 +22,23 @@ const CourseProgress = () => {
 
   const { data, isLoading, error } = getCourseProgressQuery(courseId, userId);
   const [currentLecture, setCurrentLecture] = useState(null);
+  const [userRating, setUserRating] = useState(0);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
 
   useEffect(() => {
     if (data) {
       setCurrentLecture(data?.courseDetails.lectures[0]);
     }
   }, [data]);
+
+  useEffect(() => {
+    if (data && data.completed && !ratingSubmitted) {
+      setShowRatingModal(true);
+    } else {
+      setShowRatingModal(false);
+    }
+  }, [data, ratingSubmitted]);
 
   const isLectureCompleted = (lectureId) => {
     const lectureProgress = data?.progress.find(
@@ -46,6 +57,29 @@ const CourseProgress = () => {
 
   const handleInCompleteCourse = () => {
     markAsInComplete({ courseId, userId });
+  };
+
+  const handleRate = async (ratingValue) => {
+    try {
+      if (!userId) {
+        throw new Error("User is not authenticated");
+      }
+      const response = await fetch(
+        `http://localhost:3001/ratings/${courseId}/rating`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          // Pass both rating and userId in the request body.
+          body: JSON.stringify({ rating: ratingValue, userId }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to rate course");
+      }
+      setRatingSubmitted(true);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   if (!data) {
@@ -155,6 +189,48 @@ const CourseProgress = () => {
           </div>
         </div>
       </div>
+      {/* Rating Modal Popup */}
+      {showRatingModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+            <h2 className="text-xl font-bold mb-4 text-center">
+              Rate this course
+            </h2>
+            <div className="flex justify-center items-center space-x-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  onClick={() => setUserRating(star)}
+                  className={`cursor-pointer h-8 w-8 ${
+                    userRating >= star
+                      ? "text-yellow-500 fill-current"
+                      : "text-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                onClick={() => handleRate(userRating)}
+                className="mt-4  w-full"
+              >
+                Submit Rating
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowRatingModal(false);
+                  setUserRating(0);
+                }}
+                variant="outline"
+                className="mt-4 w-full"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

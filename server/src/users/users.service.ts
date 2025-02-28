@@ -125,19 +125,25 @@ export class UsersService {
     return newAdmin.save();
   }
 
-  async getAdmins() {
+  async getAdmins(page = 1, limit = 7) {
     try {
+      const skip = (page - 1) * limit;
       const admins = await this.userModel
         .find({ role: 'admin' })
         .select('-password')
-        .populate('companyId');
-      if (!admins.length) {
-        throw new Error('No admins found');
-      }
+        .populate('companyId')
+        .skip(skip)
+        .limit(limit);
+
+      const totalAdmins = await this.userModel.countDocuments({
+        role: 'admin',
+      });
 
       return {
         success: true,
         admins,
+        totalPages: Math.ceil(totalAdmins / limit),
+        currentPage: page,
       };
     } catch (error) {
       console.error(error);
@@ -185,19 +191,27 @@ export class UsersService {
     }
   }
 
-  async getInstructors(companyId: string) {
+  async getInstructors(companyId: string, page: number = 1, limit: number = 7) {
     try {
-      const instructors = await this.userModel
-        .find({ role: 'instructor', companyId: new Types.ObjectId(companyId) })
-        .select('-password');
+      const skip = (page - 1) * limit;
 
-      if (!instructors.length) {
-        throw new Error('No instructors found');
-      }
+      const instructors = await this.userModel
+        .find({ role: 'instructor', companyId })
+        .select('-password')
+        .skip(skip)
+        .limit(limit);
+
+      const totalInstructors = await this.userModel.countDocuments({
+        role: 'instructor',
+        companyId,
+      });
 
       return {
         success: true,
         instructors,
+        totalPages: Math.ceil(totalInstructors / limit),
+        currentPage: page,
+        totalInstructors,
       };
     } catch (error) {
       console.error(error);
@@ -209,15 +223,11 @@ export class UsersService {
     id: string,
     isStatus: boolean,
   ): Promise<{ status: boolean; message: string }> {
-    console.log(` New Status: ${isStatus}`);
-
     const user = await this.userModel
       .findByIdAndUpdate(id, { isStatus: isStatus }, { new: true })
       .exec();
 
     if (!user) throw new NotFoundException('User not found');
-
-    console.log(`Updated User:`, user); // Debugging output
 
     return {
       status: user.isStatus,
@@ -266,6 +276,21 @@ export class UsersService {
     } catch (error) {
       console.error(error);
       throw new Error('Failed to update profile');
+    }
+  }
+
+  async deleteAdmin(Id: string) {
+    try {
+      const admin = await this.userModel.findById(Id);
+      if (!admin || admin.role !== 'admin') {
+        throw new NotFoundException('Admin not found');
+      }
+
+      await this.userModel.findByIdAndDelete(Id);
+      return { success: true, message: 'Admin deleted successfully' };
+    } catch (error) {
+      console.error(error);
+      throw new Error('Failed to delete admin');
     }
   }
 
