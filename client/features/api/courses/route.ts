@@ -160,12 +160,13 @@ export const togglePrivateCourse = async (
   }
 };
 
-export const getPublishedCourses = async (page = 1, limit = 12) => {
+export const getPublishedCourses = async (page = 1, limit = 8) => {
   const companyId = localStorage.getItem("companyId") || null;
   try {
     const { data } = await axios.get(`${API_BASE_URL}/published/all`, {
       params: { companyId, page, limit },
     });
+    console.log("data?????", data);
     return data;
   } catch (error) {
     console.error("Error fetching courses:", error);

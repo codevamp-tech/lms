@@ -86,6 +86,8 @@ const CourseTable = () => {
 
   const clearSearch = () => setSearchTerm("");
 
+  console.log("coursesssssss", courses);
+
   if (isLoading) {
     return <div>Loading courses...</div>;
   }

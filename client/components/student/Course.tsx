@@ -2,6 +2,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Heart } from "lucide-react"; // Import Heart icon
 import { Star, StarHalf } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -42,10 +43,27 @@ interface RatingData {
   count: number;
 }
 
-const Course = ({ course }) => {
+interface CourseProps {
+  course: {
+    _id: string;
+    courseThumbnail: string;
+    courseMRP: number;
+    coursePrice: number;
+    courseTitle: string;
+    creator?: {
+      photoUrl?: string;
+      name: string;
+    };
+    courseLevel: string;
+  };
+  userId: string;
+}
 
+const Course: React.FC<CourseProps> = ({ course, userId }) => {
   const [ratingData, setRatingData] = useState<RatingData | null>(null);
   const [discountPercentage, setDiscountPercentage] = useState<number>(0);
+  const [isFavorite, setIsFavorite] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchRating() {
@@ -60,8 +78,36 @@ const Course = ({ course }) => {
         console.error("Error fetching rating:", error);
       }
     }
+
+    async function checkIfFavorite() {
+      if (!userId) return;
+
+      try {
+        const res = await fetch(`http://localhost:3001/favorites/check`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId,
+            courseId: course._id
+          })
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to check favorite status");
+        }
+
+        const data = await res.json();
+        setIsFavorite(data.isFavorite);
+      } catch (error) {
+        console.error("Error checking favorite status:", error);
+      }
+    }
+
     if (course && course._id) {
       fetchRating();
+      checkIfFavorite();
     }
 
     // Calculate discount percentage
@@ -69,7 +115,40 @@ const Course = ({ course }) => {
       const discount = ((course.courseMRP - course.coursePrice) / course.courseMRP) * 100;
       setDiscountPercentage(Math.round(discount));
     }
-  }, [course]);
+  }, [course, userId]);
+
+  const toggleFavorite = async (e) => {
+    e.preventDefault(); // Prevent navigation since this is inside a Link component
+    if (!userId) {
+      // Handle not logged in state - redirect to login or show message
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const method = isFavorite ? 'DELETE' : 'POST';
+      const res = await fetch(`http://localhost:3001/favorites/${course._id}/add-favorites`, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          courseId: course._id
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to ${isFavorite ? 'remove from' : 'add to'} favorites`);
+      }
+
+      setIsFavorite(!isFavorite);
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getLevelBadgeColors = (level) => {
     const levelLower = level?.toLowerCase() || "";
@@ -96,10 +175,19 @@ const Course = ({ course }) => {
             className="w-full h-36 object-cover rounded-t-lg"
           />
           {discountPercentage > 0 && (
-            <div className="absolute top-0 right-0 bg-red-500 text-white px-2 py-1 text-xs font-bold rounded-bl-lg">
+            <div className="absolute top-0 right-0 bg-red-500 text-white px-2 py-1 text-xs font-bold rounded-tr-lg rounded-bl-lg">
               {discountPercentage}% OFF
             </div>
           )}
+          <button
+            onClick={toggleFavorite}
+            disabled={isLoading}
+            className="absolute top-2 left-2 p-2 rounded-full bg-white dark:bg-gray-700 shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+          >
+            <Heart
+              className={`h-5 w-5 ${isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400'}`}
+            />
+          </button>
         </div>
         <CardContent className="px-5 py-4 space-y-3">
           <h1 className="hover:underline font-bold text-lg truncate">
