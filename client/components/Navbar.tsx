@@ -66,10 +66,7 @@ const Navbar = () => {
 
   const fetchLogo = async () => {
     const companyId = localStorage.getItem("companyId");
-    if (!companyId) {
-      toast.error("No companyId found in localStorage");
-      return;
-    }
+
 
     try {
       const response = await fetch(
@@ -154,7 +151,7 @@ const Navbar = () => {
     <div className="h-16 dark:bg-navBackground bg-blue-500 fixed top-0 left-0 right-0 duration-300 z-10">
       {/* Desktop */}
       <div className="max-w-7xl mx-auto hidden md:flex justify-between items-center gap-10 h-full">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <img
             src={logo}
             alt="Company Logo"
@@ -167,9 +164,16 @@ const Navbar = () => {
           </Link>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/favorites"> <Heart /></Link>
-          <Link href="/cart"> <ShoppingCart /></Link>
-
+          {user?.role === "student" && (
+            <>
+              <Link href="/favorites"> <Heart /></Link>
+              <Link href="/cart"> <ShoppingCart /></Link>
+            </>)}
+          {user?.role === "instructor" && (
+            <>
+              <Link href="/favorites"> <Heart /></Link>
+              <Link href="/cart"> <ShoppingCart /></Link>
+            </>)}
           <DarkMode />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

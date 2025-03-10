@@ -166,7 +166,6 @@ export const getPublishedCourses = async (page = 1, limit = 8) => {
     const { data } = await axios.get(`${API_BASE_URL}/published/all`, {
       params: { companyId, page, limit },
     });
-    console.log("data?????", data);
     return data;
   } catch (error) {
     console.error("Error fetching courses:", error);

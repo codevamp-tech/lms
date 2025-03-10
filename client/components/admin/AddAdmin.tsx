@@ -25,12 +25,11 @@ interface Admin {
 
 
 const AddUser: React.FC = () => {
-  const [users, setUsers] = useState<any[]>([]);
+
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const companyId = localStorage.getItem("companyId");
@@ -50,12 +49,12 @@ const AddUser: React.FC = () => {
         const response = await fetch('http://localhost:3001/companies/all-company');
         const data = await response.json();
         if (response.ok) {
-          setCompanies(data);
+          setCompanies(data.companies);
         } else {
-          setError('Failed to fetch companies.');
+          toast.error('Failed to fetch companies.');
         }
       } catch (err) {
-        setError('An error occurred while fetching companies.');
+        toast.error('An error occurred while fetching companies.');
       }
     };
 
@@ -75,17 +74,18 @@ const AddUser: React.FC = () => {
       if (!response.ok) {
         throw new Error("Failed to fetch data");
       }
-
       const data = await response.json();
       setAdmins(data.admins); // Set state
       setTotalPages(data.totalPages);
       setCurrentPage(data.currentPage);
     } catch (err: any) {
-      setError(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false); // Stop loading after fetch completes
     }
   };
+
+
 
   useEffect(() => {
     fetchAdmins(currentPage);
@@ -102,13 +102,14 @@ const AddUser: React.FC = () => {
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
-    const emailExists = users.some(
-      (user) => user.email.toLowerCase() === newUser.email.toLowerCase()
+    // Ensure the email is checked against the actual list of admins
+    const emailExists = admins.some(
+      (admin) => admin.email.toLowerCase() === newUser.email.toLowerCase()
     );
+
     if (emailExists) {
-      setError("This email is already registered");
+      toast.error("Email is already registered");
       return;
     }
 
@@ -133,12 +134,13 @@ const AddUser: React.FC = () => {
         // Show success toast
         toast.success(`User added as ${newUser.role}`);
       } else {
-        setError("Failed to add user");
+        toast.error("Failed to add user");
       }
-    } catch (err: any) {
-      setError(err.message || "An unknown error occurred");
+    } catch (err) {
+      toast.error("An error occurred while adding the user.");
     }
   };
+
 
 
   const handleDeleteAdmin = async (adminId: string) => {
@@ -160,9 +162,7 @@ const AddUser: React.FC = () => {
     return <div>Loading...</div>;
   }
 
-  if (error) {
-    return <div>{error}</div>;
-  }
+
 
 
   return (
@@ -177,7 +177,7 @@ const AddUser: React.FC = () => {
       </div>
       {isFormVisible && (
         <div className="mt-6 space-y-6 ">
-          {error && <div className="text-red-500">{error}</div>}
+
 
           {/* Form Fields in Grid Layout */}
           <div className="grid grid-cols-2 gap-4">
@@ -218,7 +218,7 @@ const AddUser: React.FC = () => {
               <Label className="block text-sm font-medium text-gray-500 ">Company</Label>
               <select
                 name="companyId"
-                value={newUser.companyId}
+                value={newUser.companyId || ""}
                 onChange={handleCompanyChange}
                 className="mt-1 block w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 bg-card text-gray-500 dark:text-white"
               >
