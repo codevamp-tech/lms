@@ -56,21 +56,21 @@ const CourseDetail = () => {
     const checkCartStatus = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3001/cart/${userId}/check`
+          `http://localhost:3001/cart/${userId}/check/${courseId}` // ✅ Correct URL format
         );
         const data = await response.json();
         if (response.ok) {
-          setIsInCart(data.some((item) => item.courseId === courseId));
+          setIsInCart(data.isCart); // ✅ Use correct key
         }
       } catch (error) {
         console.error("Error checking cart status:", error);
       }
     };
 
-    if (userId) {
+    if (userId && courseId) {
       checkCartStatus();
     }
-  }, [courseId, userId, isInCart]); // ✅ Re-check when `isInCart` updates
+  }, [courseId, userId]); // ✅ Don't include isInCart in dependencies
 
   const addToCart = async (course) => {
     if (isInCart) return;
@@ -223,13 +223,17 @@ const CourseDetail = () => {
           </CardContent>
           <CardFooter className="flex-col gap-3 pb-4">
             <Button
-              onClick={() => addToCart(course)}
+              onClick={() => {
+                if (isInCart) {
+                  router.push("/cart");
+                } else {
+                  addToCart(course);
+                }
+              }}
               className="w-full"
-              disabled={isInCart}
             >
-              {isInCart ? "Already in Cart" : "Add to Cart"}
+              {isInCart ? "Go to Cart" : "Add to Cart"}
             </Button>
-
             {course.purchased ? (
               <Button
                 variant="outline"

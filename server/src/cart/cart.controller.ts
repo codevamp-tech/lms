@@ -26,9 +26,11 @@ export class CartController {
     return this.cartService.getUserCart(userId);
   }
 
-  @Post(':userId/check')
-  async checkCart(@Body() body: { userId: string; courseId: string }) {
-    const { userId, courseId } = body;
+  @Get(':userId/check/:courseId') // Change to GET and include courseId in URL
+  async checkCart(
+    @Param('userId') userId: string,
+    @Param('courseId') courseId: string,
+  ) {
     return this.cartService.checkCart(userId, courseId);
   }
 }

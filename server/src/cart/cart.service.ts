@@ -17,8 +17,6 @@ export class CartService {
         userId: new Types.ObjectId(userId),
         courseId: new Types.ObjectId(courseId),
       });
-      console.log('courseID', courseId);
-      console.log('UserID', userId);
       return await cartItem.save();
     } catch (error) {
       if (error.code === 11000) {
