@@ -25,10 +25,13 @@ export class CoursePurchaseService {
     @InjectModel(CoursePurchase.name)
     private coursePurchaseModel: Model<CoursePurchase>,
   ) {
-    const secret_key = process.env.STRIPE_SECRET_KEY ;
+    const secret_key = process.env.STRIPE_SECRET_KEY;
+    console.log('secret key', process.env.STRIPE_SECRET_KEY);
 
     if (!secret_key) {
-      throw new Error("Stripe secret key is not defined in the environment variables.");
+      throw new Error(
+        'Stripe secret key is not defined in the environment variables.',
+      );
     }
     this.stripe = new Stripe(secret_key);
   }
@@ -126,7 +129,9 @@ export class CoursePurchaseService {
       const webhookSecret = process.env.WEBHOOK_ENDPOINT_SECRET;
 
       if (!webhookSecret) {
-        throw new Error("Stripe secret key is not defined in the environment variables.");
+        throw new Error(
+          'Stripe secret key is not defined in the environment variables.',
+        );
       }
 
       // Verify the webhook came from Stripe
