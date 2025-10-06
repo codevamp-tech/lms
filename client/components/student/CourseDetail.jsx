@@ -121,7 +121,7 @@ const CourseDetail = () => {
   }
 
   return (
-    <div className="space-y-5  pb-4 max-w-7xl mx-auto px-4 md:px-8 flex flex-col lg:flex-row justify-between gap-10 ">
+    <div className="space-y-5 mt-5  pb-4 max-w-7xl mx-auto px-4 md:px-8 flex flex-col lg:flex-row justify-between gap-10 ">
       <div className=" dark:text-white ">
         <div className="max-w-7xl mx-auto py-8 px-4 md:px-8 flex flex-col gap-2 ">
           <Card className="bg-navBackground dark:bg-white p-6 text-gray-300 dark:text-black">
