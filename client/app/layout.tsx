@@ -8,6 +8,7 @@ import ReactQueryProvider from "./providers/ReactQueryProvider";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { Toaster } from 'react-hot-toast';
+import { LMSFooter } from "@/components/footer";
 
 
 
@@ -53,6 +54,7 @@ export default function RootLayout({
                 className={`w-full h-screen ${!hideSidebar ? "flex-1 mt-16 " : "max-w-full "
                   }`}
               >{children}</div>
+              {!hideSidebar && <LMSFooter />}
             </div>
           </ReactQueryProvider>
         </body>
