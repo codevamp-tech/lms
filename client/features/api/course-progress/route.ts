@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/course-progress`;
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL ?? 'https://lms-v4tz.onrender.com'}/course-progress`;
 
 export const getCourseProgress = async (courseId: string, userId: string) => {
   try {

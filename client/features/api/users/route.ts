@@ -2,7 +2,7 @@ import axios from "axios";
 import { setCookie } from "@/utils/helpers";
 
 const API_BASE_URL = `${
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
+  process.env.NEXT_PUBLIC_API_URL ?? "https://lms-v4tz.onrender.com"
 }/users`;
 
 export const loginUser = async (loginInput: {

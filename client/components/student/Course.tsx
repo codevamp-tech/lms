@@ -68,7 +68,7 @@ const Course: React.FC<CourseProps> = ({ course, userId }) => {
   useEffect(() => {
     async function fetchRating() {
       try {
-        const res = await fetch(`http://localhost:3001/ratings/${course._id}`);
+        const res = await fetch(`https://lms-v4tz.onrender.com/ratings/${course._id}`);
         if (!res.ok) {
           throw new Error("Failed to fetch rating");
         }
@@ -83,7 +83,7 @@ const Course: React.FC<CourseProps> = ({ course, userId }) => {
       if (!userId) return;
 
       try {
-        const res = await fetch(`http://localhost:3001/favorites/check`, {
+        const res = await fetch(`https://lms-v4tz.onrender.com/favorites/check`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -127,7 +127,7 @@ const Course: React.FC<CourseProps> = ({ course, userId }) => {
     setIsLoading(true);
     try {
       const method = isFavorite ? 'DELETE' : 'POST';
-      const res = await fetch(`http://localhost:3001/favorites/${course._id}/add-favorites`, {
+      const res = await fetch(`https://lms-v4tz.onrender.com/favorites/${course._id}/add-favorites`, {
         method,
         headers: {
           'Content-Type': 'application/json',

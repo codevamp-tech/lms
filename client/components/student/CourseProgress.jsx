@@ -65,7 +65,7 @@ const CourseProgress = () => {
         throw new Error("User is not authenticated");
       }
       const response = await fetch(
-        `http://localhost:3001/ratings/${courseId}/rating`,
+        `https://lms-v4tz.onrender.com/ratings/${courseId}/rating`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

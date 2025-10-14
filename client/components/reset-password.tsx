@@ -28,7 +28,7 @@ export const Reset = () => {
     }
 
     try {
-      await fetch(`http://localhost:3001/users/reset-password?token=${token}`, {
+      await fetch(`https://lms-v4tz.onrender.com/users/reset-password?token=${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ newPassword, confirmPassword }),

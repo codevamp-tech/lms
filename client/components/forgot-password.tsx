@@ -35,7 +35,7 @@ export const Forgot = () => {
       return;
     }
     try {
-      await fetch(`http://localhost:3001/users/forgot-password?token=${token}`, {
+      await fetch(`https://lms-v4tz.onrender.com/users/forgot-password?token=${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

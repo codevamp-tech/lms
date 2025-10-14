@@ -36,7 +36,7 @@ To run the server application in development mode, navigate to the `server` dire
 npm run start:dev
 ```
 
-This will start the development server at `http://localhost:3001`.
+This will start the development server at `https://lms-v4tz.onrender.com`.
 
 ## Code Style and Conventions
 

@@ -19,7 +19,7 @@ const LiveSession = () => {
                 return;
             }
 
-            const response = await fetch("http://localhost:3001/live-session/start", {
+            const response = await fetch("https://lms-v4tz.onrender.com/live-session/start", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

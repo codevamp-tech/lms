@@ -75,7 +75,7 @@ const Navbar = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/configurations/company/${companyId}`
+        `https://lms-v4tz.onrender.com/configurations/company/${companyId}`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch company logo: ${response.statusText}`);
