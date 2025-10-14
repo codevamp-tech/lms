@@ -22,7 +22,7 @@ import { Company } from 'src/company/schemas/company.schema';
 @Injectable()
 export class UsersService {
   instructorModel: any;
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(@InjectModel(User.name) private userModel: Model<User>) { }
 
   private transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -195,8 +195,10 @@ export class UsersService {
     try {
       const skip = (page - 1) * limit;
 
+      const companyObjectId = new Types.ObjectId(companyId);
+
       const instructors = await this.userModel
-        .find({ role: 'instructor', companyId })
+        .find({ role: 'instructor', companyId: companyObjectId  })
         .select('-password')
         .skip(skip)
         .limit(limit);
@@ -481,5 +483,9 @@ export class UsersService {
       console.error(`Failed to send welcome email to ${email}`, error);
       throw new Error('Could not send welcome email');
     }
+  }
+
+  async getUsersByCompany(companyId: string): Promise<User[]> {
+    return this.userModel.find().exec();
   }
 }

@@ -6,38 +6,62 @@ import useCourses from "@/hooks/useCourses";
 import { getUserIdFromToken } from "@/utils/helpers";
 import Course from "@/components/student/Course";
 
+interface Course {
+  _id: string;
+  isPrivate: boolean;
+  category: string;
+  companyId: string;
+  courseThumbnail: string;
+  courseMRP: number;
+  coursePrice: number;
+  courseTitle: string;
+  creator?: {
+    photoUrl?: string;
+    name: string;
+  };
+  courseLevel: string;
+}
+
 const Courses = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [showOtherCompanies, setShowOtherCompanies] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [courses, setCourses] = useState([]);
-  const observerRef = useRef(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
   const bottomRef = useRef(null);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    const storedCompanyId = localStorage.getItem("companyId");
+    setCompanyId(storedCompanyId);
+    setIsInitialized(true);
+  }, []);
 
   const { getPublishedCoursesQuery } = useCourses();
   const userId = getUserIdFromToken();
-  const { data, isLoading } = getPublishedCoursesQuery(currentPage);
 
-  useEffect(() => {
-    if (data?.courses) {
-      setCourses((prev) =>
-        currentPage === 1 ? data.courses : [...prev, ...data.courses]
-      );
-    }
-  }, [data]);
+  // Only run query after companyId is initialized
+  const { data, isLoading } = getPublishedCoursesQuery(
+    currentPage,
+    8,
+    companyId
+  );
+  console.log("companyId>>", companyId, data?.courses);
 
-  const companyId = localStorage.getItem("companyId");
-  const publicCourses = courses?.filter((course) => !course.isPrivate) || [];
+  // const companyId = localStorage.getItem("companyId");
+  const publicCourses = data?.courses?.filter((course) => !course.isPrivate) || [];
 
   const courseCategory = [
     ...new Set(publicCourses.map((course) => course.category)),
   ];
 
   const filteredCourses = companyId
-    ? courses?.filter((course) =>
+    ? data?.courses?.filter((course) =>
       showOtherCompanies ? true : course.companyId === companyId
-    ) || []
+    )
     : publicCourses;
+
+  console.log("filteredCourses", filteredCourses, companyId, showOtherCompanies, publicCourses, data?.courses)
 
   const categoryFilteredCourses = selectedCategory
     ? filteredCourses.filter((course) => course.category === selectedCategory)
@@ -57,12 +81,31 @@ const Courses = () => {
     );
 
     if (bottomRef.current) observerRef.current.observe(bottomRef.current);
+
+    return () => {
+      if (observerRef.current) observerRef.current.disconnect();
+    };
   }, [isLoading, currentPage, data?.totalPages]);
 
   useEffect(() => {
-    setCourses([]);
     setCurrentPage(1);
   }, [selectedCategory]);
+
+  // Show loading state while initializing
+  if (!isInitialized) {
+    return (
+      <div className="bg-homeBackground dark:bg-navBackground mt-4">
+        <div className="max-w-7xl mx-auto p-6">
+          <h2 className="font-bold text-3xl text-center mb-6">Our Courses</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <CourseSkeleton key={index} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-homeBackground dark:bg-navBackground mt-4">
@@ -109,12 +152,12 @@ const Courses = () => {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {isLoading && courses.length === 0 ? (
+          {isLoading && data?.courses.length === 0 ? (
             Array.from({ length: 8 }).map((_, index) => (
               <CourseSkeleton key={index} />
             ))
           ) : categoryFilteredCourses.length > 0 ? (
-            categoryFilteredCourses.map((course, index) => {
+            categoryFilteredCourses.map((course) => {
               return (
                 <Course key={course._id} course={course} userId={userId} />
               );
@@ -127,7 +170,7 @@ const Courses = () => {
             </div>
           )}
 
-          {isLoading && courses.length > 0 && (
+          {isLoading && data?.courses.length > 0 && (
             <div className="col-span-full flex justify-center py-4">
               <div className="animate-pulse flex space-x-4">
                 <div className="rounded-full bg-gray-200 h-10 w-10"></div>

@@ -1,7 +1,19 @@
 "use client";
 
-import { Heart, LogOut, Menu, School, ShoppingCart } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import {
+  Heart,
+  LogOut,
+  Menu,
+  School,
+  ShoppingCart,
+  User,
+  Shield,
+  Settings,
+  LayoutDashboard,
+  BookOpen,
+  PlayCircle,
+} from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,17 +28,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import DarkMode from "./DarkMode";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
-  SheetFooter,
+  SheetTrigger,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
+  SheetFooter,
+  SheetClose,
 } from "./ui/sheet";
-import { Separator } from "@radix-ui/react-dropdown-menu";
-// import { useLogoutUserMutation } from "@/features/api/authApi";
-
-// import { useSelector } from "react-redux";
+import { Separator } from "./ui/separator";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useUserProfile } from "@/hooks/useUsers";
@@ -34,10 +43,7 @@ import { getUserIdFromToken } from "@/utils/helpers";
 import toast from "react-hot-toast";
 
 const Navbar = () => {
-  // const { user } = useSelector((store) => store.auth);
-  // const [logoutUser, { data, isSuccess }] = useLogoutUserMutation();
   const router = useRouter();
-
   const userId = getUserIdFromToken();
   const { data: user, isLoading, error, refetch } = useUserProfile(userId);
   const [logo, setLogo] = useState<string>("/img/MrLogo.png");
@@ -59,240 +65,325 @@ const Navbar = () => {
   useEffect(() => {
     if (!userId) {
       clearCookies();
-      // router.push("/login");
       refetch();
     }
-  }, [userId, router]);
+  }, [userId, router, refetch]);
 
-  const fetchLogo = async () => {
+  const fetchLogo = useCallback(async () => {
     const companyId = localStorage.getItem("companyId");
-
+    if (!companyId) return;
 
     try {
       const response = await fetch(
         `http://localhost:3001/configurations/company/${companyId}`
       );
-
       if (!response.ok) {
         throw new Error(`Failed to fetch company logo: ${response.statusText}`);
       }
-
       const data = await response.json();
-
-
       if (Array.isArray(data) && data.length > 0 && data[0].image) {
         setLogo(data[0].image);
-      } else {
-        console.log("Image URL not found in the response");
       }
     } catch (error) {
-      toast.error(`Error fetching logo:, ${error}`);
+      console.error(`Error fetching logo:, ${error}`);
     }
-  };
-
-
+  }, []);
 
   useEffect(() => {
     fetchLogo();
-  }, []);
-
-  // useEffect(() => {
-  //   if (isSuccess) {
-  //     toast.success(data?.message || "User logged out.");
-  //     router.push("/login"); // Redirect to login
-  //   }
-  // }, [isSuccess, data?.message, router]);
-  // const user = {
-  //   _id: "12345",
-  //   name: "John Doe",
-  //   email: "johndoe@example.com",
-  //   photoUrl: "https://via.placeholder.com/50", // Replace with a real URL or placeholder
-  //   role: "instructor", // Can be "instructor" or "student"
-  //   courses: [
-  //     {
-  //       courseId: "1",
-  //       courseTitle: "React for Beginners",
-  //       courseProgress: 75, // Percentage of completion
-  //     },
-  //     {
-  //       courseId: "2",
-  //       courseTitle: "Advanced JavaScript",
-  //       courseProgress: 50,
-  //     },
-  //   ],
-  //   learningPath: [
-  //     {
-  //       pathId: "101",
-  //       pathTitle: "Web Development",
-  //       courses: [
-  //         { courseId: "1", courseTitle: "React for Beginners" },
-  //         { courseId: "2", courseTitle: "Advanced JavaScript" },
-  //       ],
-  //     },
-  //   ],
-  //   notifications: [
-  //     {
-  //       notificationId: "1",
-  //       message: "Your course 'React for Beginners' is 75% completed.",
-  //       timestamp: new Date().toISOString(),
-  //     },
-  //     {
-  //       notificationId: "2",
-  //       message: "A new course 'UI/UX Design Essentials' has been added.",
-  //       timestamp: new Date().toISOString(),
-  //     },
-  //   ],
-  // };
+  }, [fetchLogo]);
 
   if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error fetching user profile</p>;
+  // if (error) return <p>Error fetching user profile</p>;
 
   return (
-    <div className="h-24 dark:bg-navBackground bg-blue-500 fixed top-0 left-0 right-0 duration-300 z-10">
-      {/* Desktop */}
-      <div className="max-w-7xl mx-auto hidden md:flex justify-between items-center gap-10 h-full">
-        <div className="flex items-center gap-1">
-
-          <Link href="/">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-20 items-center justify-between mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center">
+          <Link href="/" className="flex items-center space-x-2">
             <img
               src={logo}
               alt="Company Logo"
-              className=" w-52 h-32  object-contain"
+              className="h-16 w-auto object-contain"
             />
           </Link>
         </div>
-        <div className="flex items-center gap-4">
 
+        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
           {user?.role === "student" && (
             <>
-              <Link href="/courses">Courses</Link>
-              <Link href="/favorites"> <Heart /></Link>
-              <Link href="/cart"> <ShoppingCart /></Link>
-            </>)}
+              <Link
+                href="/courses"
+                className="transition-colors hover:text-foreground/80"
+              >
+                Courses
+              </Link>
+              <Link
+                href="/my-learning"
+                className="transition-colors hover:text-foreground/80"
+              >
+                My Learning
+              </Link>
+            </>
+          )}
           {user?.role === "instructor" && (
             <>
-              <Link href="/favorites"> <Heart /></Link>
-              <Link href="/cart"> <ShoppingCart /></Link>
-            </>)}
+              <Link
+                href="/admin/dashboard"
+                className="transition-colors hover:text-foreground/80"
+              >
+                Dashboard
+              </Link>
+            </>
+          )}
+        </nav>
+
+        <div className="flex items-center gap-4">
+          {user?.role === "student" && (
+            <div className="hidden md:flex items-center gap-4">
+              <Link href="/favorites" aria-label="Favorites">
+                <Heart className="h-5 w-5" />
+              </Link>
+              <Link href="/cart" aria-label="Shopping Cart">
+                <ShoppingCart className="h-5 w-5" />
+              </Link>
+            </div>
+          )}
           <DarkMode />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Avatar>
-                <AvatarImage
-                  src={user?.photoUrl || "https://github.com/shadcn.png"}
-                  alt="@shadcn"
-                />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                {user?.role === "superadmin" && (
-                  <>
-                    <DropdownMenuItem>
-                      <Link href="/admin/company">Add Company</Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                {user?.role === "admin" && (
-                  <>
-                    <DropdownMenuItem>
-                      <Link href="/admin/addinstructor">Add Instructor</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link href="/admin/configuration">Settings</Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                {user?.role === "instructor" && (
-                  <>
-                    <DropdownMenuItem>
-                      <Link href="/profile">Edit Profile</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link href="/admin/dashboard">Dashboard</Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                {user?.role === "student" && (
-                  <>
-                    <DropdownMenuItem>
-                      <Link href="/my-learning">My Learning</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link href="/profile">Edit Profile</Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="cursor-pointer">
+                  <AvatarImage
+                    src={user?.photoUrl || "https://github.com/shadcn.png"}
+                    alt={user?.name || "User"}
+                  />
+                  <AvatarFallback>
+                    {user?.name?.[0]?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logoutHandler}>
-                  <LogOut className="text-red-600" /> Log out
+                <DropdownMenuGroup>
+                  <DropdownMenuItems user={user} />
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={logoutHandler}
+                  className="cursor-pointer text-red-600"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
                 </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href="/login">
+              <Button>Login</Button>
+            </Link>
+          )}
+          <div className="md:hidden">
+            <MobileNavbar user={user} logoutHandler={logoutHandler} />
+          </div>
         </div>
       </div>
-      {/* Mobile device */}
-      <div className="flex md:hidden items-center justify-between px-4 h-full">
-        <div className="flex gap-3">
-          <img
-            src="/img/logo.png"
-            alt="logo"
-            className="h-9 w-9  filter brightness-0 invert "
-          />
-          <h1 className="font-extrabold text-2xl">LMS</h1>
-        </div>
-        <MobileNavbar user={user} />
-      </div>
-    </div>
+    </header>
   );
 };
 
-export default Navbar;
+const DropdownMenuItems = ({ user }) => {
+  if (!user) return null;
 
-const MobileNavbar = ({ user }) => {
-  const router = useRouter();
+  return (
+    <>
+      {user.role === "superadmin" && (
+        <Link href="/admin/company">
+          <DropdownMenuItem className="cursor-pointer">
+            <Shield className="mr-2 h-4 w-4" />
+            <span>Add Company</span>
+          </DropdownMenuItem>
+        </Link>
+      )}
+      {user.role === "admin" && (
+        <>
+          <Link href="/admin/addinstructor">
+            <DropdownMenuItem className="cursor-pointer">
+              <User className="mr-2 h-4 w-4" />
+              <span>Add Instructor</span>
+            </DropdownMenuItem>
+          </Link>
+          <Link href="/admin/configuration">
+            <DropdownMenuItem className="cursor-pointer">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+          </Link>
+        </>
+      )}
+      {user.role === "instructor" && (
+        <>
+          <Link href="/profile">
+            <DropdownMenuItem className="cursor-pointer">
+              <User className="mr-2 h-4 w-4" />
+              <span>Edit Profile</span>
+            </DropdownMenuItem>
+          </Link>
+          <Link href="/admin/dashboard">
+            <DropdownMenuItem className="cursor-pointer">
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              <span>Dashboard</span>
+            </DropdownMenuItem>
+          </Link>
+        </>
+      )}
+      {user.role === "student" && (
+        <>
+          <Link href="/my-learning">
+            <DropdownMenuItem className="cursor-pointer">
+              <BookOpen className="mr-2 h-4 w-4" />
+              <span>My Learning</span>
+            </DropdownMenuItem>
+          </Link>
+          <Link href="/profile">
+            <DropdownMenuItem className="cursor-pointer">
+              <User className="mr-2 h-4 w-4" />
+              <span>Edit Profile</span>
+            </DropdownMenuItem>
+          </Link>
+        </>
+      )}
+    </>
+  );
+};
 
+const MobileNavbar = ({ user, logoutHandler }) => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button
-          size="icon"
-          className="rounded-full hover:bg-gray-200"
-          variant="outline"
-        >
-          <Menu />
+        <Button size="icon" variant="outline">
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Open menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent className="flex flex-col">
-        <SheetHeader className="flex flex-row items-center justify-between mt-2">
+      <SheetContent side="right" className="w-full sm:w-3/4 md:w-1/2 lg:w-1/3">
+        <SheetHeader>
           <SheetTitle>
-            <Link href="/">E-Learning</Link>
+            <Link href="/" className="flex items-center space-x-2">
+              <School className="h-6 w-6" />
+              <span className="font-bold">LMS</span>
+            </Link>
           </SheetTitle>
-          <DarkMode />
         </SheetHeader>
-        <Separator className="mr-2" />
-        <nav className="flex flex-col space-y-4">
-          <Link href="/my-learning">My Learning</Link>
-          <Link href="/profile">Edit Profile</Link>
-          <p onClick={() => router.push("/login")}>Log out</p>
+        <Separator className="my-4" />
+        <nav className="flex flex-col space-y-2">
+          <MobileNavLinks user={user} />
         </nav>
-        {user?.role === "instructor" && (
-          <SheetFooter>
-            <SheetClose asChild>
-              <Button
-                type="submit"
-                onClick={() => router.push("/admin/dashboard")}
-              >
-                Dashboard
-              </Button>
-            </SheetClose>
-          </SheetFooter>
-        )}
+        <Separator className="my-4" />
+        <SheetFooter className="mt-auto">
+          <Button
+            onClick={logoutHandler}
+            variant="destructive"
+            className="w-full"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Log out
+          </Button>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   );
 };
+
+const MobileNavLinks = ({ user }) => {
+  if (!user) return null;
+  return (
+    <>
+      {user.role === "student" && (
+        <>
+          <Link
+            href="/courses"
+            className="p-2 rounded-md hover:bg-muted"
+          >
+            Courses
+          </Link>
+          <Link
+            href="/my-learning"
+            className="p-2 rounded-md hover:bg-muted"
+          >
+            My Learning
+          </Link>
+          <Link
+            href="/favorites"
+            className="p-2 rounded-md hover:bg-muted"
+          >
+            Favorites
+          </Link>
+          <Link
+            href="/cart"
+            className="p-2 rounded-md hover:bg-muted"
+          >
+            Shopping Cart
+          </Link>
+          <Link
+            href="/profile"
+            className="p-2 rounded-md hover:bg-muted"
+          >
+            Edit Profile
+          </Link>
+        </>
+      )}
+      {user.role === "instructor" && (
+        <>
+          <Link
+            href="/admin/dashboard"
+            className="p-2 rounded-md hover:bg-muted"
+          >
+            Dashboard
+          </Link>
+          <Link
+            href="/profile"
+            className="p-2 rounded-md hover:bg-muted"
+          >
+            Edit Profile
+          </Link>
+          <Link
+            href="/admin/live-session"
+            className="p-2 rounded-md hover:bg-muted"
+          >
+            Live Session
+          </Link>
+        </>
+      )}
+      {user.role === "admin" && (
+        <>
+          <Link
+            href="/admin/addinstructor"
+            className="p-2 rounded-md hover:bg-muted"
+          >
+            Add Instructor
+          </Link>
+          <Link
+            href="/admin/configuration"
+            className="p-2 rounded-md hover:bg-muted"
+          >
+            Settings
+          </Link>
+        </>
+      )}
+      {user.role === "superadmin" && (
+        <>
+          <Link
+            href="/admin/company"
+            className="p-2 rounded-md hover:bg-muted"
+          >
+            Add Company
+          </Link>
+        </>
+      )}
+    </>
+  );
+};
+
+export default Navbar;

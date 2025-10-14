@@ -23,6 +23,8 @@ import { FavoritesModule } from './favorites/favorites.module';
 import { CartController } from './cart/cart.controller';
 import { CartService } from './cart/cart.service';
 import { CartModule } from './cart/cart.module';
+import { LiveSessionModule } from './live-session/live-session.module';
+import { ConfigModule } from '@nestjs/config';
 
 // Ensure uploads directory exists
 const uploadDir = './uploads';
@@ -32,7 +34,10 @@ if (!fs.existsSync(uploadDir)) {
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost:27017/lms'),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    MongooseModule.forRoot('mongodb+srv://root:GXkg9RvCMEYOw7nY@arogyaa.l0qed.mongodb.net/lms'),
     MulterModule.register({
       storage: multer.diskStorage({
         destination: (req, file, cb) => {
@@ -81,6 +86,7 @@ if (!fs.existsSync(uploadDir)) {
     RatingsModule,
     FavoritesModule,
     CartModule,
+    LiveSessionModule,
   ],
 })
 export class AppModule implements NestModule {

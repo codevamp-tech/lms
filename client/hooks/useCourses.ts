@@ -11,9 +11,9 @@ import {
   getPublishedCourses,
   deleteCourse,
   togglePrivateCourse,
-  courseRating,
 } from "../features/api/courses/route";
 import toast from "react-hot-toast";
+import { useEffect } from "react";
 
 const useCourses = () => {
   const queryClient = useQueryClient();
@@ -86,61 +86,99 @@ const useCourses = () => {
     page: number,
     limit: number = 7
   ) => {
-    return useQuery({
+    const query = useQuery({
       queryKey: ["creatorCourses", userId, page], // Add page as a dependency
       queryFn: () => getCreatorCourses(userId, page, limit),
       enabled: !!userId, // Runs only if userId is provided
-      keepPreviousData: true, // Keeps previous data while fetching new page
-      onSuccess: (data) => {
-        console.log("Courses fetched successfully:", data);
-      },
-      onError: (error) => {
-        console.error("Error fetching courses:", error);
-      },
+      placeholderData: (previousData) => previousData, // Keeps previous data while fetching new page
+      staleTime: 5000, // Prevents UI flicker when switching pages
+      refetchOnWindowFocus: false, // Prevents refetching on window focus
     });
+
+    useEffect(() => {
+      if (query.data) {
+        console.log("Courses fetched successfully:", query.data);
+      }
+    }, [query.data]);
+
+    useEffect(() => {
+      if (query.error) {
+        console.error("Error fetching courses:", query.error);
+      }
+    }, [query.error]);
+
+    return query;
   };
 
   // Query for fetching a course by ID
   const getCourseByIdQuery = (courseId: string) => {
-    return useQuery({
+    const query = useQuery({
       queryKey: ["course", courseId],
       queryFn: () => getCourseById(courseId),
       enabled: !!courseId,
-      onSuccess: (data) => {
-        console.log("Course fetched successfully:", data);
-      },
-      onError: (error) => {
-        console.error("Error fetching course by ID:", error);
-      },
+      staleTime: 5000, // Prevents UI flicker when switching pages
+      refetchOnWindowFocus: false, // Prevents refetching on window focus
     });
+
+    useEffect(() => {
+      if (query.data) {
+        console.log("Course fetched successfully:", query.data);
+      }
+    }, [query.data]);
+
+    useEffect(() => {
+      if (query.error) {
+        console.error("Error fetching course by ID:", query.error);
+      }
+    }, [query.error]);
+
+    return query;
   };
 
   // Query for fetching a lectures by course ID
   const getCourseLecturesQuery = (courseId: string) => {
-    return useQuery({
+    const query = useQuery({
       queryKey: ["lectures", courseId],
       queryFn: () => getCourseLectures(courseId),
       enabled: !!courseId,
-      // Remove the log and keep error handling
-      onError: (error) => {
-        console.error("Error fetching lectures:", error);
-      },
     });
+
+    useEffect(() => {
+      if (query.error) {
+        console.error("Error fetching lectures:", query.error);
+      }
+    }, [query.error]);
+
+    return query;
   };
 
   // Query for fetching published courses
-  const getPublishedCoursesQuery = (page: number, limit: number) => {
-    return useQuery({
-      queryKey: ["publishedCourses", page], // Pass page as part of query key
-      queryFn: () => getPublishedCourses(page, limit),
+  const getPublishedCoursesQuery = (
+    page: number,
+    limit: number,
+    companyId: string | null,
+    options?: { enabled: boolean }
+  ) => {
+    const query = useQuery({
+      queryKey: ["publishedCourses", page, companyId], // Pass page as part of query key
+      queryFn: () => getPublishedCourses(page, limit, companyId),
       staleTime: 5000, // Prevents UI flicker when switching pages
-      onSuccess: (data) => {
-        console.log("Courses fetched successfully:", data);
-      },
-      onError: (error) => {
-        console.error("Error fetching courses:", error);
-      },
+      enabled: options?.enabled,
     });
+
+    useEffect(() => {
+      if (query.data) {
+        console.log("Courses fetched successfully:", query.data);
+      }
+    }, [query.data]);
+
+    useEffect(() => {
+      if (query.error) {
+        console.error("Error fetching courses:", query.error);
+      }
+    }, [query.error]);
+
+    return query;
   };
 
   const deleteCourseMutation = useMutation({
@@ -165,7 +203,7 @@ const useCourses = () => {
     getCourseByIdQuery,
     getCourseLecturesQuery,
     getPublishedCoursesQuery,
-    isLoading: createCourseMutation.isLoading,
+    isLoading: createCourseMutation.isPending,
     error: createCourseMutation.error || editCourseMutation.error,
   };
 };

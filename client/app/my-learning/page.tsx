@@ -1,9 +1,12 @@
 import React from 'react'
 import MyLearning from '@/components/student/MyLearning'
+import ProtectedRoutes from '@/components/ProtectedRoutes'
 
 const LearningPage = () => {
   return (
-    <div><MyLearning /></div>
+    <ProtectedRoutes>
+      <div><MyLearning /></div>
+    </ProtectedRoutes>
   )
 }
 

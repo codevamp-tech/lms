@@ -1,14 +1,14 @@
-import { Body, Controller, Get, Headers, NotFoundException, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Headers, NotFoundException, Param, Post, Query, Req } from '@nestjs/common';
 import { CoursePurchaseService } from './course-purchase.service';
 
 @Controller('course-purchase')
 export class CoursePurchaseController {
   constructor(private readonly coursePurchaseService: CoursePurchaseService) {}
 
-  @Get(':userId/:courseId')
+  @Get(':courseId')
   async getCoursedetailWithPurchaseStatus(
     @Param('courseId') courseId: string,
-    @Param('userId') userId: string,
+    @Query('userId') userId?: string,
   ) {
     try {
       const course =

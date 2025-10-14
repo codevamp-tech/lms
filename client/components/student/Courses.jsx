@@ -1,14 +1,15 @@
 "use client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import Course from "./Course";
 import useCourses from "@/hooks/useCourses";
 import { getUserIdFromToken } from "@/utils/helpers";
+import { motion } from "framer-motion";
+import { Filter, X } from "lucide-react";
 
 const Courses = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [showOtherCompanies, setShowOtherCompanies] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [courses, setCourses] = useState([]);
   const observerRef = useRef(null);
@@ -16,7 +17,7 @@ const Courses = () => {
 
   const { getPublishedCoursesQuery } = useCourses();
   const userId = getUserIdFromToken();
-  const { data, isLoading } = getPublishedCoursesQuery(currentPage);
+  const { data, isLoading, isFetching } = getPublishedCoursesQuery(currentPage, 12);
 
   useEffect(() => {
     if (data?.courses) {
@@ -26,38 +27,39 @@ const Courses = () => {
     }
   }, [data]);
 
-  const companyId = localStorage.getItem("companyId");
-  const publicCourses = courses?.filter((course) => !course.isPrivate) || [];
+  const courseCategories = useMemo(() => {
+    const categories = new Set(courses.map((course) => course.category));
+    return ["All", ...Array.from(categories)];
+  }, [courses]);
 
-  const courseCategory = [
-    ...new Set(publicCourses.map((course) => course.category)),
-  ];
-
-  const filteredCourses = companyId
-    ? courses?.filter((course) =>
-        showOtherCompanies ? true : course.companyId === companyId
-      ) || []
-    : publicCourses;
-
-  const categoryFilteredCourses = selectedCategory
-    ? filteredCourses.filter((course) => course.category === selectedCategory)
-    : filteredCourses;
+  const filteredCourses = useMemo(() => {
+    if (selectedCategory === "All" || !selectedCategory) {
+      return courses;
+    }
+    return courses.filter((course) => course.category === selectedCategory);
+  }, [courses, selectedCategory]);
 
   useEffect(() => {
-    if (isLoading) return;
-    if (observerRef.current) observerRef.current.disconnect();
-
-    observerRef.current = new IntersectionObserver(
+    if (isFetching) return;
+    const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && currentPage < data?.totalPages) {
+        if (entries[0].isIntersecting && currentPage < (data?.totalPages || 1)) {
           setCurrentPage((prev) => prev + 1);
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.5 }
     );
 
-    if (bottomRef.current) observerRef.current.observe(bottomRef.current);
-  }, [isLoading, currentPage, data?.totalPages]);
+    if (bottomRef.current) {
+      observer.observe(bottomRef.current);
+    }
+
+    return () => {
+      if (bottomRef.current) {
+        observer.unobserve(bottomRef.current);
+      }
+    };
+  }, [isFetching, currentPage, data?.totalPages]);
 
   useEffect(() => {
     setCourses([]);
@@ -65,96 +67,75 @@ const Courses = () => {
   }, [selectedCategory]);
 
   return (
-    <div className="bg-homeBackground dark:bg-navBackground">
-      <div className="max-w-7xl mx-auto p-6">
-        <h2 className="font-bold text-3xl text-center mb-6">Our Courses</h2>
+    <div className="bg-background dark:bg-gray-900 min-h-screen">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
+            Explore Our Courses
+          </h1>
+          <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+            Find the perfect course to achieve your learning goals.
+          </p>
+        </motion.div>
 
-        {!isLoading && (
-          <div className="flex flex-wrap justify-center gap-2 mb-8">
-            {companyId && (
-              <Button
-                onClick={() => setShowOtherCompanies((prev) => !prev)}
-                className={`px-4 py-2 rounded-full border transition-colors ${
-                  showOtherCompanies
-                    ? "bg-blue-500  text-white"
-                    : "bg-white dark:bg-gray-800 hover:bg-gray-500 hover:text-white text-black"
-                }`}
-              >
-                Show All Courses
-              </Button>
-            )}
-            <Button
-              onClick={() => setSelectedCategory("")}
-              className={`rounded-full ${
-                selectedCategory === ""
-                  ? "bg-blue-500 text-white"
-                  : "bg-white dark:bg-gray-800 hover:bg-gray-500 hover:text-white text-black"
-              }`}
-            >
-              All Category
-            </Button>
-            {courseCategory.map((category) => (
+        <div className="mb-8">
+          <div className="flex items-center justify-center flex-wrap gap-2">
+            {courseCategories.map((category) => (
               <Button
                 key={category}
-                onClick={() => {
-                  setSelectedCategory(category);
-                }}
-                className={`rounded-full ${
-                  selectedCategory === category
-                    ? "bg-blue-500 text-white"
-                    : "bg-white dark:bg-gray-800 hover:bg-gray-500 hover:text-white text-black"
-                }`}
+                variant={selectedCategory === category ? "default" : "outline"}
+                onClick={() => setSelectedCategory(category)}
+                className="rounded-full px-4 py-2"
               >
                 {category}
               </Button>
             ))}
           </div>
-        )}
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {isLoading && courses.length === 0 ? (
-            Array.from({ length: 8 }).map((_, index) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {(isLoading && courses.length === 0) ? (
+            Array.from({ length: 12 }).map((_, index) => (
               <CourseSkeleton key={index} />
             ))
-          ) : categoryFilteredCourses.length > 0 ? (
-            categoryFilteredCourses.map((course, index) => {
-              return (
-                <Course key={course._id} course={course} userId={userId} />
-              );
-            })
+          ) : filteredCourses.length > 0 ? (
+            filteredCourses.map((course) => (
+              <Course key={course._id} course={course} userId={userId} />
+            ))
           ) : (
-            <div className="col-span-full text-center py-8">
-              <p className="text-gray-600 dark:text-gray-400">
-                No courses available.
+            <div className="col-span-full text-center py-16">
+              <p className="text-xl text-muted-foreground">
+                No courses found for the selected category.
               </p>
             </div>
           )}
-
-          {isLoading && courses.length > 0 && (
-            <div className="col-span-full flex justify-center py-4">
-              <div className="animate-pulse flex space-x-4">
-                <div className="rounded-full bg-gray-200 h-10 w-10"></div>
-              </div>
-            </div>
-          )}
-          <div ref={bottomRef} className="h-10 w-full"></div>
         </div>
+
+        <div ref={bottomRef} className="h-10 w-full mt-8" />
+        {isFetching && (
+          <div className="flex justify-center items-center mt-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default Courses;
-
 const CourseSkeleton = () => (
-  <div className="bg-white shadow-md hover:shadow-lg transition-shadow rounded-lg overflow-hidden">
-    <Skeleton className="w-full h-36" />
-    <div className="px-5 py-4 space-y-3">
+  <div className="bg-card shadow-md hover:shadow-lg transition-shadow rounded-lg overflow-hidden">
+    <Skeleton className="w-full h-48" />
+    <div className="p-4 space-y-3">
       <Skeleton className="h-6 w-3/4" />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Skeleton className="h-6 w-6 rounded-full" />
-          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-8 w-8 rounded-full" />
+          <Skeleton className="h-4 w-24" />
         </div>
         <Skeleton className="h-4 w-16" />
       </div>
@@ -162,3 +143,5 @@ const CourseSkeleton = () => (
     </div>
   </div>
 );
+
+export default Courses;

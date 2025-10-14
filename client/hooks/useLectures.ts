@@ -5,6 +5,7 @@ import {
   getLectureById,
 } from "@/features/api/lectures/route";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 const useLectures = () => {
   const queryClient = useQueryClient();
@@ -23,8 +24,8 @@ const useLectures = () => {
       };
     }
   >({
-    mutationFn: ({ courseId, lectureData, companyId }) =>
-      createLecture(courseId, lectureData, companyId),
+    mutationFn: ({ courseId, lectureData }) =>
+      createLecture(courseId, lectureData, lectureData.companyId),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["lectures", variables.courseId],
@@ -73,17 +74,27 @@ const useLectures = () => {
 
   // Query for fetching a lecture by ID
   const getLectureByIdQuery = (lectureId: string) => {
-    return useQuery({
+    const query = useQuery({
       queryKey: ["lecture", lectureId],
       queryFn: () => getLectureById(lectureId),
       enabled: !!lectureId,
-      onSuccess: (data) => {
-        console.log("Course fetched successfully:", data);
-      },
-      onError: (error) => {
-        console.error("Error fetching course by ID:", error);
-      },
+      staleTime: 5000,
+      refetchOnWindowFocus: false,
     });
+
+    useEffect(() => {
+      if (query.data) {
+        console.log("Lecture fetched successfully:", query.data);
+      }
+    }, [query.data]);
+
+    useEffect(() => {
+      if (query.error) {
+        console.error("Error fetching lecture by ID:", query.error);
+      }
+    }, [query.error]);
+
+    return query;
   };
 
   return {

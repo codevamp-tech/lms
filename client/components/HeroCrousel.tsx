@@ -1,168 +1,106 @@
-
 "use client";
-import { Skeleton } from "@/components/ui/skeleton";
+import React, { useCallback, useEffect, useState } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import React, { useEffect, useRef, useState } from "react";
-import Course from "./Course";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import useCourses from "@/hooks/useCourses";
-import { getUserIdFromToken } from "@/utils/helpers";
+import Course from "./Course";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const HeroCrousel = () => {
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [showOtherCompanies, setShowOtherCompanies] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+const HeroCarousel = () => {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [Autoplay()]);
   const [courses, setCourses] = useState<any[]>([]);
-  const [topRatedCourses, setTopRatedCourses] = useState<any[]>([]);
-  const observerRef = useRef(null);
-  const bottomRef = useRef(null);
-
   const { getPublishedCoursesQuery } = useCourses();
-  const userId = getUserIdFromToken();
-  const { data, isLoading } = getPublishedCoursesQuery(currentPage);
+  const { data, isLoading } = getPublishedCoursesQuery(1, 10);
 
   useEffect(() => {
     if (data?.courses) {
-      setCourses((prev) =>
-        currentPage === 1 ? data.courses : [...prev, ...data.courses]
-      );
+      setCourses(data.courses);
     }
   }, [data]);
 
-  const companyId = localStorage.getItem("companyId");
-  const publicCourses = courses?.filter((course) => !course.isPrivate) || [];
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
 
-  const courseCategory = [
-    ...new Set(publicCourses.map((course) => course.category)),
-  ];
-
-  const filteredCourses = companyId
-    ? courses?.filter((course) =>
-      showOtherCompanies ? true : course.companyId === companyId
-    ) || []
-    : publicCourses;
-
-  const categoryFilteredCourses = selectedCategory
-    ? filteredCourses.filter((course) => course.category === selectedCategory)
-    : filteredCourses;
-
-  // ✅ Fetch ratings for top-rated courses
-  useEffect(() => {
-    async function fetchRatings() {
-      try {
-        const ratingsData = await Promise.all(
-          publicCourses.map(async (course) => {
-            try {
-              const res = await fetch(`http://localhost:3001/ratings/${course._id}`);
-              if (!res.ok) return { ...course, avgRating: 0 };
-              const rating = await res.json();
-              return { ...course, avgRating: rating.average || 0 };
-            } catch {
-              return { ...course, avgRating: 0 };
-            }
-          })
-        );
-
-        // Sort by rating descending
-        const sorted = ratingsData
-          .sort((a, b) => b.avgRating - a.avgRating)
-          .slice(0, 10); // Top 10 only
-        setTopRatedCourses(sorted);
-      } catch (error) {
-        console.error("Error fetching top rated courses:", error);
-      }
-    }
-
-    if (publicCourses.length > 0) fetchRatings();
-  }, [publicCourses]);
-
-  useEffect(() => {
-    if (isLoading) return;
-    if (observerRef.current) observerRef.current.disconnect();
-
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && currentPage < data?.totalPages) {
-          setCurrentPage((prev) => prev + 1);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (bottomRef.current) observerRef.current.observe(bottomRef.current);
-  }, [isLoading, currentPage, data?.totalPages]);
-
-  useEffect(() => {
-    setCourses([]);
-    setCurrentPage(1);
-  }, [selectedCategory]);
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
 
   return (
-    <div className="bg-homeBackground dark:bg-navBackground">
-      <div className="max-w-7xl mx-auto p-6">
-        {/* 🔹 Normal Courses */}
-        <h2 className="font-bold text-3xl text-center mb-6">Our Courses</h2>
-
-        {/* ✅ Carousel 1 (Left → Right) */}
-        <div className="overflow-hidden mb-12">
-          <div className="flex gap-6 animate-marquee">
-            {categoryFilteredCourses.map((course) => (
-              <div key={course._id} className="w-72 flex-shrink-0">
-                <Course course={course} userId={userId} />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ✅ Carousel 2 (Right → Left) */}
-        <div className="overflow-hidden">
-          <div className="flex gap-6 animate-marquee-reverse">
-            {categoryFilteredCourses.map((course) => (
-              <div key={`reverse-${course._id}`} className="w-72 flex-shrink-0">
-                <Course course={course} userId={userId} />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* 🔥 Top Rated Courses Section */}
-        {topRatedCourses.length > 0 && (
-          <div className="mt-16">
-            <h2 className="font-bold text-3xl text-center mb-6">
-              ⭐ Top Rated Courses
-            </h2>
-            <div className="flex flex-wrap justify-center gap-6">
-              {topRatedCourses.map((course) => (
-                <div key={`top-${course._id}`} className="w-72">
-                  <Course course={course} userId={userId} />
+    <div className="relative bg-background dark:bg-gray-900 overflow-hidden">
+      <div className="max-w-7xl mx-auto">
+        <div className="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+          <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="sm:text-center lg:text-left"
+            >
+              <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
+                <span className="block xl:inline">Unlock Your Potential with</span>{" "}
+                <span className="block text-primary xl:inline">LMS Courses</span>
+              </h1>
+              <p className="mt-3 text-base text-gray-500 dark:text-gray-300 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                Discover a world of knowledge with our expert-led courses. Whether you're looking to advance your career or learn a new skill, we have the right course for you.
+              </p>
+              <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                <div className="rounded-md shadow">
+                  <Link href="/courses">
+                    <Button size="lg" className="w-full">
+                      Explore Courses <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
                 </div>
-              ))}
-            </div>
+                <div className="mt-3 sm:mt-0 sm:ml-3">
+                  <Link href="/about">
+                    <Button size="lg" variant="outline" className="w-full">
+                      Learn More
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          </main>
+        </div>
+      </div>
+      <div className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+        <div className="embla" ref={emblaRef}>
+          <div className="embla__container h-full">
+            {isLoading && Array.from({ length: 5 }).map((_, i) => <CourseSkeleton key={i} />)}
+            {!isLoading && courses.map((course) => (
+              <div key={course._id} className="embla__slide p-4">
+                <Course course={course} />
+              </div>
+            ))}
           </div>
-        )}
-
-        <div ref={bottomRef} className="h-10 w-full"></div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default HeroCrousel;
-
-
-/* Skeleton Loader */
 const CourseSkeleton = () => (
-  <div className="bg-white shadow-md hover:shadow-lg transition-shadow rounded-lg overflow-hidden">
-    <Skeleton className="w-full h-36" />
-    <div className="px-5 py-4 space-y-3">
-      <Skeleton className="h-6 w-3/4" />
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-6 w-6 rounded-full" />
-          <Skeleton className="h-4 w-20" />
+  <div className="embla__slide p-4">
+    <div className="bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow rounded-lg overflow-hidden">
+      <Skeleton className="w-full h-48" />
+      <div className="p-4 space-y-3">
+        <Skeleton className="h-6 w-3/4" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <Skeleton className="h-4 w-16" />
         </div>
-        <Skeleton className="h-4 w-16" />
+        <Skeleton className="h-4 w-1/4" />
       </div>
-      <Skeleton className="h-4 w-1/4" />
     </div>
   </div>
 );
+
+export default HeroCarousel;

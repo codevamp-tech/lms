@@ -51,7 +51,7 @@ export default function RootLayout({
               {!hideSidebar && <Navbar />}
               <Toaster />
               <div
-                className={`w-full h-screen ${!hideSidebar ? "flex-1 mt-16 " : "max-w-full "
+                className={`w-full h-screen ${!hideSidebar ? "flex-1" : "max-w-full "
                   }`}
               >{children}</div>
               {!hideSidebar && <LMSFooter />}

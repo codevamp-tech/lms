@@ -9,7 +9,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CalendarDays, Lock, PlayCircle, Users } from "lucide-react";
+import {
+  CalendarDays,
+  Lock,
+  PlayCircle,
+  Users,
+  ChevronDown,
+  ChevronUp,
+  ShoppingCart,
+  CheckCircle,
+} from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
 import { useParams, useRouter } from "next/navigation";
@@ -17,77 +26,62 @@ import { getUserIdFromToken } from "@/utils/helpers";
 import useCoursePurchase from "@/hooks/useCoursePurchase";
 import { createCheckout } from "@/features/api/course-purchase/route";
 import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const CourseDetail = () => {
-  const descriptionRef = useRef(null);
   const { courseId } = useParams();
   const router = useRouter();
   const userId = getUserIdFromToken();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isTruncated, setIsTruncated] = useState(false);
-  const [contentHeight, setContentHeight] = useState(0);
   const { getCourseDetailsWithPurchaseStatusQuery } = useCoursePurchase();
   const [isInCart, setIsInCart] = useState(false);
 
   const {
-    data: course,
+    data: courseData,
     isLoading,
     error,
   } = getCourseDetailsWithPurchaseStatusQuery(courseId, userId);
-  // If course not found
 
   useEffect(() => {
-    if (descriptionRef.current && course?.course?.description) {
-      const actualHeight = descriptionRef.current.scrollHeight;
-      const maxHeight = 180; // h-76 equivalent in pixels
-      setContentHeight(actualHeight);
-      setIsTruncated(actualHeight > maxHeight);
-    }
-  }, [course]);
-
-  const handleContinueCourse = () => {
-    if (course.purchased) {
-      // Navigate to the course progress page
-      router.push(`/course/course-progress/${courseId}`);
-    }
-  };
-
-  useEffect(() => {
-    const checkCartStatus = async () => {
-      try {
-        const response = await fetch(
-          `http://localhost:3001/cart/${userId}/check/${courseId}` // ✅ Correct URL format
-        );
-        const data = await response.json();
-        if (response.ok) {
-          setIsInCart(data.isCart); // ✅ Use correct key
+    if (courseData) {
+      const checkCartStatus = async () => {
+        if (!userId || !courseId) return;
+        try {
+          const response = await fetch(
+            `http://localhost:3001/cart/${userId}/check/${courseId}`
+          );
+          const data = await response.json();
+          if (response.ok) {
+            setIsInCart(data.isCart);
+          }
+        } catch (error) {
+          console.error("Error checking cart status:", error);
         }
-      } catch (error) {
-        console.error("Error checking cart status:", error);
-      }
-    };
-
-    if (userId && courseId) {
+      };
       checkCartStatus();
     }
-  }, [courseId, userId]); // ✅ Don't include isInCart in dependencies
+  }, [courseId, userId, courseData]);
 
-  const addToCart = async (course) => {
-    if (isInCart) return;
+  const handleAddToCart = async () => {
+    if (!userId) {
+      router.push("/login");
+      return;
+    }
+    if (isInCart) {
+      router.push("/cart");
+      return;
+    }
     try {
       const response = await fetch(
         `http://localhost:3001/cart/${courseId}/add-to-cart`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId }),
         }
       );
-
       const data = await response.json();
-
       if (response.ok) {
         toast.success("Course added to cart!");
         setIsInCart(true);
@@ -100,6 +94,10 @@ const CourseDetail = () => {
   };
 
   const handleBuyCourse = async () => {
+    if (!userId) {
+      router.push("/login");
+      return;
+    }
     try {
       const data = await createCheckout(courseId, userId);
       if (data?.success && data?.url) {
@@ -112,150 +110,209 @@ const CourseDetail = () => {
     }
   };
 
-  if (isLoading) {
-    return <div>Loading courses...</div>;
-  }
+  if (isLoading) return <CourseDetailSkeleton />;
+  if (error) return <div>Error: {error.message}</div>;
+  if (!courseData) return <CourseDetailSkeleton />;
 
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
+  const course = courseData.course;
+  const purchased = courseData.purchased;
 
   return (
-    <div className="space-y-5 mt-5  pb-4 max-w-7xl mx-auto px-4 md:px-8 flex flex-col lg:flex-row justify-between gap-10 ">
-      <div className=" dark:text-white ">
-        <div className="max-w-7xl mx-auto py-8 px-4 md:px-8 flex flex-col gap-2 ">
-          <Card className="bg-navBackground dark:bg-white p-6 text-gray-300 dark:text-black">
-            <h1 className="font-bold text-2xl md:text-3xl text-blue-500 ">
-              {course?.course.courseTitle}
-            </h1>
-            <p className="text-base md:text-lg ">{course?.course.subTitle}</p>
-            <p className="py-1">
-              Created By{" "}
-              <span className="dark:text-blue-400  underline font-extralight  italic">
-                {course?.course.creator?.name}
-              </span>
-            </p>
-            <div className="flex gap-6 py-1">
-              <div className="flex items-center gap-2 text-sm">
-                <CalendarDays size={18} />
-                <p>Last updated {course?.course.createdAt.split("T")[0]}</p>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Users size={18} />
-                <p>
-                  {" "}
-                  {course?.course.enrolledStudents.length} Students enrolled
+    <div className="bg-background dark:bg-gray-900">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-col lg:flex-row gap-10">
+          <div className="w-full lg:w-2/3">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Card className="bg-card dark:bg-gray-800/50 p-6 mb-8">
+                <h1 className="font-bold text-3xl md:text-4xl text-primary">
+                  {course.courseTitle}
+                </h1>
+                <p className="text-lg md:text-xl text-muted-foreground mt-2">
+                  {course.subTitle}
                 </p>
-              </div>
-            </div>
-          </Card>
-          <div className="w-full  space-y-5">
-            <Card className="pb-4 px-4 h-auto">
-              <h1 className="font-bold text-xl md:text-2xl text-blue-500 pt-6">
-                Description
-              </h1>
-              <div
-                ref={descriptionRef}
-                className={`text-sm p-2 transition-all duration-300 ${
-                  isExpanded
-                    ? "h-auto"
-                    : `overflow-hidden ${
-                        contentHeight > 180
-                          ? "h-[180px]"
-                          : `h-[${contentHeight}px]`
-                      }`
-                }`}
-                dangerouslySetInnerHTML={{
-                  __html: course.course.description || "",
-                }}
-                style={{
-                  lineHeight: "1.5", // Adjust line height for better readability
-                }}
-              />
-              {isTruncated && (
-                <button
-                  onClick={() => setIsExpanded((prev) => !prev)}
-                  className="text-blue-500 font-medium mt-2"
-                >
-                  {isExpanded ? "See Less" : "See More"}
-                </button>
-              )}
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Course Content</CardTitle>
-                <CardDescription>
-                  {course.course.lectures.length} lectures
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {course.course.lectures.map((lecture, idx) => (
-                  <div key={idx} className="flex items-center gap-3 text-sm">
+                <p className="py-2 text-sm">
+                  Created By{" "}
+                  <span className="text-primary/80 underline italic">
+                    {course.creator?.name}
+                  </span>
+                </p>
+                <div className="flex flex-wrap gap-x-6 gap-y-2 py-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays size={16} />
                     <span>
-                      {course?.purchased ? (
-                        <PlayCircle size={14} />
-                      ) : (
-                        <Lock size={14} />
-                      )}
+                      Last updated{" "}
+                      {new Date(course.createdAt).toLocaleDateString()}
                     </span>
-                    <p>{lecture.lectureTitle}</p>
                   </div>
-                ))}
+                  <div className="flex items-center gap-2">
+                    <Users size={16} />
+                    <span>{course.enrolledStudents.length} Students enrolled</span>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="mb-8">
+                <CardHeader>
+                  <CardTitle>Description</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    className={`prose dark:prose-invert max-w-none transition-all duration-300 ${
+                      isExpanded ? "max-h-full" : "max-h-48 overflow-hidden"
+                    }`}
+                    dangerouslySetInnerHTML={{ __html: course.description || "" }}
+                  />
+                  <Button
+                    variant="link"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="px-0 mt-2"
+                  >
+                    {isExpanded ? "Show Less" : "Show More"}
+                    {isExpanded ? (
+                      <ChevronUp className="ml-1 h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="ml-1 h-4 w-4" />
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Course Content</CardTitle>
+                  <CardDescription>
+                    {course.lectures.length} lectures
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {course.lectures.map((lecture, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-3 text-sm p-2 rounded-md bg-secondary/50"
+                    >
+                      {purchased ? (
+                        <PlayCircle size={16} className="text-primary" />
+                      ) : (
+                        <Lock size={16} className="text-muted-foreground" />
+                      )}
+                      <p>{lecture.lectureTitle}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+
+          <div className="w-full lg:w-1/3 lg:sticky top-24 self-start">
+            <Card>
+              <CardContent className="p-4">
+                <div className="w-full aspect-video mb-4 rounded-lg overflow-hidden">
+                  <ReactPlayer
+                    width="100%"
+                    height="100%"
+                    url={course.lectures[0]?.videoUrl}
+                    controls
+                    light={course.courseThumbnail}
+                  />
+                </div>
+                <h2 className="text-3xl font-bold text-center mb-4">
+                  ₹{course.coursePrice}
+                </h2>
               </CardContent>
+              <CardFooter className="flex-col gap-3">
+                {purchased ? (
+                  <Button
+                    size="lg"
+                    onClick={() =>
+                      router.push(`/course/course-progress/${courseId}`)
+                    }
+                    className="w-full"
+                  >
+                    <PlayCircle className="mr-2 h-5 w-5" />
+                    Continue Learning
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      size="lg"
+                      onClick={handleAddToCart}
+                      className="w-full"
+                    >
+                      {isInCart ? (
+                        <>
+                          <CheckCircle className="mr-2 h-5 w-5" />
+                          Go to Cart
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="mr-2 h-5 w-5" />
+                          Add to Cart
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      onClick={handleBuyCourse}
+                      className="w-full"
+                    >
+                      Buy Now
+                    </Button>
+                  </>
+                )}
+              </CardFooter>
             </Card>
           </div>
         </div>
       </div>
-      <div className="w-full lg:w-1/2 pt-3">
+    </div>
+  );
+};
+
+const CourseDetailSkeleton = () => (
+  <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="flex flex-col lg:flex-row gap-10">
+      <div className="w-full lg:w-2/3">
+        <Card className="p-6 mb-8">
+          <Skeleton className="h-10 w-3/4 mb-4" />
+          <Skeleton className="h-6 w-1/2 mb-4" />
+          <Skeleton className="h-5 w-1/3 mb-4" />
+          <div className="flex gap-6">
+            <Skeleton className="h-5 w-1/4" />
+            <Skeleton className="h-5 w-1/4" />
+          </div>
+        </Card>
+        <Card className="p-6 mb-8">
+          <Skeleton className="h-8 w-1/4 mb-4" />
+          <Skeleton className="h-24 w-full" />
+        </Card>
+        <Card className="p-6">
+          <Skeleton className="h-8 w-1/3 mb-4" />
+          <div className="space-y-4">
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+          </div>
+        </Card>
+      </div>
+      <div className="w-full lg:w-1/3">
         <Card>
-          <CardContent className="p-4 flex flex-col">
-            <div className="w-full aspect-video mb-4">
-              <ReactPlayer
-                width="100%"
-                height={"100%"}
-                url={course?.course.lectures[0].videoUrl}
-                controls={true}
-              />
-            </div>
-            <h1 className="text-xl md:text-2xl font-semibold text-center">
-              ₹{course?.course.coursePrice}
-            </h1>
+          <CardContent className="p-4">
+            <Skeleton className="w-full aspect-video mb-4" />
+            <Skeleton className="h-10 w-1/2 mx-auto" />
           </CardContent>
-          <CardFooter className="flex-col gap-3 pb-4">
-            <Button
-              onClick={() => {
-                if (isInCart) {
-                  router.push("/cart");
-                } else {
-                  addToCart(course);
-                }
-              }}
-              className="w-full"
-            >
-              {isInCart ? "Go to Cart" : "Add to Cart"}
-            </Button>
-            {course.purchased ? (
-              <Button
-                variant="outline"
-                onClick={handleContinueCourse}
-                className="w-full"
-              >
-                Continue Course
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                onClick={handleBuyCourse}
-                className="w-full"
-              >
-                Buy Course
-              </Button>
-            )}
+          <CardFooter className="flex-col gap-3">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
           </CardFooter>
         </Card>
       </div>
     </div>
-  );
-};
+  </div>
+);
 
 export default CourseDetail;

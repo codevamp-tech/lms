@@ -4,7 +4,9 @@ const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:300
 
 export const getCoursedetailWithPurchaseStatus = async (courseId: string, userId: string) => {
     try {
-      const {data} = await axios.get(`${API_BASE_URL}/${userId}/${courseId}`);
+      const {data} = await axios.get(`${API_BASE_URL}/${courseId}`, {
+        params: { userId }
+      });
       return data;
     } catch (error) {
       console.error("Error fetching course:", error);

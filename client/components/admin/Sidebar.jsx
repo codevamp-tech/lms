@@ -6,6 +6,7 @@ import {
   SquareLibrary,
   Store,
   UserPlus,
+  Video
 } from "lucide-react";
 import { getUserIdFromToken } from "@/utils/helpers";
 import { useUserProfile } from "@/hooks/useUsers";
@@ -41,6 +42,11 @@ const SIDEBAR_LINKS = {
       label: "Courses",
       icon: SquareLibrary,
     },
+    {
+      href: "/admin/live-session",
+      label: "Live Session",
+      icon: Video,
+    }
   ],
 };
 
@@ -60,11 +66,10 @@ const Sidebar = () => {
             <Link
               key={link.href}
               href={link.href}
-              className={`flex items-center gap-2 transition-colors duration-200 hover:text-blue-600 ${
-                pathname === link.href
-                  ? "text-blue-600 font-semibold"
-                  : "dark:text-white text-gray-700"
-              }`}
+              className={`flex items-center gap-2 transition-colors duration-200 hover:text-blue-600 ${pathname === link.href
+                ? "text-blue-600 font-semibold"
+                : "dark:text-white text-gray-700"
+                }`}
             >
               <link.icon size={22} />
               <span>{link.label}</span>

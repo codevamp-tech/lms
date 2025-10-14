@@ -160,8 +160,11 @@ export const togglePrivateCourse = async (
   }
 };
 
-export const getPublishedCourses = async (page = 1, limit = 8) => {
-  const companyId = localStorage.getItem("companyId") || null;
+export const getPublishedCourses = async (
+  page = 1,
+  limit = 8,
+  companyId: string | null
+) => {
   try {
     const { data } = await axios.get(`${API_BASE_URL}/published/all`, {
       params: { companyId, page, limit },

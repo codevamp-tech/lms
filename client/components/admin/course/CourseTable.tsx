@@ -35,6 +35,7 @@ const CourseTable = () => {
     const fetchInstructorStatus = async () => {
       try {
         const data = await getInstructor();
+        console.log("instructor data", data);
         if (data.success) {
           const currentInstructor = data.instructors.find((inst: any) => inst._id === userId);
           if (currentInstructor) {
@@ -95,6 +96,8 @@ const CourseTable = () => {
   if (error) {
     return <div>Error: {error.message}</div>;
   }
+
+  console.log("instructorStatus:", instructorStatus, statusLoading, statusLoading || !instructorStatus);
 
   return (
     <div>

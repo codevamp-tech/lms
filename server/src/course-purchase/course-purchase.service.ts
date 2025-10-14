@@ -36,7 +36,10 @@ export class CoursePurchaseService {
     this.stripe = new Stripe(secret_key);
   }
 
-  async getCourseDetailWithPurchaseStatus(courseId: string, userId: string) {
+  async getCourseDetailWithPurchaseStatus(
+    courseId: string,
+    userId?: string,
+  ) {
     const course = await this.courseModel
       .findById(courseId)
       .populate({ path: 'creator' })
@@ -46,10 +49,13 @@ export class CoursePurchaseService {
       throw new NotFoundException('Course not found!');
     }
 
-    const purchased = await this.coursePurchaseModel.findOne({
-      userId,
-      courseId,
-    });
+    let purchased = null;
+    if (userId) {
+      purchased = await this.coursePurchaseModel.findOne({
+        userId,
+        courseId,
+      });
+    }
 
     return {
       course,

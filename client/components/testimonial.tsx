@@ -1,172 +1,140 @@
-"use client"
-import { useState } from "react"
-import { Star, Quote } from "lucide-react"
+"use client";
+import { useState, useEffect, useCallback } from "react";
+import { Star, Quote } from "lucide-react";
+import useEmblaCarousel from "embla-carousel-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-// Enhanced testimonial data with ratings and roles
 const testimonials = [
   {
     id: 1,
-    text: "All the trainers are inspiring. I have learned almost from all of them. I have learned so much in their classes and I am really grateful that I found such a platform.",
+    text: "The trainers are inspiring. I've learned so much and am grateful for this platform.",
     author: "Sarah M.",
     role: "Business Professional",
     rating: 5,
-    image: "/professional-woman-smiling.png",
+    image: "/img/testimonial-1.jpg",
   },
   {
     id: 2,
-    text: "Mr. English is not only about English. It's about hundred different things. From confidence to personality development they got you all covered. I am really thankful to Gowhar sur for training.",
+    text: "It's more than just English; it's about confidence and personality development. Thank you!",
     author: "Rahul K.",
     role: "University Student",
     rating: 5,
-    image: "/young-man-student.png",
+    image: "/img/testimonial-2.jpg",
   },
   {
     id: 3,
-    text: "I am really impressed with how much I have learned at Mr. English training academy. The trainers are knowledgeable and very supportive.",
+    text: "I'm impressed with how much I've learned. The trainers are knowledgeable and supportive.",
     author: "Priya S.",
     role: "Marketing Manager",
     rating: 5,
-    image: "/professional-woman-confident.jpg",
+    image: "/img/testimonial-3.jpg",
   },
   {
     id: 4,
-    text: "Reading books and doing my homework used to be a task, a really hectic one. However, not anymore, because now I can read and write without any problems. At Meta, the trainers make reading and learning new things a piece of cake.",
+    text: "Reading and learning new things are now a piece of cake. The trainers make it so easy.",
     author: "Amir H.",
     role: "High School Student",
     rating: 5,
-    image: "/teenage-boy-studying.jpg",
+    image: "/img/testimonial-4.jpg",
   },
   {
     id: 5,
-    text: "I thought I will only learn English at Mr. English training academy, but I ended up learning about myself and the world too. Juzlain Mam has helped me a lot in my journey.",
+    text: "I learned about myself and the world, not just English. The trainers have helped me a lot.",
     author: "Fatima A.",
     role: "Career Changer",
     rating: 5,
-    image: "/professional-woman-headshot.png",
+    image: "/img/testimonial-5.jpg",
   },
-]
+];
 
-const TestimonialCard = ({
-  text,
-  author,
-  role,
-  rating,
-  image,
-  index,
-}: {
-  text: string
-  author: string
-  role: string
-  rating: number
-  image: string
-  index: number
-}) => {
-  const [isHovered, setIsHovered] = useState(false)
-
-  return (
-    <div
-      className={`group relative bg-card rounded-2xl p-8 shadow-sm border border-border transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 ${index % 2 === 0 ? "md:mt-8" : ""
-        }`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* Decorative quote mark */}
-      <div className="absolute -top-4 -left-4 w-16 h-16 bg-primary rounded-full flex items-center justify-center shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-12">
-        <Quote className="w-8 h-8 text-primary-foreground" />
-      </div>
-
-      {/* Star rating */}
-      <div className="flex gap-1 mb-4">
-        {[...Array(rating)].map((_, i) => (
-          <Star
-            key={i}
-            className="w-5 h-5 fill-secondary text-secondary transition-transform duration-300"
-            style={{
-              transitionDelay: isHovered ? `${i * 50}ms` : "0ms",
-              transform: isHovered ? "scale(1.2) rotate(15deg)" : "scale(1)",
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Testimonial text */}
-      <p className="text-foreground leading-relaxed mb-6 text-base">{text}</p>
-
-      {/* Author info */}
-      <div className="flex items-center gap-4 pt-4 border-t border-border">
-        <div className="relative">
-          <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-primary/20 transition-all duration-300 group-hover:ring-4 group-hover:ring-primary/40">
-            <img src={image || "/placeholder.svg"} alt={author} className="w-full h-full object-cover" />
-          </div>
-          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-accent rounded-full flex items-center justify-center shadow-md">
-            <svg className="w-3 h-3 text-accent-foreground" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-        </div>
-        <div>
-          <h4 className="font-semibold text-foreground text-lg">{author}</h4>
-          <p className="text-muted-foreground text-sm">{role}</p>
-        </div>
-      </div>
-
-      {/* Hover accent line */}
-      <div
-        className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-primary via-accent to-secondary rounded-b-2xl transition-all duration-500"
-        style={{
-          width: isHovered ? "100%" : "0%",
-        }}
-      />
-    </div>
-  )
+interface TestimonialCardProps {
+  text: string;
+  author: string;
+  role: string;
+  rating: number;
+  image: string;
 }
 
-const ModernTestimonials = () => {
-  return (
-    <section className="py-24 px-6 bg-gradient-to-b from-background via-muted/30 to-background relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-20 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 left-10 w-96 h-96 bg-secondary/5 rounded-full blur-3xl" />
+const TestimonialCard: React.FC<TestimonialCardProps> = ({ text, author, role, rating, image }) => (
+  <div className="bg-card rounded-2xl p-8 shadow-sm border border-border transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
+    <Quote className="w-10 h-10 text-primary/50 mb-4" />
+    <div className="flex gap-1 mb-4">
+      {[...Array(rating)].map((_, i) => (
+        <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+      ))}
+    </div>
+    <p className="text-foreground leading-relaxed mb-6 text-base">{text}</p>
+    <div className="flex items-center gap-4 pt-4 border-t border-border">
+      <img
+        src={image || "/placeholder.svg"}
+        alt={author}
+        className="w-12 h-12 rounded-full object-cover ring-2 ring-primary/20"
+      />
+      <div>
+        <h4 className="font-semibold text-foreground text-lg">{author}</h4>
+        <p className="text-muted-foreground text-sm">{role}</p>
+      </div>
+    </div>
+  </div>
+);
 
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Section header */}
+const ModernTestimonials = () => {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start" });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi, setSelectedIndex]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi, onSelect]);
+
+  return (
+    <section className="py-24 px-6 bg-background relative overflow-hidden">
+      <div className="container mx-auto relative z-10">
         <div className="text-center mb-16 space-y-4">
-          <div className="inline-block">
-            <span className="text-sm font-semibold text-primary uppercase tracking-wider px-4 py-2 bg-primary/10 rounded-full">
-              Student Success Stories
-            </span>
-          </div>
-          <h2 className="text-5xl md:text-6xl font-serif font-bold text-foreground text-balance">
-            Transforming Lives Through <span className="text-primary">Learning</span>
+          <span className="text-sm font-semibold text-primary uppercase tracking-wider px-4 py-2 bg-primary/10 rounded-full">
+            Student Success Stories
+          </span>
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground">
+            What Our Students Say
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
-            Discover how our students have grown in confidence, skills, and success with Mr. English Training Academy
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Discover how our students have grown in confidence, skills, and success.
           </p>
         </div>
 
-        {/* Testimonials grid with staggered layout */}
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((testimonial, index) => (
-            <TestimonialCard
-              key={testimonial.id}
-              text={testimonial.text}
-              author={testimonial.author}
-              role={testimonial.role}
-              rating={testimonial.rating}
-              image={testimonial.image}
-              index={index}
+        <div className="embla" ref={emblaRef}>
+          <div className="embla__container">
+            {testimonials.map((testimonial) => (
+              <div key={testimonial.id} className="embla__slide p-4">
+                <TestimonialCard {...testimonial} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex justify-center mt-8 space-x-2">
+          {testimonials.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => emblaApi?.scrollTo(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                selectedIndex === index ? "bg-primary scale-125" : "bg-muted"
+              }`}
             />
           ))}
         </div>
-
-
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default ModernTestimonials
+export default ModernTestimonials;

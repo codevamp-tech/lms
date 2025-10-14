@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { toast } from "react-hot-toast";
 import { getUserIdFromToken } from "@/utils/helpers";
 import { Star, StarHalf, BookOpen } from "lucide-react";
 import Link from "next/link";
+import ProtectedRoutes from "@/components/ProtectedRoutes";
 
 const RatingStars = ({ rating }: { rating: number }) => {
   const totalStars = 5;
@@ -62,28 +63,28 @@ const Favorites = () => {
     fetchFavorites();
   }, []);
 
+  const fetchRatings = useCallback(async () => {
+    const ratings: { [key: string]: { average: number; count: number } } = {};
+    for (const item of favorites) {
+      try {
+        const res = await fetch(`http://localhost:3001/ratings/${item.courseId._id}`);
+        if (res.ok) {
+          const data = await res.json();
+          ratings[item.courseId._id] = data;
+        }
+      } catch (error) {
+        console.error(`Error fetching rating for course ${item.courseId._id}:`, error);
+      }
+    }
+    setCourseRatings(ratings);
+  }, [JSON.stringify(favorites)]);
+
   // Fetch Ratings for Courses
   useEffect(() => {
-    const fetchRatings = async () => {
-      const ratings = {};
-      for (const item of favorites) {
-        try {
-          const res = await fetch(`http://localhost:3001/ratings/${item.courseId._id}`);
-          if (res.ok) {
-            const data = await res.json();
-            ratings[item.courseId._id] = data;
-          }
-        } catch (error) {
-          console.error(`Error fetching rating for course ${item.courseId._id}:`, error);
-        }
-      }
-      setCourseRatings(ratings);
-    };
-
     if (favorites.length > 0) {
       fetchRatings();
     }
-  }, [favorites]);
+  }, [favorites.length, fetchRatings]);
 
   // Remove Course from Favorites
   const removeFromFavorites = async (courseId: string) => {
@@ -99,83 +100,85 @@ const Favorites = () => {
   };
 
   return (
-    <div className="p-4">
-      <div className="justify-center">
-        <h1 className="text-3xl font-bold mb-4">Favorites</h1>
-        {!loading && <div className="mb-2 text-gray-600">{favorites.length} Course(s) in favorites</div>}
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    <ProtectedRoutes>
+      <div className="p-4">
+        <div className="justify-center">
+          <h1 className="text-3xl font-bold mb-4">Favorites</h1>
+          {!loading && <div className="mb-2 text-gray-600">{favorites.length} Course(s) in favorites</div>}
         </div>
-      ) : favorites.length === 0 ? (
-        <p>
-          Your cart is empty.{" "}
-          <Link href="/" className="text-blue-600 hover:text-blue-800">
-            Go back to courses
-          </Link>
-        </p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
-          {favorites.map((fav) => {
-            const discountPercentage = fav.courseId.courseMRP && fav.courseId.coursePrice
-              ? Math.round(((fav.courseId.courseMRP - fav.courseId.coursePrice) / fav.courseId.courseMRP) * 100)
-              : 0;
 
-            return (
-              <Card key={fav._id} className="shadow-lg rounded-lg relative">
-                <img
-                  src={fav.courseId.courseThumbnail}
-                  alt={fav.courseId.courseTitle}
-                  className="w-full h-44 object-cover rounded-t-lg" />
-                {discountPercentage > 0 && (
-                  <div className="absolute top-0 right-0 bg-red-500 text-white px-2 py-1 text-xs font-bold rounded-tr-lg rounded-bl-lg">
-                    {discountPercentage}% OFF
-                  </div>
-                )}
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : favorites.length === 0 ? (
+          <p>
+            Your cart is empty.{" "}
+            <Link href="/" className="text-blue-600 hover:text-blue-800">
+              Go back to courses
+            </Link>
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+            {favorites.map((fav) => {
+              const discountPercentage = fav.courseId.courseMRP && fav.courseId.coursePrice
+                ? Math.round(((fav.courseId.courseMRP - fav.courseId.coursePrice) / fav.courseId.courseMRP) * 100)
+                : 0;
 
-                <CardContent className="gap-2 mt-2">
-                  <Link href={`/course/course-detail/${fav.courseId._id}`}>
-                    <h3 className="text-xl hover:underline">{fav.courseId.courseTitle}</h3>
-                  </Link>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold">₹{fav.courseId.coursePrice}</span>
-                    {fav.courseId.courseMRP && fav.courseId.courseMRP > fav.courseId.coursePrice && (
-                      <>
-                        <span className="text-gray-500 line-through text-sm">₹{fav.courseId.courseMRP}</span>
-                        <span className="text-green-600 text-sm font-medium">({discountPercentage}% off)</span>
-                      </>
-                    )}
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-1 mt-1">
-                      {courseRatings[fav.courseId._id] ? (
+              return (
+                <Card key={fav._id} className="shadow-lg rounded-lg relative">
+                  <img
+                    src={fav.courseId.courseThumbnail}
+                    alt={fav.courseId.courseTitle}
+                    className="w-full h-44 object-cover rounded-t-lg" />
+                  {discountPercentage > 0 && (
+                    <div className="absolute top-0 right-0 bg-red-500 text-white px-2 py-1 text-xs font-bold rounded-tr-lg rounded-bl-lg">
+                      {discountPercentage}% OFF
+                    </div>
+                  )}
+
+                  <CardContent className="gap-2 mt-2">
+                    <Link href={`/course/course-detail/${fav.courseId._id}`}>
+                      <h3 className="text-xl hover:underline">{fav.courseId.courseTitle}</h3>
+                    </Link>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-bold">₹{fav.courseId.coursePrice}</span>
+                      {fav.courseId.courseMRP && fav.courseId.courseMRP > fav.courseId.coursePrice && (
                         <>
-                          <RatingStars rating={courseRatings[fav.courseId._id].average} />
-                          <span className="text-sm text-gray-500 ml-2">
-                            ({courseRatings[fav.courseId._id].count} reviews)
-                          </span>
+                          <span className="text-gray-500 line-through text-sm">₹{fav.courseId.courseMRP}</span>
+                          <span className="text-green-600 text-sm font-medium">({discountPercentage}% off)</span>
                         </>
-                      ) : (
-                        <span className="text-sm text-gray-500">No ratings yet</span>
                       )}
                     </div>
-                    <Button
-                      onClick={() => removeFromFavorites(fav.courseId._id)}
-                      className="bg-red-500 hover:bg-red-600 text-white"
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )
-      }
-    </div >
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-1 mt-1">
+                        {courseRatings[fav.courseId._id] ? (
+                          <>
+                            <RatingStars rating={courseRatings[fav.courseId._id].average} />
+                            <span className="text-sm text-gray-500 ml-2">
+                              ({courseRatings[fav.courseId._id].count} reviews)
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-sm text-gray-500">No ratings yet</span>
+                        )}
+                      </div>
+                      <Button
+                        onClick={() => removeFromFavorites(fav.courseId._id)}
+                        className="bg-red-500 hover:bg-red-600 text-white"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )
+        }
+      </div >
+    </ProtectedRoutes>
   );
 };
 
