@@ -1,33 +1,15 @@
 // course/payment-status/page.tsx
 "use client";
-import { useEffect } from "react";
+import React, { Suspense } from "react";
 import { useRouter } from "next/navigation";
+import PaymentStatusClient from "./PaymentStatusClient";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const PaymentStatus = () => {
-  const router = useRouter();
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const queryParams = new URLSearchParams(window.location.search);
-      const data = {};
-
-      queryParams.forEach((value, key) => {
-        data[key] = value;
-      });
-    }
-  }, []);
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-2xl font-bold">
-        Payment {router.query.order_status === "SUCCESS" ? "Successful" : "Failed"}
-      </h1>
-      <p className="mt-2 text-sm">
-        {router.query.order_status === "SUCCESS"
-          ? "Thank you for your payment!"
-          : "Something went wrong, please try again."}
-      </p>
-    </div>
+    <Suspense fallback={<LoadingSpinner />}>
+      <PaymentStatusClient />
+    </Suspense>
   );
 };
 

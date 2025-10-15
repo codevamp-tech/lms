@@ -27,7 +27,7 @@ export const createLecture = async (
 };
 
 export const getLectureById = async (lectureId: string) => {
-  const companyId = localStorage.getItem("companyId");
+  const companyId = "";
   try {
     const response = await axios.get(`${API_BASE_URL}/${lectureId}`, {
       headers: {

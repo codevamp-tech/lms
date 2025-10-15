@@ -23,38 +23,45 @@ interface Admin {
   companyId: Company | null;
 }
 
-
 const AddUser: React.FC = () => {
-
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const companyId = localStorage.getItem("companyId");
+  const [companyId, setCompanyId] = useState<string | null>(null);
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
     password: "",
     role: "admin",
-    companyId: companyId,
+    companyId: "",
   });
+
+  useEffect(() => {
+    const storedCompanyId = localStorage.getItem("companyId");
+    if (storedCompanyId) {
+      setCompanyId(storedCompanyId);
+      setNewUser((prev) => ({ ...prev, companyId: storedCompanyId }));
+    }
+  }, []);
 
   useEffect(() => {
     // Fetch companies when the component mounts
     const fetchCompanies = async () => {
-
       try {
-        const response = await fetch('https://lms-v4tz.onrender.com/companies/all-company');
+        const response = await fetch(
+          "https://lms-v4tz.onrender.com/companies/all-company"
+        );
         const data = await response.json();
         if (response.ok) {
           setCompanies(data.companies);
         } else {
-          toast.error('Failed to fetch companies.');
+          toast.error("Failed to fetch companies.");
         }
       } catch (err) {
-        toast.error('An error occurred while fetching companies.');
+        toast.error("An error occurred while fetching companies.");
       }
     };
 
@@ -64,12 +71,15 @@ const AddUser: React.FC = () => {
   const fetchAdmins = async (page = 1) => {
     setLoading(true);
     try {
-      const response = await fetch(`https://lms-v4tz.onrender.com/users/admins?page=${page}&limit=10`, {
-        headers: {
-          Authorization: `Bearer ${companyId}`, // Ensure companyId is a valid token
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `https://lms-v4tz.onrender.com/users/admins?page=${page}&limit=10`,
+        {
+          headers: {
+            Authorization: `Bearer ${companyId}`, // Ensure companyId is a valid token
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch data");
@@ -85,8 +95,6 @@ const AddUser: React.FC = () => {
     }
   };
 
-
-
   useEffect(() => {
     fetchAdmins(currentPage);
   }, [currentPage]);
@@ -98,7 +106,6 @@ const AddUser: React.FC = () => {
   const handleCompanyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setNewUser((prev) => ({ ...prev, companyId: e.target.value }));
   };
-
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,11 +121,14 @@ const AddUser: React.FC = () => {
     }
 
     try {
-      const response = await fetch("https://lms-v4tz.onrender.com/users/addAdmin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newUser),
-      });
+      const response = await fetch(
+        "https://lms-v4tz.onrender.com/users/addAdmin",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newUser),
+        }
+      );
 
       const data = await response.json();
 
@@ -126,7 +136,7 @@ const AddUser: React.FC = () => {
         await fetchAdmins();
 
         // Clear the form fields
-        setNewUser({ name: "", email: "", password: "", role: "admin", companyId });
+        setNewUser({ name: "", email: "", password: "", role: "admin", companyId: companyId || "" });
 
         // Close the form
         setIsFormVisible(false);
@@ -141,13 +151,14 @@ const AddUser: React.FC = () => {
     }
   };
 
-
-
   const handleDeleteAdmin = async (adminId: string) => {
     try {
-      const response = await fetch(`https://lms-v4tz.onrender.com/users/admin/${adminId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `https://lms-v4tz.onrender.com/users/admin/${adminId}`,
+        {
+          method: "DELETE",
+        }
+      );
       if (!response.ok) {
         throw new Error("Failed to delete admin");
       }
@@ -162,28 +173,24 @@ const AddUser: React.FC = () => {
     return <div>Loading...</div>;
   }
 
-
-
-
   return (
     <div className="p-6 space-y-8 bg-card rounded-xl ">
       <div className="flex justify-between">
-        <h2 className="text-2xl font-semibold text-gray-700 dark:text-white">Admin List</h2>
-        <Button
-          onClick={() => setIsFormVisible((prev) => !prev)}
-        >
+        <h2 className="text-2xl font-semibold text-gray-700 dark:text-white">
+          Admin List
+        </h2>
+        <Button onClick={() => setIsFormVisible((prev) => !prev)}>
           {isFormVisible ? "Cancel" : "Add Admin"}
         </Button>
       </div>
       {isFormVisible && (
         <div className="mt-6 space-y-6 ">
-
-
           {/* Form Fields in Grid Layout */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col">
-              <Label className="block text-sm font-medium text-gray-500">Name</Label>
+              <Label htmlFor="name">Name</Label>
               <Input
+                id="name"
                 type="text"
                 name="name"
                 value={newUser.name}
@@ -192,20 +199,21 @@ const AddUser: React.FC = () => {
               />
             </div>
             <div className="flex flex-col">
-              <Label className="block text-sm font-medium text-gray-500">Email</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
+                id="email"
                 type="email"
                 name="email"
                 value={newUser.email}
                 onChange={handleInputChange}
                 className="mt-1 block w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-
             </div>
 
             <div className="flex flex-col">
-              <Label className="block text-sm font-medium text-gray-500">Password</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
+                id="password"
                 type="password"
                 name="password"
                 value={newUser.password}
@@ -215,8 +223,9 @@ const AddUser: React.FC = () => {
             </div>
 
             <div className="flex flex-col">
-              <Label className="block text-sm font-medium text-gray-500 ">Company</Label>
+              <Label htmlFor="companyId">Company</Label>
               <select
+                id="companyId"
                 name="companyId"
                 value={newUser.companyId || ""}
                 onChange={handleCompanyChange}
@@ -234,13 +243,8 @@ const AddUser: React.FC = () => {
 
           {/* Company Section */}
 
-
           {/* Add User Button */}
-          <Button
-            onClick={handleAddUser}
-          >
-            Add Admin
-          </Button>
+          <Button onClick={handleAddUser}>Add Admin</Button>
         </div>
       )}
 
@@ -266,7 +270,7 @@ const AddUser: React.FC = () => {
                     {admin.companyId ? (
                       <span>{admin.companyId.name}</span>
                     ) : (
-                      'No company'
+                      "No company"
                     )}
                   </td>
                   <td className="py-3 px-4 text-center">
@@ -282,14 +286,15 @@ const AddUser: React.FC = () => {
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="py-3 px-4 text-center">No admins found</td>
+                <td colSpan={4} className="py-3 px-4 text-center">
+                  No admins found
+                </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
     </div>
-
   );
 };
 

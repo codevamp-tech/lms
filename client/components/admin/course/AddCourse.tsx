@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import useCourses from "@/hooks/useCourses";
@@ -39,7 +39,14 @@ const AddCourse = () => {
   const { createNewCourse, isLoading } = useCourses();
   const userId = getUserIdFromToken();
   const router = useRouter();
+  const [companyId, setCompanyId] = useState<string | null>(null);
 
+  useEffect(() => {
+    const storedCompanyId = localStorage.getItem("companyId");
+    if (storedCompanyId) {
+      setCompanyId(storedCompanyId);
+    }
+  }, []);
 
   const handleAddCategory = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && addCategory.trim() !== "") {
@@ -55,7 +62,6 @@ const AddCourse = () => {
       }
     }
   };
-  const companyId = localStorage.getItem("companyId");
   const createCourseHandler = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -65,7 +71,7 @@ const AddCourse = () => {
     }
 
     try {
-      await createNewCourse({ courseTitle, category, creatorId: userId, companyId });
+      await createNewCourse({ courseTitle, category, creatorId: userId, companyId: companyId || "" });
       toast.success("Course created successfully.");
 
       // Keep all categories, and pre-select the current category
@@ -90,8 +96,9 @@ const AddCourse = () => {
       </div>
       <div className="space-y-4">
         <div>
-          <Label>Title</Label>
+          <Label htmlFor="courseTitle">Title</Label>
           <Input
+            id="courseTitle"
             type="text"
             value={courseTitle}
             onChange={(e) => setCourseTitle(e.target.value)}

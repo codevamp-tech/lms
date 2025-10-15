@@ -33,14 +33,22 @@ const AddInstructor: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const companyId = localStorage.getItem("companyId");
+  const [companyId, setCompanyId] = useState<string | null>(null);
   const [newInstructor, setNewInstructor] = useState({
     name: "",
     password: "",
     email: "",
     role: "instructor",
-    companyId: companyId,
+    companyId: "",
   });
+
+  useEffect(() => {
+    const storedCompanyId = localStorage.getItem("companyId");
+    if (storedCompanyId) {
+      setCompanyId(storedCompanyId);
+      setNewInstructor((prev) => ({ ...prev, companyId: storedCompanyId }));
+    }
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -71,7 +79,7 @@ const AddInstructor: React.FC = () => {
 
       if (response.ok && data._id) {
         setInstructors((prevInstructors) => [...prevInstructors, data]);
-        setNewInstructor({ name: "", email: "", password: "", role: "instructor", companyId });
+        setNewInstructor({ name: "", email: "", password: "", role: "instructor", companyId: companyId || "" });
         setShowAddForm(false);
       } else if (data.error?.includes('Email already in use')) {
         toast.error("This email is already registered. Please use a different email.");
@@ -132,7 +140,7 @@ const AddInstructor: React.FC = () => {
     fetchInstructors(currentPage);
   }, [currentPage]);
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
     }
@@ -227,8 +235,9 @@ const AddInstructor: React.FC = () => {
             <div className="p-6">
               <div className="space-y-4">
                 <div>
-                  <Label className="block text-sm font-medium text-gray-600 dark:text-gray-200">Name</Label>
+                  <Label htmlFor="name">Name</Label>
                   <input
+                    id="name"
                     type="text"
                     name="name"
                     value={newInstructor.name}
@@ -237,8 +246,9 @@ const AddInstructor: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <Label className="block text-sm font-medium text-gray-600 dark:text-gray-200">Email</Label>
+                  <Label htmlFor="email">Email</Label>
                   <input
+                    id="email"
                     type="email"
                     name="email"
                     value={newInstructor.email}
@@ -247,8 +257,9 @@ const AddInstructor: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <Label className="block text-sm font-medium text-gray-600 dark:text-gray-200">Password</Label>
+                  <Label htmlFor="password">Password</Label>
                   <input
+                    id="password"
                     type="password"
                     name="password"
                     value={newInstructor.password}
@@ -312,7 +323,7 @@ const AddInstructor: React.FC = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-500 dark:text-white">
-                              {instructor.createdAt ? new Date(instructor.createdAt).toLocaleDateString() : 'N/A'}
+                              {instructor.createdAt ? new Date(instructor.createdAt as string).toLocaleDateString() : 'N/A'}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">

@@ -21,7 +21,8 @@ export interface CreateCourseResponse {
 }
 
 export const createCourse = async (courseData: CourseData) => {
-  const companyId = localStorage.getItem("companyId");
+  // const companyId = localStorage.getItem("companyId");
+  const companyId = "";
   try {
     const { data } = await axios.post(`${API_BASE_URL}`, courseData, {
       headers: {
@@ -110,7 +111,8 @@ export const togglePublishCourse = async (
   courseId: string,
   publish: boolean
 ): Promise<string> => {
-  const companyId = localStorage.getItem("companyId");
+  // const companyId = localStorage.getItem("companyId");
+  const companyId = "";
   try {
     const response = await axios.put(
       `${API_BASE_URL}/${courseId}/toggle-publish`,

@@ -27,9 +27,9 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
-
 const CourseTab = () => {
-  const { courseId } = useParams();
+  const { courseId: rawCourseId } = useParams();
+  const courseId = Array.isArray(rawCourseId) ? rawCourseId[0] : rawCourseId;
   const router = useRouter();
   const { getCourseByIdQuery, editCourse, publishCourse, deleteCourse, privateCourse } = useCourses();
 
@@ -42,7 +42,7 @@ const CourseTab = () => {
   } = getCourseByIdQuery(courseId);
 
 
-  const companyId = localStorage.getItem("companyId");
+  const [companyId, setCompanyId] = useState<string | null>(null);
   // Local state for form inputs
   const [input, setInput] = useState({
     courseTitle: "",
@@ -52,12 +52,20 @@ const CourseTab = () => {
     courseLevel: "",
     coursePrice: "",
     courseMRP: "",
-    companyId: companyId,
+    companyId: "",
   });
 
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [previewThumbnail, setPreviewThumbnail] = useState<string | null>("");
 
+
+  useEffect(() => {
+    const storedCompanyId = localStorage.getItem("companyId");
+    if (storedCompanyId) {
+      setCompanyId(storedCompanyId);
+      setInput((prev) => ({ ...prev, companyId: storedCompanyId }));
+    }
+  }, []);
 
 
   const [categories, setCategories] = useState([
@@ -85,7 +93,7 @@ const CourseTab = () => {
         courseLevel: course.courseLevel || "",
         coursePrice: course.coursePrice || "",
         courseMRP: course.courseMRP || "",
-        companyId: companyId,
+        companyId: companyId || "",
       });
       setPreviewThumbnail(course.courseThumbnail || "");
       if (course.category && !categories.includes(course.category)) {
@@ -119,6 +127,7 @@ const CourseTab = () => {
   };
 
   const publishCourseHandler = async () => {
+    if (!courseId) return;
     const status = course.isPublished === true ? false : true
     await publishCourse(
       { courseId, publish: status, companyId },
@@ -138,6 +147,7 @@ const CourseTab = () => {
   };
 
   const privateCourseHandler = async () => {
+    if (!courseId) return;
     const status = course.isPrivate === true ? false : true
     await privateCourse(
       { courseId, privated: status, companyId },
@@ -157,6 +167,7 @@ const CourseTab = () => {
   };
 
   const updateCourseHandler = () => {
+    if (!courseId) return;
     if (!input.courseTitle || !input.category || !input.courseLevel) {
       toast.error("Please fill out all required fields.");
       return;
@@ -215,15 +226,16 @@ const CourseTab = () => {
             onClick={(e) => {
               e.stopPropagation(),
                 router.push("/admin/courses"),
-                deleteCourse({ courseId });
+                courseId && deleteCourse({ courseId });
             }}>Remove Course</Button>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4 mt-5">
           <div>
-            <Label>Title</Label>
+            <Label htmlFor="courseTitle">Title</Label>
             <Input
+              id="courseTitle"
               type="text"
               name="courseTitle"
               value={input.courseTitle}
@@ -232,8 +244,9 @@ const CourseTab = () => {
             />
           </div>
           <div>
-            <Label>Subtitle</Label>
+            <Label htmlFor="subTitle">Subtitle</Label>
             <Input
+              id="subTitle"
               type="text"
               name="subTitle"
               value={input.subTitle}
@@ -242,8 +255,9 @@ const CourseTab = () => {
             />
           </div>
           <div>
-            <Label>Description</Label>
+            <Label htmlFor="description">Description</Label>
             <Input
+              id="description"
               name="description"
               value={input.description}
               onChange={(e) => changeEventHandler(e as any)}
@@ -292,8 +306,9 @@ const CourseTab = () => {
               </Select>
             </div>
             <div>
-              <Label>Offer Price (INR)</Label>
+              <Label htmlFor="coursePrice">Offer Price (INR)</Label>
               <Input
+                id="coursePrice"
                 type="number"
                 name="coursePrice"
                 value={input.coursePrice}
@@ -303,8 +318,9 @@ const CourseTab = () => {
               />
             </div>
             <div>
-              <Label>Price (INR)</Label>
+              <Label htmlFor="courseMRP">Price (INR)</Label>
               <Input
+                id="courseMRP"
                 type="number"
                 name="courseMRP"
                 value={input.courseMRP}
@@ -329,8 +345,9 @@ const CourseTab = () => {
             </div>
           </div>
           <div>
-            <Label>Course Thumbnail</Label>
+            <Label htmlFor="courseThumbnail">Course Thumbnail</Label>
             <Input
+              id="courseThumbnail"
               type="file"
               onChange={selectThumbnail}
               accept="image/*"

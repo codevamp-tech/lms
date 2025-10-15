@@ -1,17 +1,12 @@
-import { getQueryClient } from '@/lib/react-query';
-import { dehydrate } from '@tanstack/react-query';
-import { Hydrate } from "@/lib/hydrate";
-import React from 'react'
-import { Reset } from '@/components/reset-password';
-
+import React, { Suspense } from "react";
+import ResetPasswordClient from "./ResetPasswordClient";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const Resetpage = () => {
-  const queryClient = getQueryClient();
-  const dehydratedState = dehydrate(queryClient);
   return (
-    <Hydrate state={dehydratedState}>
-      <Reset />
-    </Hydrate>
+    <Suspense fallback={<LoadingSpinner />}>
+      <ResetPasswordClient />
+    </Suspense>
   )
 }
 

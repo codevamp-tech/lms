@@ -72,7 +72,7 @@ export const fetchUserProfile = async (userId: string | null) => {
 
 export const getInstructor = async (page = 1, limit = 7) => {
   try {
-    const companyId = localStorage.getItem("companyId");
+    const companyId = "";
 
     const { data } = await axios.get(
       `${API_BASE_URL}/instructors?page=${page}&limit=${limit}`,
