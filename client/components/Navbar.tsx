@@ -272,7 +272,7 @@ const MobileNavbar = ({ user, logoutHandler }) => {
           <SheetTitle>
             <Link href="/" className="flex items-center space-x-2">
               <School className="h-6 w-6" />
-              <span className="font-bold">LMS</span>
+              <span className="font-bold">MR ENGLISH LEARNING</span>
             </Link>
           </SheetTitle>
         </SheetHeader>
