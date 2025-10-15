@@ -88,27 +88,49 @@ const TopPickCourse = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="flex-1 text-center lg:text-left"
           >
-            <h3 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
+            <div className="mb-2">
+              <span className="inline-block text-xs font-semibold uppercase tracking-wider text-primary/80 bg-primary/10 rounded-full px-3 py-1">
+                {topPick.category}
+              </span>
+            </div>
+            <h3 className="text-3xl lg:text-4xl font-bold text-foreground mb-2">
               {topPick.courseTitle}
             </h3>
+            {topPick.subTitle && (
+              <p className="text-xl text-muted-foreground/80 font-medium mb-4">
+                {topPick.subTitle}
+              </p>
+            )}
             <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-              {topPick.courseDescription?.substring(0, 180)}...
+              {topPick.description?.substring(0, 180) || topPick.courseDescription?.substring(0, 180)}...
             </p>
 
             {/* Stats */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 mb-6">
               <div className="flex items-center gap-2">
                 <Clock className="w-5 h-5 text-primary" />
-                <span className="text-sm text-muted-foreground">Self-paced</span>
+                <span className="text-sm text-muted-foreground">
+                  {topPick.courseLevel || "Self-paced"}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-primary" />
-                <span className="text-sm text-muted-foreground">1000+ enrolled</span>
+                <span className="text-sm text-muted-foreground">
+                  {topPick.enrolledStudents?.length || 0}+ enrolled
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-primary" />
                 <span className="text-sm text-muted-foreground">Certificate</span>
               </div>
+              {topPick.lectures?.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-primary" />
+                  <span className="text-sm text-muted-foreground">
+                    {topPick.lectures.length} {topPick.lectures.length === 1 ? "Lecture" : "Lectures"}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Rating */}
@@ -134,10 +156,28 @@ const TopPickCourse = () => {
             {/* Price */}
             <div className="mb-8">
               <div className="flex items-center justify-center lg:justify-start gap-3">
-                <span className="text-4xl font-bold text-primary">₹{topPick.courseMRP || "N/A"}</span>
-                <span className="text-sm text-muted-foreground bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1 rounded-full font-medium">
-                  Limited offer
-                </span>
+                {topPick.coursePrice > 0 ? (
+                  <>
+                    <span className="text-4xl font-bold text-primary">₹{topPick.coursePrice}</span>
+                    {topPick.courseMRP > topPick.coursePrice && (
+                      <span className="text-2xl line-through text-muted-foreground">
+                        ₹{topPick.courseMRP}
+                      </span>
+                    )}
+                    {topPick.courseMRP > topPick.coursePrice && (
+                      <span className="text-sm text-muted-foreground bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1 rounded-full font-medium">
+                        {Math.round(((topPick.courseMRP - topPick.coursePrice) / topPick.courseMRP) * 100)}% OFF
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <span className="text-4xl font-bold text-green-600 dark:text-green-400">FREE</span>
+                    <span className="text-sm text-muted-foreground bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1 rounded-full font-medium">
+                      Limited offer
+                    </span>
+                  </>
+                )}
               </div>
             </div>
 

@@ -4,25 +4,25 @@ import { Star, Award, Users } from "lucide-react"
 
 const instructors = [
   { 
-    name: "Emma Williams", 
+    name: "Aafreen Nissar", 
     title: "IELTS & TOEFL Expert", 
-    img: "/instructor-1.jpg",
+    img: "https://themrenglish.com/wp-content/uploads/2025/07/Aafreen-Nissar.png",
     experience: "15+ years",
     students: "5,000+",
     rating: 4.9
   },
   { 
-    name: "Michael Chen", 
+    name: "Mir Mohammad Wahid", 
     title: "Business English Specialist", 
-    img: "/instructor-2.jpg",
+    img: "https://themrenglish.com/wp-content/uploads/2025/07/Mir-Wahid.png",
     experience: "12+ years",
     students: "4,200+",
     rating: 4.8
   },
   { 
-    name: "Sarah Thompson", 
+    name: "Juzlain Tanzeem", 
     title: "Conversation & Fluency Coach", 
-    img: "/instructor-3.jpg",
+    img: "https://themrenglish.com/wp-content/uploads/2025/07/Juzlain-Tanzeem.png",
     experience: "10+ years",
     students: "6,800+",
     rating: 5.0
