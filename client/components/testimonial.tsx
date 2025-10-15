@@ -1,140 +1,182 @@
-"use client";
-import { useState, useEffect, useCallback } from "react";
-import { Star, Quote } from "lucide-react";
-import useEmblaCarousel from "embla-carousel-react";
-import { motion, AnimatePresence } from "framer-motion";
+"use client"
+import { useState, useEffect, useCallback } from "react"
+import type React from "react"
+import { Star, Quote } from "lucide-react"
+import useEmblaCarousel from "embla-carousel-react"
+import { motion } from "framer-motion"
 
 const testimonials = [
   {
     id: 1,
-    text: "The trainers are inspiring. I've learned so much and am grateful for this platform.",
+    text: "MR ENGLISH LEARNING completely transformed my speaking confidence. The instructors are patient and encouraging. I can now communicate fluently in business meetings!",
     author: "Sarah M.",
     role: "Business Professional",
     rating: 5,
     image: "/img/testimonial-1.jpg",
+    achievement: "Achieved IELTS 8.0"
   },
   {
     id: 2,
-    text: "It's more than just English; it's about confidence and personality development. Thank you!",
+    text: "The interactive sessions and personalized feedback helped me overcome my fear of speaking English. Now I can express myself confidently in any situation!",
     author: "Rahul K.",
     role: "University Student",
     rating: 5,
     image: "/img/testimonial-2.jpg",
+    achievement: "Studying in USA"
   },
   {
     id: 3,
-    text: "I'm impressed with how much I've learned. The trainers are knowledgeable and supportive.",
+    text: "I've tried many English courses, but MR ENGLISH LEARNING stands out with its practical approach and real-world applications. Highly recommended!",
     author: "Priya S.",
     role: "Marketing Manager",
     rating: 5,
     image: "/img/testimonial-3.jpg",
+    achievement: "Promoted to Team Lead"
   },
   {
     id: 4,
-    text: "Reading and learning new things are now a piece of cake. The trainers make it so easy.",
+    text: "The grammar and vocabulary modules are excellent. The bite-sized lessons fit perfectly into my busy schedule. My English has improved dramatically!",
     author: "Amir H.",
     role: "High School Student",
     rating: 5,
     image: "/img/testimonial-4.jpg",
+    achievement: "Top 5% in Class"
   },
   {
     id: 5,
-    text: "I learned about myself and the world, not just English. The trainers have helped me a lot.",
+    text: "From basic conversations to professional presentations, this platform covered it all. The certificate I earned helped me land my dream job!",
     author: "Fatima A.",
     role: "Career Changer",
     rating: 5,
     image: "/img/testimonial-5.jpg",
+    achievement: "New Career Path"
   },
-];
+]
 
 interface TestimonialCardProps {
-  text: string;
-  author: string;
-  role: string;
-  rating: number;
-  image: string;
+  text: string
+  author: string
+  role: string
+  rating: number
+  image: string
+  achievement: string
 }
 
-const TestimonialCard: React.FC<TestimonialCardProps> = ({ text, author, role, rating, image }) => (
-  <div className="bg-card rounded-2xl p-8 shadow-sm border border-border transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
-    <Quote className="w-10 h-10 text-primary/50 mb-4" />
-    <div className="flex gap-1 mb-4">
-      {[...Array(rating)].map((_, i) => (
-        <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-      ))}
+const TestimonialCard: React.FC<TestimonialCardProps> = ({ text, author, role, rating, image, achievement }) => (
+  <div className="bg-card rounded-3xl p-8 shadow-lg border-2 border-border transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 hover:border-primary/30 h-full">
+    <div className="flex items-start gap-4 mb-6">
+      <Quote className="w-12 h-12 text-primary/30 flex-shrink-0" />
+      <div className="flex gap-1">
+        {[...Array(rating)].map((_, i) => (
+          <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+        ))}
+      </div>
     </div>
-    <p className="text-foreground leading-relaxed mb-6 text-base">{text}</p>
-    <div className="flex items-center gap-4 pt-4 border-t border-border">
+    
+    <p className="text-foreground leading-relaxed mb-6 text-base italic">
+      "{text}"
+    </p>
+    
+    <div className="flex items-center gap-4 pt-6 border-t-2 border-border">
       <img
         src={image || "/placeholder.svg"}
         alt={author}
-        className="w-12 h-12 rounded-full object-cover ring-2 ring-primary/20"
+        className="w-16 h-16 rounded-full object-cover ring-4 ring-primary/20 shadow-lg"
       />
-      <div>
-        <h4 className="font-semibold text-foreground text-lg">{author}</h4>
-        <p className="text-muted-foreground text-sm">{role}</p>
+      <div className="flex-1">
+        <h4 className="font-bold text-lg text-foreground">{author}</h4>
+        <p className="text-sm text-muted-foreground mb-1">{role}</p>
+        <div className="inline-block bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full">
+          {achievement}
+        </div>
       </div>
     </div>
   </div>
-);
+)
 
 const ModernTestimonials = () => {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start" });
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start" })
+  const [selectedIndex, setSelectedIndex] = useState(0)
 
   const onSelect = useCallback(() => {
-    if (!emblaApi) return;
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, [emblaApi, setSelectedIndex]);
+    if (!emblaApi) return
+    setSelectedIndex(emblaApi.selectedScrollSnap())
+  }, [emblaApi, setSelectedIndex])
 
   useEffect(() => {
-    if (!emblaApi) return;
-    onSelect();
-    emblaApi.on("select", onSelect);
+    if (!emblaApi) return
+    onSelect()
+    emblaApi.on("select", onSelect)
     return () => {
-      emblaApi.off("select", onSelect);
-    };
-  }, [emblaApi, onSelect]);
+      emblaApi.off("select", onSelect)
+    }
+  }, [emblaApi, onSelect])
 
   return (
-    <section className="py-24 px-6 bg-background relative overflow-hidden">
+    <motion.section
+      className="py-24 px-6 bg-gradient-to-b from-background to-secondary/30 relative overflow-hidden"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.8 }}
+    >
+      {/* Background decoration */}
+      <div className="absolute top-20 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 left-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
+
       <div className="container mx-auto relative z-10">
-        <div className="text-center mb-16 space-y-4">
-          <span className="text-sm font-semibold text-primary uppercase tracking-wider px-4 py-2 bg-primary/10 rounded-full">
-            Student Success Stories
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16 space-y-4"
+        >
+          <span className="text-sm font-semibold text-primary uppercase tracking-wider px-4 py-2 bg-primary/10 rounded-full inline-block">
+            SUCCESS STORIES
           </span>
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-            What Our Students Say
+          <h2 className="text-4xl md:text-5xl font-bold text-foreground text-balance">
+            What Our Students Achieve
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover how our students have grown in confidence, skills, and success.
+            Join thousands of successful English learners who transformed their lives with MR ENGLISH LEARNING
           </p>
-        </div>
+        </motion.div>
 
-        <div className="embla" ref={emblaRef}>
-          <div className="embla__container">
-            {testimonials.map((testimonial) => (
-              <div key={testimonial.id} className="embla__slide p-4">
-                <TestimonialCard {...testimonial} />
-              </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <div className="embla" ref={emblaRef}>
+            <div className="embla__container">
+              {testimonials.map((testimonial) => (
+                <div key={testimonial.id} className="embla__slide p-4">
+                  <TestimonialCard {...testimonial} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-center mt-10 space-x-3">
+            {testimonials.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => emblaApi?.scrollTo(index)}
+                className={`transition-all duration-300 rounded-full ${
+                  selectedIndex === index 
+                    ? "bg-primary w-12 h-3" 
+                    : "bg-muted w-3 h-3 hover:bg-primary/50"
+                }`}
+                aria-label={`Go to testimonial ${index + 1}`}
+              />
             ))}
           </div>
-        </div>
-
-        <div className="flex justify-center mt-8 space-x-2">
-          {testimonials.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => emblaApi?.scrollTo(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                selectedIndex === index ? "bg-primary scale-125" : "bg-muted"
-              }`}
-            />
-          ))}
-        </div>
+        </motion.div>
       </div>
-    </section>
-  );
-};
+    </motion.section>
+  )
+}
 
-export default ModernTestimonials;
+export default ModernTestimonials
