@@ -8,7 +8,7 @@ const items = [
   { label: "Grammar Mastery", icon: BookOpen, q: "grammar", desc: "Perfect your English structure" },
   { label: "Listening Skills", icon: Headphones, q: "listening", desc: "Understand native speakers" },
   { label: "Writing Excellence", icon: PenTool, q: "writing", desc: "Craft professional content" },
-  { label: "IELTS/TOEFL Prep", icon: Award, q: "test prep", desc: "Ace your certification" },
+  { label: "Certification", icon: Award, q: "Certification", desc: "Ace your certification" },
   { label: "Business English", icon: Users, q: "business", desc: "Professional communication" },
 ]
 

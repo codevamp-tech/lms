@@ -55,8 +55,49 @@ export function LMSFooter() {
                 </Link>
               </li>
             </ul>
+             <ul className="space-y-3">
+              <li>
+                <Link 
+                  href="/" 
+                  className="text-slate-200 hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  About us
+                </Link>
+              </li>
+            </ul>
+             <ul className="space-y-3">
+              <li>
+                <Link 
+                  href="/" 
+                  className="text-slate-200 hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  Courses
+                </Link>
+              </li>
+            </ul>
+             <ul className="space-y-3">
+              <li>
+                <Link 
+                  href="/" 
+                  className="text-slate-200 hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  Blogs
+                </Link>
+              </li>
+            </ul>
+             <ul className="space-y-3">
+              <li>
+                <Link 
+                  href="/" 
+                  className="text-slate-200 hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  Contact Us
+                </Link>
+              </li>
+            </ul>
           </div>
-
+   
+          
           {/* Contact Column */}
           <div>
             <h3 className="text-xl font-bold mb-6 text-white">
@@ -85,7 +126,7 @@ export function LMSFooter() {
                     href="mailto:amangowhar@gmail.com" 
                     className="text-slate-200 hover:text-blue-400 transition-colors text-sm"
                   >
-                    amangowhar@gmail.com
+                    info@mrenglisgacademy.com
                   </a>
                 </div>
               </li>
@@ -94,7 +135,7 @@ export function LMSFooter() {
                 <div>
                   <p className="text-white font-semibold text-sm mb-1">Address</p>
                   <p className="text-slate-200 text-sm leading-relaxed">
-                    Mr English Training Academy Namblabal, Pampore, Near MEI School Pampore Jammu and Kashmir 192121
+                    Mr English Training Academy Namblabal Pampore
                   </p>
                 </div>
               </li>

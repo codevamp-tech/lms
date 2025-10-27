@@ -149,6 +149,15 @@ const Navbar = () => {
               </Link>
             </div>
           )}
+          {/* New CTAs: Enroll for Live Classes and Download App */}
+          <div className="hidden md:flex items-center gap-3">
+            <Link href="/enroll-live">
+              <Button variant="outline" className="hidden md:inline-flex">Enroll for Live Classes</Button>
+            </Link>
+            <Link href="/download-app">
+              <Button variant="outline" className="hidden md:inline-flex">Download App</Button>
+            </Link>
+          </div>
           <DarkMode />
           {user ? (
             <DropdownMenu>
@@ -382,6 +391,9 @@ const MobileNavLinks = ({ user }) => {
           </Link>
         </>
       )}
+      {/* General CTAs available in mobile menu */}
+      <Link href="/enroll-live" className="p-2 rounded-md hover:bg-muted">Enroll for Live Classes</Link>
+      <Link href="/download-app" className="p-2 rounded-md hover:bg-muted">Download App</Link>
     </>
   );
 };

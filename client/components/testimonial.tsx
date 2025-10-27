@@ -9,47 +9,47 @@ import { useRef } from "react"
 const testimonials = [
   {
     id: 1,
-    text: "MR ENGLISH LEARNING completely transformed my speaking confidence. The instructors are patient and encouraging. I can now communicate fluently in business meetings!",
-    author: "Sarah M.",
+    text: "Mr English Training Academy  completely transformed my speaking confidence. The instructors are patient and encouraging. I can now communicate fluently in business meetings!",
+    author: "Shahista Nabi.",
     role: "Business Professional",
     rating: 5,
-    image: "/img/testimonial-1.jpg",
+    image: "/img/testimonial-1.webp",
     achievement: "Achieved IELTS 8.0"
   },
   {
     id: 2,
     text: "The interactive sessions and personalized feedback helped me overcome my fear of speaking English. Now I can express myself confidently in any situation!",
-    author: "Rahul K.",
+    author: "Saqib Majeed",
     role: "University Student",
     rating: 5,
-    image: "/img/testimonial-2.jpg",
+    image: "/img/testimonial-2.webp",
     achievement: "Studying in USA"
   },
   {
     id: 3,
-    text: "I've tried many English courses, but MR ENGLISH LEARNING stands out with its practical approach and real-world applications. Highly recommended!",
-    author: "Priya S.",
+    text: "I've tried many English courses, but Mr English Training Academy  stands out with its practical approach and real-world applications. Highly recommended!",
+    author: "Umra Hasan",
     role: "Marketing Manager",
     rating: 5,
-    image: "/img/testimonial-3.jpg",
+    image: "/img/testimonial-3.webp",
     achievement: "Promoted to Team Lead"
   },
   {
     id: 4,
     text: "The grammar and vocabulary modules are excellent. The bite-sized lessons fit perfectly into my busy schedule. My English has improved dramatically!",
-    author: "Amir H.",
+    author: "Amir Khan",
     role: "High School Student",
     rating: 5,
-    image: "/img/testimonial-4.jpg",
+    image: "/img/testimonial-4.webp",
     achievement: "Top 5% in Class"
   },
   {
     id: 5,
     text: "From basic conversations to professional presentations, this platform covered it all. The certificate I earned helped me land my dream job!",
-    author: "Fatima A.",
+    author: "Fatima Zahra",
     role: "Career Changer",
     rating: 5,
-    image: "/img/testimonial-5.jpg",
+    image: "/img/testimonial-5.webp",
     achievement: "New Career Path"
   },
 ]
@@ -57,7 +57,7 @@ const testimonials = [
 const stats = [
   { icon: Users, value: "10,000+", label: "Happy Students", color: "text-blue-500" },
   { icon: Award, value: "95%", label: "Success Rate", color: "text-green-500" },
-  { icon: TrendingUp, value: "8.5/10", label: "Avg. IELTS Score", color: "text-purple-500" },
+  { icon: TrendingUp, value: "8.5/10", label: "Personality Development", color: "text-purple-500" },
 ]
 
 interface TestimonialCardProps {
@@ -263,7 +263,7 @@ const ModernTestimonials = () => {
             className="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed"
           >
             Join thousands of successful English learners who transformed their lives with{" "}
-            <span className="font-semibold text-primary">MR ENGLISH LEARNING</span>
+            <span className="font-semibold text-primary">Mr English Training Academy</span>
           </motion.p>
 
           {/* Stats Section */}

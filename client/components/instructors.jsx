@@ -7,25 +7,81 @@ const instructors = [
     name: "Aafreen Nissar", 
     title: "IELTS & TOEFL Expert", 
     img: "https://themrenglish.com/wp-content/uploads/2025/07/Aafreen-Nissar.png",
-    experience: "15+ years",
-    students: "5,000+",
-    rating: 4.9
+    experience: "3+ years",
+    students: "1350+",
+    rating: 4.8
   },
   { 
     name: "Mir Mohammad Wahid", 
     title: "Business English Specialist", 
     img: "https://themrenglish.com/wp-content/uploads/2025/07/Mir-Wahid.png",
-    experience: "12+ years",
-    students: "4,200+",
-    rating: 4.8
+    experience: "3+ years",
+    students: "1400+",
+    rating: 4.9
   },
   { 
     name: "Juzlain Tanzeem", 
     title: "Conversation & Fluency Coach", 
     img: "https://themrenglish.com/wp-content/uploads/2025/07/Juzlain-Tanzeem.png",
-    experience: "10+ years",
-    students: "6,800+",
-    rating: 5.0
+    experience: "3+ years",
+    students: "1400+",
+    rating: 4.8
+  },
+  { 
+    name: "Waqas Masoodi", 
+    title: "IELTS & TOEFL Expert", 
+    img: "https://themrenglish.com/wp-content/uploads/2025/07/Waqas-Masoodi.png",
+    experience: "2+ years",
+    students: "1300+",
+    rating: 4.7
+  },
+  { 
+    name: "Mir Tazeem", 
+    title: "Business English Specialist", 
+    img: "https://themrenglish.com/wp-content/uploads/2025/07/Mir-Tazeem.png",
+    experience: "1+ years",
+    students: "1200+",
+    rating: 4.8
+  },
+  { 
+    name: "Mursaleen Nisar", 
+    title: "Conversation & Fluency Coach", 
+    img: "https://themrenglish.com/wp-content/uploads/2025/07/Mursaleen-Nisar-1.png",
+    experience: "3+ years",
+    students: "1300+",
+    rating: 4.8
+  },
+  { 
+    name: "Aman Gowhar", 
+    title: "Conversation & Fluency Coach", 
+    img: "https://themrenglish.com/wp-content/uploads/2025/07/Aman-Gowhar.png",
+    experience: "1+ years",
+    students: "1200+",
+    rating: 4.7
+  },
+  { 
+    name: "Asra Rehman", 
+    title: "Business English Specialist", 
+    img: "https://themrenglish.com/wp-content/uploads/2025/07/Asra-Rehman.png",
+    experience: "2+ years",
+    students: "1300+",
+    rating: 4.8
+  },
+  { 
+    name: "Tufail", 
+    title: "Conversation & Fluency Coach", 
+    img: "https://themrenglish.com/wp-content/uploads/2025/07/Tufail.png",
+    experience: "3+ years",
+    students: "1400+",
+    rating: 4.7
+  },
+  { 
+    name: "Zubana Zair", 
+    title: "Conversation & Fluency Coach", 
+    img: "https://themrenglish.com/wp-content/uploads/2025/07/Zubana-Zair.png",
+    experience: "2+ years",
+    students: "1250+",
+    rating: 4.8 
   },
 ]
 

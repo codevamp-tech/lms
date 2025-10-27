@@ -34,7 +34,7 @@ const features = [
     color: "from-yellow-500 to-orange-500"
   },
   {
-    title: "Track Your Progress",
+    title: "Yearly Seminars",
     desc: "Monitor your improvement with detailed analytics and personalized feedback.",
     Icon: TrendingUp,
     color: "from-indigo-500 to-purple-500"
@@ -63,7 +63,7 @@ export default function Features() {
             Everything You Need to Master English
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Our comprehensive platform provides all the tools and support for your English learning success
+            Our comprehensive platform provides all the tools and support for your English Training success
           </p>
         </motion.div>
 
