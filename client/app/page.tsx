@@ -56,7 +56,7 @@ export default function Home() {
               OUR COMMUNITY
             </span>
             <h2 id="spotlight-title" className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              English Learning in Action
+              English Training in Action
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Experience our vibrant learning community where students practice, grow, and achieve their English goals together

@@ -5,6 +5,17 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { BookOpen, MessageCircle, Award } from "lucide-react"
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("")
@@ -28,7 +39,7 @@ const HeroSection = () => {
       <div className="w-full">
         <img 
           src="/img/hero_page.jpg" 
-          alt="MR English Learning Banner"
+          alt="Mr English Training Academy  Banner"
           className="w-full h-auto object-cover max-h-[500px] md:max-h-[500px] lg:max-h-[700px]"
         />
       </div>
@@ -57,7 +68,7 @@ const HeroSection = () => {
               className="mb-6"
             >
               <h1 className="text-5xl md:text-7xl font-extrabold mb-3 bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                MR ENGLISH LEARNING
+                Mr English Training Academy
               </h1>
               <div className="h-1 w-40 mx-auto bg-gradient-to-r from-primary to-purple-600 rounded-full" />
             </motion.div>
@@ -114,6 +125,83 @@ const HeroSection = () => {
                 Search
               </Button>
             </motion.form>
+
+            {/* Quick Enroll Boxes */}
+            <motion.div
+              variants={fadeIn}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: 1.0, duration: 0.6 }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mb-12"
+            >
+              {[
+                { title: "Zero to Hero English Course", price: "999", icon: BookOpen },
+                { title: "Counselling Session by Founder", price: "749", icon: MessageCircle },
+                { title: "Chat Buddy", price: "199", icon: Award }
+              ].map((offer, i) => (
+                <Dialog key={offer.title}>
+                  <DialogTrigger asChild>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.1 + i * 0.1, duration: 0.5 }}
+                      className="bg-card hover:bg-accent cursor-pointer p-6 rounded-xl border border-border shadow-lg hover:shadow-xl transition-all"
+                    >
+                      <offer.icon className="w-10 h-10 text-primary mb-4" />
+                      <h3 className="text-lg font-bold mb-2">{offer.title}</h3>
+                      <p className="text-2xl font-bold text-primary">₹{offer.price}</p>
+                    </motion.div>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>{offer.title}</DialogTitle>
+                      <DialogDescription>Fill in your details to enroll</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.target);
+                      const data = {
+                        name: formData.get('name'),
+                        email: formData.get('email'),
+                        whatsapp: formData.get('whatsapp'),
+                        message: formData.get('message'),
+                        product: offer.title,
+                        price: offer.price
+                      };
+                      // Save to session storage
+                      sessionStorage.setItem('quickPurchase', JSON.stringify(data));
+                      // Redirect to payment page
+                      router.push(`/cart?product=${encodeURIComponent(offer.title)}&price=${offer.price}`);
+                    }}>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="name">Name</Label>
+                          <Input id="name" name="name" required />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="email">Email</Label>
+                          <Input id="email" name="email" type="email" required />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="whatsapp">WhatsApp Number</Label>
+                          <Input id="whatsapp" name="whatsapp" type="tel" required />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="message">Message</Label>
+                          <Input id="message" name="message" />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button type="button" variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <Button type="submit">Proceed to Payment</Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              ))}
+            </motion.div>
 
             {/* Quick stats */}
             <motion.div

@@ -49,6 +49,15 @@ export default function Cart() {
   const [courseRatings, setCourseRatings] = useState<{ [key: string]: any }>({});
   const [isLoading, setIsLoading] = useState(true);
   const userId = getUserIdFromToken();
+  const [quickPurchase, setQuickPurchase] = useState<any>(null);
+
+  useEffect(() => {
+    // Check for quick purchase data in session storage
+    const data = sessionStorage.getItem('quickPurchase');
+    if (data) {
+      setQuickPurchase(JSON.parse(data));
+    }
+  }, []);
 
   const fetchCart = async () => {
     setIsLoading(true);
@@ -131,7 +140,77 @@ export default function Cart() {
         </p>
       </motion.div>
 
-      {cart.length === 0 ? (
+      {quickPurchase ? (
+        <div className="flex flex-col lg:flex-row gap-10">
+          <div className="w-full lg:w-2/3">
+            <div className="space-y-4">
+              <motion.div
+                layout
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex flex-col sm:flex-row gap-4 border rounded-lg p-4 bg-card dark:bg-gray-800/50 shadow-sm"
+              >
+                <div className="flex-1">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-lg">{quickPurchase.product}</h3>
+                      <div className="mt-2 text-muted-foreground">
+                        <p><strong>Name:</strong> {quickPurchase.name}</p>
+                        <p><strong>Email:</strong> {quickPurchase.email}</p>
+                        <p><strong>WhatsApp:</strong> {quickPurchase.whatsapp}</p>
+                        {quickPurchase.message && (
+                          <p><strong>Message:</strong> {quickPurchase.message}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold">₹{quickPurchase.price}</div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+          <div className="w-full lg:w-1/3 lg:sticky top-24 self-start">
+            <div className="p-6 bg-card dark:bg-gray-800/50 rounded-lg shadow-sm border">
+              <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xl font-bold">
+                  <span>Total:</span>
+                  <span>₹{quickPurchase.price}</span>
+                </div>
+              </div>
+              <Button 
+                size="lg" 
+                className="w-full mt-6" 
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/enroll-live', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify(quickPurchase),
+                    });
+                    
+                    if (response.ok) {
+                      toast.success("Proceeding to payment gateway!");
+                      // TODO: Integrate with your payment gateway here
+                      sessionStorage.removeItem('quickPurchase');
+                    } else {
+                      throw new Error('Failed to process enrollment');
+                    }
+                  } catch (error) {
+                    toast.error("Failed to process payment. Please try again.");
+                  }
+                }}
+              >
+                Proceed to Payment <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : cart.length === 0 ? (
         <EmptyCart />
       ) : (
         <div className="flex flex-col lg:flex-row gap-10">
@@ -217,7 +296,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, rating, onRemove }) => {
           </div>
           <div className="text-right">
             <div className="text-lg font-bold">₹{item.courseId.coursePrice}</div>
-            {item.courseId.courseMRP > item.courseId.coursePrice && (
+            {(item.courseId.courseMRP || 0) > item.courseId.coursePrice && (
               <div className="text-sm text-muted-foreground line-through">₹{item.courseId.courseMRP}</div>
             )}
           </div>
