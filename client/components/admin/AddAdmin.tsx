@@ -52,7 +52,7 @@ const AddUser: React.FC = () => {
     const fetchCompanies = async () => {
       try {
         const response = await fetch(
-          "https://lms-v4tz.onrender.com/companies/all-company"
+          "http://localhost:3001/companies/all-company"
         );
         const data = await response.json();
         if (response.ok) {
@@ -72,7 +72,7 @@ const AddUser: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://lms-v4tz.onrender.com/users/admins?page=${page}&limit=10`,
+        `http://localhost:3001/users/admins?page=${page}&limit=10`,
         {
           headers: {
             Authorization: `Bearer ${companyId}`, // Ensure companyId is a valid token
@@ -122,7 +122,7 @@ const AddUser: React.FC = () => {
 
     try {
       const response = await fetch(
-        "https://lms-v4tz.onrender.com/users/addAdmin",
+        "http://localhost:3001/users/addAdmin",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -154,7 +154,7 @@ const AddUser: React.FC = () => {
   const handleDeleteAdmin = async (adminId: string) => {
     try {
       const response = await fetch(
-        `https://lms-v4tz.onrender.com/users/admin/${adminId}`,
+        `http://localhost:3001/users/admin/${adminId}`,
         {
           method: "DELETE",
         }

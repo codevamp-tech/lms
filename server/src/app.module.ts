@@ -25,6 +25,7 @@ import { CartService } from './cart/cart.service';
 import { CartModule } from './cart/cart.module';
 import { LiveSessionModule } from './live-session/live-session.module';
 import { ConfigModule } from '@nestjs/config';
+import { SessionsModule } from './session/session.module';
 
 // Ensure uploads directory exists
 const uploadDir = './uploads';
@@ -74,6 +75,7 @@ if (!fs.existsSync(uploadDir)) {
         fileSize: 5 * 1024 * 1024,
       },
     }),
+    SessionsModule,
     UsersModule,
     CoursesModule,
     LecturesModule,

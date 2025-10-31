@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL = `${
-  process.env.NEXT_PUBLIC_API_URL ?? "https://lms-v4tz.onrender.com"
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
 }/lectures`;
 
 export const createLecture = async (

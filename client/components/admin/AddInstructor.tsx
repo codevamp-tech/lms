@@ -69,7 +69,7 @@ const AddInstructor: React.FC = () => {
     }
 
     try {
-      const response = await fetch("https://lms-v4tz.onrender.com/users/addinstructor", {
+      const response = await fetch("http://localhost:3001/users/addinstructor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newInstructor),
@@ -93,7 +93,7 @@ const AddInstructor: React.FC = () => {
 
   const handleChangeStatus = async (id: string, status: boolean) => {
     try {
-      const response = await fetch(`https://lms-v4tz.onrender.com/users/toggle-status/${id}?status=${!status}`, {
+      const response = await fetch(`http://localhost:3001/users/toggle-status/${id}?status=${!status}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" }
       });

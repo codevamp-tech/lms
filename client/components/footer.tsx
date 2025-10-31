@@ -58,7 +58,7 @@ export function LMSFooter() {
              <ul className="space-y-3">
               <li>
                 <Link 
-                  href="/" 
+                  href="/about-us" 
                   className="text-slate-200 hover:text-blue-400 transition-colors duration-200 text-sm"
                 >
                   About us
@@ -68,7 +68,7 @@ export function LMSFooter() {
              <ul className="space-y-3">
               <li>
                 <Link 
-                  href="/" 
+                  href="/courses" 
                   className="text-slate-200 hover:text-blue-400 transition-colors duration-200 text-sm"
                 >
                   Courses
@@ -78,7 +78,7 @@ export function LMSFooter() {
              <ul className="space-y-3">
               <li>
                 <Link 
-                  href="/" 
+                  href="/blogs" 
                   className="text-slate-200 hover:text-blue-400 transition-colors duration-200 text-sm"
                 >
                   Blogs
@@ -88,7 +88,7 @@ export function LMSFooter() {
              <ul className="space-y-3">
               <li>
                 <Link 
-                  href="/" 
+                  href="/contact-us" 
                   className="text-slate-200 hover:text-blue-400 transition-colors duration-200 text-sm"
                 >
                   Contact Us
@@ -135,7 +135,7 @@ export function LMSFooter() {
                 <div>
                   <p className="text-white font-semibold text-sm mb-1">Address</p>
                   <p className="text-slate-200 text-sm leading-relaxed">
-                    Mr English Training Academy Namblabal Pampore
+                    Mr English Training Academy<br />Namblabal, Pampore
                   </p>
                 </div>
               </li>

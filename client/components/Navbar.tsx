@@ -75,7 +75,7 @@ const Navbar = () => {
 
     try {
       const response = await fetch(
-        `https://lms-v4tz.onrender.com/configurations/company/${companyId}`
+        `http://localhost:3001/configurations/company/${companyId}`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch company logo: ${response.statusText}`);
@@ -104,7 +104,7 @@ const Navbar = () => {
             <img
               src={logo}
               alt="Company Logo"
-              className="h-16 w-auto object-contain"
+              className="h-32 w-auto object-contain"
             />
           </Link>
         </div>
@@ -112,18 +112,66 @@ const Navbar = () => {
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
           {user?.role === "student" && (
             <>
-              <Link
-                href="/courses"
-                className="transition-colors hover:text-foreground/80"
-              >
-                Courses
-              </Link>
-              <Link
-                href="/my-learning"
-                className="transition-colors hover:text-foreground/80"
-              >
-                My Learning
-              </Link>
+              <ul className="space-y-3">
+              <li>
+                <Link 
+                  href="/" 
+                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  Home
+                </Link>
+              </li>
+            </ul>
+             <ul className="space-y-3">
+              <li>
+                <Link 
+                  href="/about-us" 
+                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  About us
+                </Link>
+              </li>
+            </ul>
+             <ul className="space-y-3">
+              <li>
+                <Link 
+                  href="/courses" 
+                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  Courses
+                </Link>
+              </li>
+            </ul>
+            <ul className="space-y-3">
+              <li>
+                <Link 
+                  href="/our-team" 
+                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  Our team
+                </Link>
+              </li>
+            </ul>
+             <ul className="space-y-3">
+              <li>
+                <Link 
+                  href="/blogs" 
+                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  Blogs
+                </Link>
+              </li>
+            </ul>
+             <ul className="space-y-3">
+              <li>
+                <Link 
+                  href="/contact-us" 
+                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  Contact Us
+                </Link>
+              </li>
+            </ul>
             </>
           )}
           {user?.role === "instructor" && (

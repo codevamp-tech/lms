@@ -49,7 +49,7 @@ const CourseDetail = () => {
         if (!userId || !courseId) return;
         try {
           const response = await fetch(
-            `https://lms-v4tz.onrender.com/cart/${userId}/check/${courseId}`
+            `http://localhost:3001/cart/${userId}/check/${courseId}`
           );
           const data = await response.json();
           if (response.ok) {
@@ -74,7 +74,7 @@ const CourseDetail = () => {
     }
     try {
       const response = await fetch(
-        `https://lms-v4tz.onrender.com/cart/${courseId}/add-to-cart`,
+        `http://localhost:3001/cart/${courseId}/add-to-cart`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -62,7 +62,7 @@ export default function Cart() {
   const fetchCart = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`https://lms-v4tz.onrender.com/cart/${userId}/getUserCart`);
+      const res = await fetch(`http://localhost:3001/cart/${userId}/getUserCart`);
       if (!res.ok) throw new Error("Failed to fetch cart");
       const data = await res.json();
       setCart(data);
@@ -76,7 +76,7 @@ export default function Cart() {
 
   const removeFromCart = async (courseId: string) => {
     try {
-      const res = await fetch(`https://lms-v4tz.onrender.com/cart/${courseId}/remove-from-cart`, {
+      const res = await fetch(`http://localhost:3001/cart/${courseId}/remove-from-cart`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId }),
@@ -99,7 +99,7 @@ export default function Cart() {
       const ratings: { [key: string]: any } = {};
       for (const item of cart) {
         try {
-          const res = await fetch(`https://lms-v4tz.onrender.com/ratings/${item.courseId._id}`);
+          const res = await fetch(`http://localhost:3001/ratings/${item.courseId._id}`);
           if (res.ok) {
             const data = await res.json();
             ratings[item.courseId._id] = data;
