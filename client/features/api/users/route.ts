@@ -1,8 +1,7 @@
 import axios from "axios";
 import { setCookie } from "@/utils/helpers";
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
-  }/users`;
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/users`;
 
 export const loginUser = async (loginInput: {
   email: string;
@@ -104,7 +103,7 @@ export const getInstructor = async (page = 1, limit = 7): Promise<any> => {
     if (token) headers.Authorization = `Bearer ${token}`;
 
     const { data } = await axios.get(
-      `http://localhost:3001/users/instructors`,
+      `${process.env.NEXT_PUBLIC_API_URL}/users/instructors`,
       {
         params: { page, limit },
         headers,

@@ -65,7 +65,7 @@ const CourseProgress = () => {
         throw new Error("User is not authenticated");
       }
       const response = await fetch(
-        `http://localhost:3001/ratings/${courseId}/rating`,
+        `${process.env.NEXT_PUBLIC_API_URL}/ratings/${courseId}/rating`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

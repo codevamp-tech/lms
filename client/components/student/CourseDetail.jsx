@@ -46,7 +46,7 @@ const CourseDetail = () => {
         if (!userId || !courseId) return;
         try {
           const response = await fetch(
-            `http://localhost:3001/cart/${userId}/check/${courseId}`
+            `${process.env.NEXT_PUBLIC_API_URL}/cart/${userId}/check/${courseId}`
           );
           const data = await response.json();
           if (response.ok) {
@@ -71,7 +71,7 @@ const CourseDetail = () => {
     }
     try {
       const response = await fetch(
-        `http://localhost:3001/cart/${courseId}/add-to-cart`,
+        `${process.env.NEXT_PUBLIC_API_URL}/cart/${courseId}/add-to-cart`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

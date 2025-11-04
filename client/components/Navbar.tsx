@@ -75,7 +75,7 @@ const Navbar = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/configurations/company/${companyId}`
+        `${process.env.NEXT_PUBLIC_API_URL}/configurations/company/${companyId}`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch company logo: ${response.statusText}`);

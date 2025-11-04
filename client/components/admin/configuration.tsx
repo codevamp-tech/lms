@@ -51,7 +51,7 @@ const EditConfigurationForm = () => {
     const fetchConfigData = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3001/configurations/company/${companyId}`
+          `${process.env.NEXT_PUBLIC_API_URL}/configurations/company/${companyId}`
         );
         const data = await response.json();
 
@@ -135,8 +135,8 @@ const EditConfigurationForm = () => {
 
 
       const url = configId
-        ? `http://localhost:3001/configurations/${configId}`
-        : `http://localhost:3001/configurations/create`;
+        ? `${process.env.NEXT_PUBLIC_API_URL}/configurations/${configId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/configurations/create`;
 
       const response = await fetch(url, {
         method: configId ? "PUT" : "POST",
