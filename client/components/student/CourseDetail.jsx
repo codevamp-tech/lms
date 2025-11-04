@@ -23,7 +23,7 @@ import React, { useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
 import { useParams, useRouter } from "next/navigation";
 import { getUserIdFromToken } from "@/utils/helpers";
-import useCoursePurchase from "@/hooks/useCoursePurchase";
+import { useCourseDetails } from "@/hooks/useCourseDetails";
 import { createCheckout } from "@/features/api/course-purchase/route";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -34,14 +34,11 @@ const CourseDetail = () => {
   const router = useRouter();
   const userId = getUserIdFromToken();
   const [isExpanded, setIsExpanded] = useState(false);
-  const { getCourseDetailsWithPurchaseStatusQuery } = useCoursePurchase();
-  const [isInCart, setIsInCart] = useState(false);
-
   const {
     data: courseData,
     isLoading,
     error,
-  } = getCourseDetailsWithPurchaseStatusQuery(courseId, userId);
+  } = useCourseDetails(courseId, userId);
 
   useEffect(() => {
     if (courseData) {

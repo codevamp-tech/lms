@@ -1,4 +1,6 @@
+// src/courses/dto/edit-course.dto.ts
 import { IsOptional, IsString, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class EditCourseDto {
   @IsString()
@@ -20,11 +22,17 @@ export class EditCourseDto {
   @IsString()
   courseLevel?: string;
 
+  // Change to number and transform
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'coursePrice must be a number' })
   coursePrice?: number;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'courseMRP must be a number' })
   courseMRP?: number;
+
+  @IsOptional()
+  companyId?: string;
 }

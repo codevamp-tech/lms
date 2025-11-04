@@ -89,7 +89,7 @@ export class CoursePurchaseService {
                 name: course.courseTitle,
                 images: [course.courseThumbnail],
               },
-              unit_amount: course.coursePrice * 100, // Amount in paise
+              unit_amount: Number(course.coursePrice) * 100, // Amount in paise
             },
             quantity: 1,
           },
@@ -181,13 +181,14 @@ export class CoursePurchaseService {
             { $set: { isPreviewFree: true } },
           );
         }
-
+        console.log('here', purchase);
         // Update user's enrolled courses
         await this.userModel.findByIdAndUpdate(
           purchase.userId,
-          { $addToSet: { enrolledCourses: purchase.courseId } },
+          { $addToSet: { enrolledCourses: purchase.courseId._id } },
           { new: true },
         );
+
 
         // Update course's enrolled students
         await this.courseModel.findByIdAndUpdate(
@@ -201,6 +202,30 @@ export class CoursePurchaseService {
     } catch (error) {
       throw new HttpException(
         error.message || 'Webhook processing failed',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getPurchasedCourses(userId: string) {
+    try {
+      const purchasedCourses = await this.coursePurchaseModel
+        .find({ userId })
+        .populate({
+          path: 'courseId',
+          populate: {
+            path: 'creator',
+            model: 'User',
+          },
+        });
+
+      return {
+        success: true,
+        courses: purchasedCourses.map((pc) => pc.courseId),
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Failed to fetch purchased courses',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

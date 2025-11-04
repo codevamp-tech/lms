@@ -1,25 +1,25 @@
 "use client";
-import React, { useEffect } from "react";
-import Course from "./Course";
-import { useUserProfile } from "@/hooks/useUsers";
+import React from "react";
+import { usePurchasedCourses } from "@/hooks/useCoursePurchase";
 import { getUserIdFromToken } from "@/utils/helpers";
+import { useRouter } from "next/navigation";
+import Course from "./Course";
 
 const MyLearning = () => {
   const userId = getUserIdFromToken();
-  const { data: user, isLoading, error, refetch } = useUserProfile(userId);
-
-  useEffect(() => {
-    if (user) {
-      refetch();
-    }
-  }, [refetch, user]);
+  const { data: courses, isLoading, error } = usePurchasedCourses(userId);
+  const router = useRouter();
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error fetching user profile</p>;
 
+  const handleCourseClick = (courseId) => {
+    router.push(`/course/course-progress/${courseId}`);
+  };
+
   return (
     <div className="overflow-y-hidden h-[80vh]">
-      {user?.enrolledCourses?.length === 0 ? (
+      {courses?.length === 0 ? (
         <div className="flex items-center justify-center min-h-screen">
           <span className="justify-end">
             {" "}
@@ -28,8 +28,14 @@ const MyLearning = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 m-5">
-          {user.enrolledCourses.map((course) => (
-            <Course course={course} key={course._id} />
+          {courses.map((course) => (
+            <div
+              key={course._id}
+              onClick={() => handleCourseClick(course._id)}
+              className="cursor-pointer"
+            >
+              <Course course={course} />
+            </div>
           ))}
         </div>
       )}

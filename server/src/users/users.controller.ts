@@ -109,8 +109,10 @@ export class UsersController {
     @Query('limit') limit: number = 7,
   ) {
     const companyId = Auth.split(' ')[1];
+    console.log(Auth, 'auth header controller');
     return this.usersService.getInstructors(
       companyId,
+      //  '68e36d0271cf3cfa6140be6b',
       Number(page),
       Number(limit),
     );

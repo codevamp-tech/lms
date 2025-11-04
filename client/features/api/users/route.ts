@@ -1,9 +1,8 @@
 import axios from "axios";
 import { setCookie } from "@/utils/helpers";
 
-const API_BASE_URL = `${
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
-}/users`;
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
+  }/users`;
 
 export const loginUser = async (loginInput: {
   email: string;
@@ -27,7 +26,7 @@ export const loginUser = async (loginInput: {
       } else {
         throw new Error(
           error.response.data?.message ||
-            "Login failed. Please check your credentials."
+          "Login failed. Please check your credentials."
         );
       }
     } else {
@@ -70,26 +69,59 @@ export const fetchUserProfile = async (userId: string | null) => {
   }
 };
 
-export const getInstructor = async (page = 1, limit = 7) => {
+/**
+ * Fetch instructors with safe localStorage access (Next.js friendly).
+ * @param page page number (default 1)
+ * @param limit items per page (default 7)
+ * @returns response data from the API
+ */
+export const getInstructor = async (page = 1, limit = 7): Promise<any> => {
+  // localStorage isn't available on the server — fail fast or handle differently
+  if (typeof window === "undefined") {
+    throw new Error("getInstructor must be called from the browser (localStorage is not available on server).");
+  }
+
   try {
-    const companyId = "";
+    // read stored token/value safely
+    const raw = localStorage.getItem("companyId");
+
+    // try to parse if it looks like JSON, otherwise fallback to raw string
+    let token: string | null = null;
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        // if parsed is an object with token property, pick that (common pattern)
+        if (typeof parsed === "string") token = parsed;
+        else if (parsed && typeof parsed === "object" && "token" in parsed) token = String((parsed as any).token);
+        else token = String(parsed);
+      } catch {
+        // not JSON — use raw value directly
+        token = raw;
+      }
+    }
+
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
 
     const { data } = await axios.get(
-      `${API_BASE_URL}/instructors?page=${page}&limit=${limit}`,
+      `http://localhost:3001/users/instructors`,
       {
-        headers: {
-          Authorization: `Bearer ${companyId}`,
-        },
+        params: { page, limit },
+        headers,
       }
     );
 
     return data;
-  } catch (error: any) {
-    throw new Error(
-      error.response?.data?.message || "Failed to fetch instructors"
-    );
+  } catch (err: any) {
+    // better error message extraction
+    const message =
+      err?.response?.data?.message ||
+      err?.message ||
+      "Failed to fetch instructors";
+    throw new Error(message);
   }
 };
+
 
 export const updateUserProfile = async (
   userId: string,

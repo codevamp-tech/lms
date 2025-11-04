@@ -156,7 +156,7 @@ const Courses = () => {
             Array.from({ length: 8 }).map((_, index) => (
               <CourseSkeleton key={index} />
             ))
-          ) : categoryFilteredCourses.length > 0 ? (
+          ) : categoryFilteredCourses?.length > 0 ? (
             categoryFilteredCourses.map((course) => {
               return (
                 <Course key={course._id} course={course} userId={userId} />
