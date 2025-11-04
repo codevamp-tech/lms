@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL ?? 'https://lms-v4tz.onrender.com'}/course-purchase`;
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/course-purchase`;
 
 export const getCoursedetailWithPurchaseStatus = async (courseId: string, userId: string) => {
     try {
@@ -20,4 +20,17 @@ export const createCheckout = async(courseId: string, userId: string) => {
   } catch (error) {
     console.error("Error fetching course:", error);
   }
-}
+};
+
+export const fetchPurchasedCourses = async (userId: string) => {
+  try {
+    const { data } = await axios.get(
+      `${API_BASE_URL}/purchased-courses/${userId}`,
+    );
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || 'Failed to fetch purchased courses',
+    );
+  }
+};

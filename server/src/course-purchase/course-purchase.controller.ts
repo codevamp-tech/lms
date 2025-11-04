@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, NotFoundException, Param, Post, Query, Req } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Headers, NotFoundException, Param, Post, Query, RawBodyRequest, Req } from '@nestjs/common';
 import { CoursePurchaseService } from './course-purchase.service';
 
 @Controller('course-purchase')
@@ -32,13 +32,19 @@ export class CoursePurchaseController {
   @Post('webhook')
   async handleWebhook(
     @Headers('stripe-signature') signature: string,
-    @Req() request: Request,
+    @Req() request: RawBodyRequest<Request>,
   ) {
+    if (!request.rawBody) {
+      throw new BadRequestException('Missing raw body');
+    }
+    return this.coursePurchaseService.handleStripeWebhook(
+      request.rawBody,
+      signature,
+    );
+  }
 
-    const rawBody = request.body instanceof Buffer 
-      ? request.body 
-      : Buffer.from(JSON.stringify(request.body));
-    // Now request.body will be the raw buffer
-    return this.coursePurchaseService.handleStripeWebhook(rawBody, signature);
+  @Get('purchased-courses/:userId')
+  async getPurchasedCourses(@Param('userId') userId: string) {
+    return this.coursePurchaseService.getPurchasedCourses(userId);
   }
 }

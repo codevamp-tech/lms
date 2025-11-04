@@ -72,7 +72,12 @@ export class UsersService {
       const user = await this.userModel
         .findById(userId)
         .select('-password')
-        .populate('enrolledCourses');
+        .populate({
+          path: 'enrolledCourses',
+          populate: {
+            path: 'creator',
+          },
+        });
 
       if (!user) {
         throw new Error('Profile not found');
@@ -193,34 +198,68 @@ export class UsersService {
 
   async getInstructors(companyId: string, page: number = 1, limit: number = 7) {
     try {
-      const skip = (page - 1) * limit;
+      if (!companyId) throw new Error("companyId is required");
 
-      const companyObjectId = new Types.ObjectId(companyId);
+      // prepare skip/limit
+      const skip = Math.max(0, (page - 1) * limit);
 
+      // Build a filter that matches both ObjectId and string forms
+      const filters: any[] = [
+        { role: "instructor" }
+      ];
+
+      // If field name might differ, add alternative paths (uncomment if needed)
+      // const companyField = "companyId";
+      const companyField = "companyId"; // adjust if your schema uses different name
+
+      // Try to include ObjectId match if valid
+      const orClauses: any[] = [];
+      if (Types.ObjectId.isValid(companyId)) {
+        orClauses.push({ [companyField]: new Types.ObjectId(companyId) });
+      }
+
+      // Also match raw string (in case stored as string)
+      orClauses.push({ [companyField]: companyId });
+
+      // Final filter: role + (companyId matches either)
+      const filter = {
+        ...filters.reduce((acc, f) => ({ ...acc, ...f }), {}),
+        $or: orClauses,
+      };
+
+      console.log("getInstructors filter:", JSON.stringify(filter), "page:", page, "limit:", limit);
+
+      // Fetch (with deterministic ordering)
       const instructors = await this.userModel
-        .find({ role: 'instructor', companyId: companyObjectId  })
-        .select('-password')
+        .find(filter)
+        .select("-password")
+        .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit);
+        .limit(limit)
+        .lean();
 
-      const totalInstructors = await this.userModel.countDocuments({
-        role: 'instructor',
-        companyId,
+      const totalInstructors = await this.userModel.countDocuments(filter);
+
+      console.log({
+        returnedCount: instructors.length,
+        totalInstructors,
+        page,
+        limit,
+        skip,
       });
 
       return {
         success: true,
         instructors,
-        totalPages: Math.ceil(totalInstructors / limit),
+        totalPages: Math.ceil(totalInstructors / limit) || 1,
         currentPage: page,
         totalInstructors,
       };
     } catch (error) {
-      console.error(error);
-      throw new Error('Failed to load instructors');
+      console.error("getInstructors error:", error);
+      throw new Error("Failed to load instructors");
     }
   }
-
   async toggleInstructorStatus(
     id: string,
     isStatus: boolean,

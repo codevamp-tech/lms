@@ -23,7 +23,7 @@ import React, { useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
 import { useParams, useRouter } from "next/navigation";
 import { getUserIdFromToken } from "@/utils/helpers";
-import useCoursePurchase from "@/hooks/useCoursePurchase";
+import { useCourseDetails } from "@/hooks/useCourseDetails";
 import { createCheckout } from "@/features/api/course-purchase/route";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -34,14 +34,11 @@ const CourseDetail = () => {
   const router = useRouter();
   const userId = getUserIdFromToken();
   const [isExpanded, setIsExpanded] = useState(false);
-  const { getCourseDetailsWithPurchaseStatusQuery } = useCoursePurchase();
-  const [isInCart, setIsInCart] = useState(false);
-
   const {
     data: courseData,
     isLoading,
     error,
-  } = getCourseDetailsWithPurchaseStatusQuery(courseId, userId);
+  } = useCourseDetails(courseId, userId);
 
   useEffect(() => {
     if (courseData) {
@@ -49,7 +46,7 @@ const CourseDetail = () => {
         if (!userId || !courseId) return;
         try {
           const response = await fetch(
-            `https://lms-v4tz.onrender.com/cart/${userId}/check/${courseId}`
+            `${process.env.NEXT_PUBLIC_API_URL}/cart/${userId}/check/${courseId}`
           );
           const data = await response.json();
           if (response.ok) {
@@ -74,7 +71,7 @@ const CourseDetail = () => {
     }
     try {
       const response = await fetch(
-        `https://lms-v4tz.onrender.com/cart/${courseId}/add-to-cart`,
+        `${process.env.NEXT_PUBLIC_API_URL}/cart/${courseId}/add-to-cart`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

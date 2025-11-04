@@ -27,7 +27,7 @@ const EditCompanyForm = () => {
   useEffect(() => {
     const fetchCompanyData = async () => {
       try {
-        const response = await fetch(`https://lms-v4tz.onrender.com/companies/${companyId}`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/companies/${companyId}`)
         const data = await response.json()
 
         setFormData({
@@ -61,7 +61,7 @@ const EditCompanyForm = () => {
     setLoading(true)
 
     try {
-      const response = await fetch(`https://lms-v4tz.onrender.com/companies/edit-company/${companyId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/companies/edit-company/${companyId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

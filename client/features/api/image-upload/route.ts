@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://lms-v4tz.onrender.com";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const imageUpload = async (file) => {
   const formData = new FormData();

@@ -110,7 +110,7 @@ export default function CTASection() {
             transition={{ delay: 0.6, duration: 0.6 }}
             className="mt-8 text-sm text-white/80"
           >
-          • 7-day free trial • Cancel anytime
+          
           </motion.p>
         </div>
       </motion.div>

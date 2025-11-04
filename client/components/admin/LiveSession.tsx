@@ -19,7 +19,7 @@ const LiveSession = () => {
                 return;
             }
 
-            const response = await fetch("https://lms-v4tz.onrender.com/live-session/start", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/live-session/start`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

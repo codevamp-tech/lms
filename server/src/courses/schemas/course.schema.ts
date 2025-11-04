@@ -25,10 +25,10 @@ export class Course extends Document {
   courseLevel: string;
 
   @Prop()
-  coursePrice: number;
+  coursePrice: string;
 
   @Prop()
-  courseMRP: number;
+  courseMRP: string;
 
   @Prop({
     type: String,

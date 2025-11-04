@@ -1,4 +1,5 @@
 "use client"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
@@ -20,6 +21,7 @@ import { Label } from "@/components/ui/label"
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
+
   const searchHandler = (e) => {
     e.preventDefault()
     if (searchQuery.trim() !== "") {
@@ -33,13 +35,56 @@ const HeroSection = () => {
     visible: { opacity: 1, y: 0 }
   }
 
+  // 🟢 Replace with your backend API URL
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
+
+  // Function to handle form submission
+  const handleSubmit = async (e, offer) => {
+    e.preventDefault()
+
+    const formData = new FormData(e.target)
+    const data = {
+      name: formData.get("name"),
+      email: formData.get("email"),
+      whatsappNo: formData.get("whatsappNo"),
+      message: formData.get("message"),
+      product: offer.title,
+      price: offer.price
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/sessions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!res.ok) {
+        throw new Error("Failed to create session")
+      }
+
+      const result = await res.json()
+      console.log("✅ Session created:", result)
+
+      alert("Your session request has been submitted successfully!")
+
+      // Redirect to payment or thank you page
+      router.push(`/cart?product=${encodeURIComponent(offer.title)}&price=${offer.price}`)
+    } catch (error) {
+      console.error("❌ Error creating session:", error)
+      alert("Something went wrong. Please try again.")
+    }
+  }
+
   return (
     <>
       {/* Full-width Banner Image */}
       <div className="w-full">
-        <img 
-          src="/img/hero_page.jpg" 
-          alt="Mr English Training Academy  Banner"
+        <img
+          src="/img/hero_page.jpg"
+          alt="Mr English Training Academy Banner"
           className="w-full h-auto object-cover max-h-[500px] md:max-h-[500px] lg:max-h-[700px]"
         />
       </div>
@@ -51,7 +96,7 @@ const HeroSection = () => {
         aria-label="Hero"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/85 to-primary/20 backdrop-blur-sm" aria-hidden="true" />
-        
+
         <div className="relative max-w-6xl mx-auto">
           <motion.div
             initial="hidden"
@@ -60,14 +105,13 @@ const HeroSection = () => {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            {/* Animated Brand Name */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6 }}
               className="mb-6"
             >
-              <h1 className="text-5xl md:text-7xl font-extrabold mb-3 bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-5xl md:text-7xl h-20 font-extrabold mb-3 bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Mr English Training Academy
               </h1>
               <div className="h-1 w-40 mx-auto bg-gradient-to-r from-primary to-purple-600 rounded-full" />
@@ -104,7 +148,8 @@ const HeroSection = () => {
             </motion.p>
 
             {/* Search form */}
-            <motion.form
+
+            {/* <motion.form
               onSubmit={searchHandler}
               variants={fadeIn}
               initial="hidden"
@@ -125,6 +170,7 @@ const HeroSection = () => {
                 Search
               </Button>
             </motion.form>
+            *
 
             {/* Quick Enroll Boxes */}
             <motion.div
@@ -135,9 +181,9 @@ const HeroSection = () => {
               className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mb-12"
             >
               {[
-                { title: "Zero to Hero English Course", price: "999", icon: BookOpen },
-                { title: "Counselling Session by Founder", price: "749", icon: MessageCircle },
-                { title: "Chat Buddy", price: "199", icon: Award }
+                { title: "Zero to Hero English Course", price: "999", icon: BookOpen, className: "bg-gradient-to-r from-blue-500 to-cyan-500" },
+                { title: "Counselling Session by Founder", price: "749", icon: MessageCircle, className: "bg-gradient-to-r from-green-500 to-lime-400" },
+                { title: "Chat Buddy", price: "199", icon: Award, className: "bg-gradient-to-r from-yellow-400 to-orange-400" }
               ].map((offer, i) => (
                 <Dialog key={offer.title}>
                   <DialogTrigger asChild>
@@ -145,7 +191,8 @@ const HeroSection = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 1.1 + i * 0.1, duration: 0.5 }}
-                      className="bg-card hover:bg-accent cursor-pointer p-6 rounded-xl border border-border shadow-lg hover:shadow-xl transition-all"
+                      // Use offer.className here and include other utility classes
+                      className={`${offer.className} cursor-pointer p-6 rounded-xl border border-border shadow-lg hover:shadow-xl transition-all text-black`}
                     >
                       <offer.icon className="w-10 h-10 text-primary mb-4" />
                       <h3 className="text-lg font-bold mb-2">{offer.title}</h3>
@@ -157,22 +204,9 @@ const HeroSection = () => {
                       <DialogTitle>{offer.title}</DialogTitle>
                       <DialogDescription>Fill in your details to enroll</DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={(e) => {
-                      e.preventDefault();
-                      const formData = new FormData(e.target);
-                      const data = {
-                        name: formData.get('name'),
-                        email: formData.get('email'),
-                        whatsapp: formData.get('whatsapp'),
-                        message: formData.get('message'),
-                        product: offer.title,
-                        price: offer.price
-                      };
-                      // Save to session storage
-                      sessionStorage.setItem('quickPurchase', JSON.stringify(data));
-                      // Redirect to payment page
-                      router.push(`/cart?product=${encodeURIComponent(offer.title)}&price=${offer.price}`);
-                    }}>
+
+                    {/* 🟢 Updated form — Sends to NestJS backend */}
+                    <form onSubmit={(e) => handleSubmit(e, offer)}>
                       <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
                           <Label htmlFor="name">Name</Label>
@@ -183,8 +217,8 @@ const HeroSection = () => {
                           <Input id="email" name="email" type="email" required />
                         </div>
                         <div className="grid gap-2">
-                          <Label htmlFor="whatsapp">WhatsApp Number</Label>
-                          <Input id="whatsapp" name="whatsapp" type="tel" required />
+                          <Label htmlFor="whatsappNo">whatsappNo Number</Label>
+                          <Input id="whatsappNo" name="whatsappNo" type="tel" required />
                         </div>
                         <div className="grid gap-2">
                           <Label htmlFor="message">Message</Label>
@@ -195,65 +229,12 @@ const HeroSection = () => {
                         <DialogClose asChild>
                           <Button type="button" variant="outline">Cancel</Button>
                         </DialogClose>
-                        <Button type="submit">Proceed to Payment</Button>
+                        <Button type="submit">Submit</Button>
                       </DialogFooter>
                     </form>
                   </DialogContent>
                 </Dialog>
               ))}
-            </motion.div>
-
-            {/* Quick stats */}
-            <motion.div
-              variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 1.1, duration: 0.6 }}
-              className="flex flex-wrap justify-center gap-8 mb-8"
-            >
-              {[
-                { icon: BookOpen, label: "500+ Lessons", value: "500+" },
-                { icon: MessageCircle, label: "Live Practice", value: "Daily" },
-                { icon: Award, label: "Certified", value: "100%" }
-              ].map((stat, i) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.3 + i * 0.1, duration: 0.5 }}
-                  className="flex items-center gap-3 bg-card/80 backdrop-blur-sm px-4 py-3 rounded-full border border-border"
-                >
-                  <stat.icon className="w-5 h-5 text-primary" />
-                  <div className="text-left">
-                    <div className="font-bold text-foreground">{stat.value}</div>
-                    <div className="text-xs text-muted-foreground">{stat.label}</div>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* Secondary action */}
-            <motion.div
-              variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 1.5, duration: 0.6 }}
-              className="flex flex-wrap justify-center gap-4"
-            >
-              <Button 
-                onClick={() => router.push(`/course/search?query`)} 
-                size="lg"
-                className="rounded-full px-8 shadow-lg hover:shadow-xl transition-all"
-              >
-                Explore All Courses
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="rounded-full px-8"
-              >
-                Start Free Trial
-              </Button>
             </motion.div>
           </motion.div>
         </div>

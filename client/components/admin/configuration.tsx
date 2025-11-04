@@ -51,7 +51,7 @@ const EditConfigurationForm = () => {
     const fetchConfigData = async () => {
       try {
         const response = await fetch(
-          `https://lms-v4tz.onrender.com/configurations/company/${companyId}`
+          `${process.env.NEXT_PUBLIC_API_URL}/configurations/company/${companyId}`
         );
         const data = await response.json();
 
@@ -135,8 +135,8 @@ const EditConfigurationForm = () => {
 
 
       const url = configId
-        ? `https://lms-v4tz.onrender.com/configurations/${configId}`
-        : `https://lms-v4tz.onrender.com/configurations/create`;
+        ? `${process.env.NEXT_PUBLIC_API_URL}/configurations/${configId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/configurations/create`;
 
       const response = await fetch(url, {
         method: configId ? "PUT" : "POST",

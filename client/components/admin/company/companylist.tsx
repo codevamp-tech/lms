@@ -30,7 +30,7 @@ const CompanyList = () => {
   const fetchCompanies = async (page = 1) => {
     setLoading(true);
     try {
-      const response = await fetch(`https://lms-v4tz.onrender.com/companies/all-company?page=${page}&limit=${ITEMS_PER_PAGE}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/companies/all-company?page=${page}&limit=${ITEMS_PER_PAGE}`);
       const data = await response.json();
       setCompanies(data.companies);
       setTotalPages(Math.ceil(data.total / ITEMS_PER_PAGE)); // Update total pages
@@ -48,7 +48,7 @@ const CompanyList = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await fetch(`https://lms-v4tz.onrender.com/companies/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/companies/${id}`, {
         method: "DELETE",
       });
 
