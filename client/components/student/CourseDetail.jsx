@@ -24,7 +24,7 @@ import ReactPlayer from "react-player";
 import { useParams, useRouter } from "next/navigation";
 import { getUserIdFromToken } from "@/utils/helpers";
 import { useCourseDetails } from "@/hooks/useCourseDetails";
-import { createCheckout } from "@/features/api/course-purchase/route";
+import { createRazorpayOrder, verifyPayment } from "@/features/api/course-purchase/route";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,12 +33,27 @@ const CourseDetail = () => {
   const { courseId } = useParams();
   const router = useRouter();
   const userId = getUserIdFromToken();
+
+  useEffect(() => {
+    if (!userId) {
+      router.push('/login');
+    }
+  }, [userId, router]);
+
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isInCart, setIsInCart] = useState(false);
   const {
     data: courseData,
     isLoading,
     error,
   } = useCourseDetails(courseId, userId);
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
   useEffect(() => {
     if (courseData) {
@@ -96,12 +111,44 @@ const CourseDetail = () => {
       return;
     }
     try {
-      const data = await createCheckout(courseId, userId);
-      if (data?.success && data?.url) {
-        window.location.href = data.url;
-      } else {
-        toast.error("Error: No URL returned from the checkout API.");
-      }
+      const { order } = await createRazorpayOrder(courseId, userId);
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: "LMS Platform",
+        description: "Course Purchase",
+        order_id: order.id,
+        handler: async function (response) {
+          const data = await verifyPayment({
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+          });
+
+          if (data?.success) {
+            toast.success("Payment successful!");
+            router.push(`/course/course-progress/${courseId}`);
+          } else {
+            toast.error("Payment verification failed.");
+          }
+        },
+        prefill: {
+          name: "Your Name",
+          email: "your.email@example.com",
+          contact: "9999999999",
+        },
+        notes: {
+          address: "Your Address",
+        },
+        theme: {
+          color: "#3399cc",
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (error) {
       toast.error("Error during checkout:", error);
     }

@@ -12,7 +12,6 @@ import { VideoUploadModule } from './video-upload/video-upload.module';
 import * as multer from 'multer';
 import * as path from 'path';
 import * as fs from 'fs';
-import { StripeWebhookMiddleware } from './middlewares/stripe-webhook.middleware';
 import { CompanyModule } from './company/company.module';
 import { ConfigurationModule } from './configuration/configuration.module';
 import { ImageUploadController } from './image-upload/image-upload.controller';
@@ -25,6 +24,7 @@ import { CartService } from './cart/cart.service';
 import { CartModule } from './cart/cart.module';
 import { LiveSessionModule } from './live-session/live-session.module';
 import { ConfigModule } from '@nestjs/config';
+import { RazorpayModule } from './razorpay/razorpay.module';
 import { SessionsModule } from './session/session.module';
 
 // Ensure uploads directory exists
@@ -89,12 +89,7 @@ if (!fs.existsSync(uploadDir)) {
     FavoritesModule,
     CartModule,
     LiveSessionModule,
+    RazorpayModule,
   ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(StripeWebhookMiddleware)
-      .forRoutes('course-purchase/webhook');
-  }
-}
+export class AppModule {}

@@ -10,31 +10,23 @@ import { Course } from 'src/courses/schemas/course.schema';
 import { CoursePurchase } from './schemas/course-purchase.schema';
 import { User } from 'src/users/schemas/user.schema';
 import { Lecture } from 'src/lectures/schemas/lecture.schema';
-import Stripe from 'stripe';
-import * as dotenv from 'dotenv';
+import {
+  RAZORPAY_KEY_SECRET,
+  RAZORPAY_WEBHOOK_SECRET,
+} from 'src/razorpay/razorpay.constants';
+import { RazorpayService } from 'src/razorpay/razorpay.service';
+import * as crypto from 'crypto';
 
-dotenv.config();
 @Injectable()
 export class CoursePurchaseService {
-  private readonly stripe: Stripe;
-
   constructor(
     @InjectModel(Course.name) private courseModel: Model<Course>,
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Lecture.name) private lectureModel: Model<Lecture>,
     @InjectModel(CoursePurchase.name)
     private coursePurchaseModel: Model<CoursePurchase>,
-  ) {
-    const secret_key = process.env.STRIPE_SECRET_KEY;
-    console.log('secret key', process.env.STRIPE_SECRET_KEY);
-
-    if (!secret_key) {
-      throw new Error(
-        'Stripe secret key is not defined in the environment variables.',
-      );
-    }
-    this.stripe = new Stripe(secret_key);
-  }
+    private readonly razorpayService: RazorpayService,
+  ) {}
 
   async getCourseDetailWithPurchaseStatus(
     courseId: string,
@@ -63,148 +55,150 @@ export class CoursePurchaseService {
     };
   }
 
-  async createCheckoutSession(userId: string, courseId: string) {
+  async createRazorpayOrder(userId: string, courseId: string) {
     try {
       const course = await this.courseModel.findById(courseId);
       if (!course) {
         throw new NotFoundException('Course not found!');
       }
 
-      // Create a new course purchase record
-      const newPurchase = await this.coursePurchaseModel.create({
-        courseId,
-        userId,
-        amount: course.coursePrice,
-        status: 'pending',
-      });
+      const coursePrice = parseInt(course.coursePrice, 10);
 
-      // Create Stripe checkout session
-      const session = await this.stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [
-          {
-            price_data: {
-              currency: 'inr',
-              product_data: {
-                name: course.courseTitle,
-                images: [course.courseThumbnail],
-              },
-              unit_amount: Number(course.coursePrice) * 100, // Amount in paise
-            },
-            quantity: 1,
-          },
-        ],
-        mode: 'payment',
-        success_url: `http://localhost:3000/course/course-progress/${courseId}`,
-        cancel_url: `http://localhost:3000/course/course-detail/${courseId}`,
-        metadata: {
-          courseId: courseId,
-          userId: userId,
-        },
-        shipping_address_collection: {
-          allowed_countries: ['IN'],
-        },
-      });
-
-      if (!session.url) {
+      if (isNaN(coursePrice) || coursePrice <= 0) {
         throw new HttpException(
-          'Error while creating session',
+          'This course cannot be purchased as it is free or has an invalid price.',
           HttpStatus.BAD_REQUEST,
         );
       }
 
-      newPurchase.paymentId = session.id;
+      const order = await this.razorpayService.createOrder(
+        coursePrice,
+        'INR',
+        `course_${courseId}`,
+      );
 
-      // Save the purchase record
-      await newPurchase.save();
+      await this.coursePurchaseModel.create({
+        courseId,
+        userId,
+        amount: course.coursePrice,
+        status: 'pending',
+        paymentId: order.id,
+      });
 
       return {
         success: true,
-        url: session.url,
+        order,
       };
     } catch (error) {
       throw new HttpException(
         error.message || 'Payment session creation failed',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
-  async handleStripeWebhook(rawBody: Buffer, signature: string) {
-    try {
-      const webhookSecret = process.env.WEBHOOK_ENDPOINT_SECRET;
+  async verifyPayment(
+    razorpay_order_id: string,
+    razorpay_payment_id: string,
+    razorpay_signature: string,
+  ) {
+    const body = razorpay_order_id + '|' + razorpay_payment_id;
 
-      if (!webhookSecret) {
-        throw new Error(
-          'Stripe secret key is not defined in the environment variables.',
-        );
+    if (!RAZORPAY_KEY_SECRET) {
+      throw new HttpException(
+        'Razorpay key secret not found',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    const expectedSignature = crypto
+      .createHmac('sha256', RAZORPAY_KEY_SECRET)
+      .update(body.toString())
+      .digest('hex');
+
+    const isAuthentic = expectedSignature === razorpay_signature;
+
+    if (isAuthentic) {
+      const purchase = await this.coursePurchaseModel.findOne({
+        paymentId: razorpay_order_id,
+      });
+
+      if (!purchase) {
+        throw new NotFoundException('Purchase not found!');
       }
 
-      // Verify the webhook came from Stripe
-      const event = this.stripe.webhooks.constructEvent(
-        rawBody,
-        signature,
-        webhookSecret,
+      purchase.status = 'completed';
+      await purchase.save();
+
+      await this.userModel.findByIdAndUpdate(
+        purchase.userId,
+        { $addToSet: { enrolledCourses: purchase.courseId } },
+        { new: true },
       );
 
-      // Handle the event
-      if (event.type === 'checkout.session.completed') {
-        const session = event.data.object as Stripe.Checkout.Session;
+      await this.courseModel.findByIdAndUpdate(
+        purchase.courseId,
+        { $addToSet: { enrolledStudents: purchase.userId } },
+        { new: true },
+      );
 
-        // Find the purchase
-        const purchase = await this.coursePurchaseModel
-          .findOne({ paymentId: session.id })
-          .populate('courseId');
+      return {
+        success: true,
+      };
+    } else {
+      throw new HttpException(
+        'Payment verification failed',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
 
-        if (!purchase) {
-          throw new Error('Purchase not found');
-        }
+  async handleWebhook(signature: string, body: any) {
+    if (!RAZORPAY_WEBHOOK_SECRET) {
+      throw new HttpException(
+        'Razorpay webhook secret not found',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
 
-        // Update purchase status
+    const expectedSignature = crypto
+      .createHmac('sha256', RAZORPAY_WEBHOOK_SECRET)
+      .update(JSON.stringify(body))
+      .digest('hex');
+
+    if (expectedSignature !== signature) {
+      throw new HttpException('Invalid webhook signature', HttpStatus.BAD_REQUEST);
+    }
+
+    const { event, payload } = body;
+
+    if (event === 'payment.captured') {
+      const { order_id } = payload.payment.entity;
+      const purchase = await this.coursePurchaseModel.findOne({
+        paymentId: order_id,
+      });
+
+      if (purchase && purchase.status !== 'completed') {
         purchase.status = 'completed';
         await purchase.save();
 
-        // Update purchase details
-        purchase.amount = session.amount_total
-          ? session.amount_total / 100
-          : purchase.amount;
-        purchase.status = 'completed';
-        await purchase.save();
-
-        // Update lecture visibility
-        if (
-          purchase.courseId &&
-          (purchase.courseId as any).lectures?.length > 0
-        ) {
-          await this.lectureModel.updateMany(
-            { _id: { $in: (purchase.courseId as any).lectures } },
-            { $set: { isPreviewFree: true } },
-          );
-        }
-        console.log('here', purchase);
-        // Update user's enrolled courses
         await this.userModel.findByIdAndUpdate(
           purchase.userId,
-          { $addToSet: { enrolledCourses: purchase.courseId._id } },
+          { $addToSet: { enrolledCourses: purchase.courseId } },
           { new: true },
         );
 
-
-        // Update course's enrolled students
         await this.courseModel.findByIdAndUpdate(
           purchase.courseId,
           { $addToSet: { enrolledStudents: purchase.userId } },
           { new: true },
         );
       }
-
-      return { success: true };
-    } catch (error) {
-      throw new HttpException(
-        error.message || 'Webhook processing failed',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
     }
+
+    return {
+      success: true,
+    };
   }
 
   async getPurchasedCourses(userId: string) {

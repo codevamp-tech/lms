@@ -9,6 +9,7 @@ import {
 import { Course, CourseSchema } from 'src/courses/schemas/course.schema';
 import { User, UserSchema } from 'src/users/schemas/user.schema';
 import { Lecture, LectureSchema } from 'src/lectures/schemas/lecture.schema';
+import { RazorpayModule } from 'src/razorpay/razorpay.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { Lecture, LectureSchema } from 'src/lectures/schemas/lecture.schema';
         schema: LectureSchema,
       },
     ]),
+    RazorpayModule,
   ],
   providers: [CoursePurchaseService],
   controllers: [CoursePurchaseController],
