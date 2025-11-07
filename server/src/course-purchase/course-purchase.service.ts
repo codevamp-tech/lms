@@ -97,11 +97,8 @@ export class CoursePurchaseService {
     }
   }
 
-  async verifyPayment(
-    razorpay_order_id: string,
-    razorpay_payment_id: string,
-    razorpay_signature: string,
-  ) {
+  async verifyPaymentSignature(paymentDetails: { razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string }): Promise<boolean> {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = paymentDetails;
     const body = razorpay_order_id + '|' + razorpay_payment_id;
 
     if (!RAZORPAY_KEY_SECRET) {
@@ -116,7 +113,15 @@ export class CoursePurchaseService {
       .update(body.toString())
       .digest('hex');
 
-    const isAuthentic = expectedSignature === razorpay_signature;
+    return expectedSignature === razorpay_signature;
+  }
+
+  async verifyPayment(
+    razorpay_order_id: string,
+    razorpay_payment_id: string,
+    razorpay_signature: string,
+  ) {
+    const isAuthentic = await this.verifyPaymentSignature({ razorpay_order_id, razorpay_payment_id, razorpay_signature });
 
     if (isAuthentic) {
       const purchase = await this.coursePurchaseModel.findOne({

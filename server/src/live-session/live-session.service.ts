@@ -1,4 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { LiveSession } from './schemas/live-session.schema';
+import { CreateLiveSessionDto } from './dto/create-live-session.dto';
+import { EditLiveSessionDto } from './dto/edit-live-session.dto';
 import { UsersService } from '../users/users.service';
 import * as nodemailer from 'nodemailer';
 import { google } from 'googleapis';
@@ -8,7 +13,10 @@ export class LiveSessionService {
     private transporter: nodemailer.Transporter;
     private oAuth2Client: any;
 
-    constructor(private readonly usersService: UsersService) {
+    constructor(
+        @InjectModel(LiveSession.name) private liveSessionModel: Model<LiveSession>,
+        private readonly usersService: UsersService
+    ) {
         console.log('🔧 ========== CONSTRUCTOR START ==========');
         console.log('🔧 Initializing LiveSessionService...');
 
@@ -350,5 +358,34 @@ export class LiveSessionService {
             console.error('🔴 ==========================================\n');
             throw error;
         }
+    }
+
+    async create(createLiveSessionDto: CreateLiveSessionDto): Promise<LiveSession> {
+        const createdLiveSession = new this.liveSessionModel(createLiveSessionDto);
+        return createdLiveSession.save();
+    }
+
+    async findAll(): Promise<LiveSession[]> {
+        return this.liveSessionModel.find().exec();
+    }
+
+    async findOne(id: string): Promise<LiveSession | null> {
+        return this.liveSessionModel.findById(id).exec();
+    }
+
+    async update(id: string, editLiveSessionDto: EditLiveSessionDto): Promise<LiveSession | null> {
+        return this.liveSessionModel.findByIdAndUpdate(id, editLiveSessionDto, { new: true }).exec();
+    }
+
+    async delete(id: string): Promise<LiveSession | null> {
+        return this.liveSessionModel.findByIdAndDelete(id).exec();
+    }
+
+    async enroll(sessionId: string, studentId: string): Promise<LiveSession | null> {
+        return this.liveSessionModel.findByIdAndUpdate(
+            sessionId,
+            { $addToSet: { enrolledUsers: studentId } },
+            { new: true }
+        ).exec();
     }
 }

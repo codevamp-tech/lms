@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import Script from "next/script";
 
 import { ThemeProvider } from "@/components/ThemeProvider";
 import ReactQueryProvider from "./providers/ReactQueryProvider";
@@ -9,6 +10,7 @@ import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { Toaster } from 'react-hot-toast';
 import { LMSFooter } from "@/components/footer";
+import { RazorpayProvider } from "@/providers/RazorpayProvider";
 
 
 
@@ -47,15 +49,17 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           <ReactQueryProvider>
-            <div className="flex flex-col min-h-screen bg-homeBackground dark:bg-card ">
-              {!hideSidebar && <Navbar />}
-              <Toaster />
-              <div
-                className={`w-full h-screen ${!hideSidebar ? "flex-1" : "max-w-full "
-                  }`}
-              >{children}</div>
-              {!hideSidebar && <LMSFooter />}
-            </div>
+            <RazorpayProvider>
+              <div className="flex flex-col min-h-screen bg-homeBackground dark:bg-card ">
+                {!hideSidebar && <Navbar />}
+                <Toaster />
+                <div
+                  className={`w-full h-screen ${!hideSidebar ? "flex-1" : "max-w-full "
+                    }`}
+                >{children}</div>
+                {!hideSidebar && <LMSFooter />}
+              </div>
+            </RazorpayProvider>
           </ReactQueryProvider>
         </body>
       </ThemeProvider>
