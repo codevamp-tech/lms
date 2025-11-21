@@ -50,7 +50,7 @@ const Favorites = () => {
   const fetchFavorites = async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`http://localhost:3001/favorites/user/${userId}`);
+      const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/favorites/user/${userId}`);
       setFavorites(data);
     } catch (error) {
       toast.error("Failed to fetch favorites");
@@ -67,7 +67,7 @@ const Favorites = () => {
     const ratings: { [key: string]: { average: number; count: number } } = {};
     for (const item of favorites) {
       try {
-        const res = await fetch(`http://localhost:3001/ratings/${item.courseId._id}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ratings/${item.courseId._id}`);
         if (res.ok) {
           const data = await res.json();
           ratings[item.courseId._id] = data;
@@ -89,7 +89,7 @@ const Favorites = () => {
   // Remove Course from Favorites
   const removeFromFavorites = async (courseId: string) => {
     try {
-      await axios.delete(`http://localhost:3001/favorites/${courseId}/remove-favorites`, {
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/favorites/${courseId}/remove-favorites`, {
         data: { userId, courseId },
       });
       toast.success("Removed from favorites");
