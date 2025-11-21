@@ -56,24 +56,36 @@ const Login = () => {
     } else {
       try {
         const response = await loginUser(loginInput);
-        setLoginInput({ email: "", password: "" })
+        setLoginInput({ email: "", password: "" });
 
-        if (response?.user?.companyId) {
-          localStorage.setItem("companyId", response.user.companyId);
+        if (response?.user) {
+          const { _id, companyId, role, name } = response.user;
+
+          if (companyId) {
+            localStorage.setItem("companyId", String(companyId));
+          }
+          if (_id) {
+            localStorage.setItem("userId", String(_id));
+          }
+          if (role) {
+            localStorage.setItem("userRole", role);
+          }
+          if (name) {
+            localStorage.setItem("userName", name);
+          }
         }
 
         toast.success("Login successful!");
 
-        if (response?.user.role === "instructor") {
+        if (response?.user?.role === "instructor") {
           router.push("/admin/dashboard");
-        } else if (response?.user.role === "student") {
+        } else if (response?.user?.role === "student") {
           router.push("/");
-        } else if (response?.user.role === "admin") {
+        } else if (response?.user?.role === "admin") {
           router.push("/admin/addinstructor");
-        } else if (response?.user.role === "superadmin") {
+        } else if (response?.user?.role === "superadmin") {
           router.push("/admin/company");
-        }
-        else {
+        } else {
           toast.error("Unsupported role detected. Please contact support.");
         }
       } catch (error) {

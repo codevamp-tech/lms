@@ -74,7 +74,7 @@ export class UsersController {
       const token = await this.usersService.generateToken(user);
       return {
         user: {
-          id: user._id,
+          _id: user._id,
           email: user.email,
           role: user.role,
           name: user.name,

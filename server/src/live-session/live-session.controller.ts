@@ -1,10 +1,42 @@
-import { Controller, Post, Body, Get, Query, Res } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Res, Param, Put, Delete } from '@nestjs/common';
 import { LiveSessionService } from './live-session.service';
 import { Response } from 'express';
+import { CreateLiveSessionDto } from './dto/create-live-session.dto';
+import { EditLiveSessionDto } from './dto/edit-live-session.dto';
 
 @Controller('live-session')
 export class LiveSessionController {
   constructor(private readonly liveSessionService: LiveSessionService) { }
+
+  @Post()
+  create(@Body() createLiveSessionDto: CreateLiveSessionDto) {
+    return this.liveSessionService.create(createLiveSessionDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.liveSessionService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.liveSessionService.findOne(id);
+  }
+
+  @Put(':id')
+  update(@Param('id') id: string, @Body() editLiveSessionDto: EditLiveSessionDto) {
+    return this.liveSessionService.update(id, editLiveSessionDto);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.liveSessionService.delete(id);
+  }
+
+  @Post(':sessionId/enroll')
+  enroll(@Param('sessionId') sessionId: string, @Body('studentId') studentId: string) {
+    return this.liveSessionService.enroll(sessionId, studentId);
+  }
 
 
   @Get('auth-url')

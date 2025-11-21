@@ -7,6 +7,14 @@ import { Button } from "../ui/button";
 import { getUserIdFromToken } from "@/utils/helpers";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "../ui/skeleton";
+import router from "next/router";
+import { createRazorpayOrder, verifyPayment } from "@/features/api/course-purchase/route";
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 interface RatingStarsProps {
   rating: number;
@@ -194,6 +202,53 @@ export default function Cart() {
                     });
                     
                     if (response.ok) {
+                      if (!userId) {
+                            router.push("/login");
+                            return;
+                          }
+                          try {
+                            const courseId = quickPurchase.courseId;
+                            const { order } = await createRazorpayOrder(courseId, userId);
+                      
+                            const options = {
+                              key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                              amount: order.amount,
+                              currency: order.currency,
+                              name: "LMS Platform",
+                              description: "Course Purchase",
+                              order_id: order.id,
+                              handler: async function (response: { razorpay_payment_id: any; razorpay_order_id: any; razorpay_signature: any; }) {
+                                const data = await verifyPayment({
+                                  razorpay_payment_id: response.razorpay_payment_id,
+                                  razorpay_order_id: response.razorpay_order_id,
+                                  razorpay_signature: response.razorpay_signature,
+                                });
+                                if (data?.success) {
+                                  toast.success("Payment successful!");
+                                  router.push(`/course/course-progress/${quickPurchase.courseId}`);
+                                } else {
+                                  toast.error("Payment verification failed.");
+                                  toast.error("Payment verification failed.");
+                                }
+                              },
+                              prefill: {
+                                name: "Your Name",
+                                email: "your.email@example.com",
+                                contact: "9999999999",
+                              },
+                              notes: {
+                                address: "Your Address",
+                              },
+                              theme: {
+                                color: "#3399cc",
+                              },
+                            };
+                      
+                            const rzp = new window.Razorpay(options);
+                            rzp.open();
+                          } catch (error) {
+                            toast.error(`Error during checkout: ${error}`);
+                          }
                       toast.success("Proceeding to payment gateway!");
                       // TODO: Integrate with your payment gateway here
                       sessionStorage.removeItem('quickPurchase');
