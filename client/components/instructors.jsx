@@ -6,7 +6,7 @@ const instructors = [
   { 
     name: "Aafreen Nissar", 
     title: "IELTS & TOEFL Expert", 
-    img: "https://themrenglish.com/wp-content/uploads/2025/07/Aafreen-Nissar.png",
+    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Aafreen-Nissar.png",
     experience: "3+ years",
     students: "1350+",
     rating: 4.8
@@ -14,7 +14,7 @@ const instructors = [
   { 
     name: "Mir Mohammad Wahid", 
     title: "Business English Specialist", 
-    img: "https://themrenglish.com/wp-content/uploads/2025/07/Mir-Wahid.png",
+    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Mir-Wahid.png",
     experience: "3+ years",
     students: "1400+",
     rating: 4.9
@@ -22,7 +22,7 @@ const instructors = [
   { 
     name: "Juzlain Tanzeem", 
     title: "Conversation & Fluency Coach", 
-    img: "https://themrenglish.com/wp-content/uploads/2025/07/Juzlain-Tanzeem.png",
+    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Juzlain-Tanzeem.png",
     experience: "3+ years",
     students: "1400+",
     rating: 4.8
@@ -30,7 +30,7 @@ const instructors = [
   { 
     name: "Waqas Masoodi", 
     title: "IELTS & TOEFL Expert", 
-    img: "https://themrenglish.com/wp-content/uploads/2025/07/Waqas-Masoodi.png",
+    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Waqas-Masoodi.png",
     experience: "2+ years",
     students: "1300+",
     rating: 4.7
@@ -38,7 +38,7 @@ const instructors = [
   { 
     name: "Mir Tazeem", 
     title: "Business English Specialist", 
-    img: "https://themrenglish.com/wp-content/uploads/2025/07/Mir-Tazeem.png",
+    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Mir-Tazeem.png",
     experience: "1+ years",
     students: "1200+",
     rating: 4.8
@@ -46,7 +46,7 @@ const instructors = [
   { 
     name: "Mursaleen Nisar", 
     title: "Conversation & Fluency Coach", 
-    img: "https://themrenglish.com/wp-content/uploads/2025/07/Mursaleen-Nisar-1.png",
+    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Mursaleen-Nisar.png",
     experience: "3+ years",
     students: "1300+",
     rating: 4.8
@@ -54,7 +54,7 @@ const instructors = [
   { 
     name: "Aman Gowhar", 
     title: "Conversation & Fluency Coach", 
-    img: "https://themrenglish.com/wp-content/uploads/2025/07/Aman-Gowhar.png",
+    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Aman-Gowhar.png",
     experience: "1+ years",
     students: "1200+",
     rating: 4.7
@@ -62,7 +62,7 @@ const instructors = [
   { 
     name: "Asra Rehman", 
     title: "Business English Specialist", 
-    img: "https://themrenglish.com/wp-content/uploads/2025/07/Asra-Rehman.png",
+    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Asra-Rehman.png",
     experience: "2+ years",
     students: "1300+",
     rating: 4.8
@@ -70,7 +70,7 @@ const instructors = [
   { 
     name: "Tufail", 
     title: "Conversation & Fluency Coach", 
-    img: "https://themrenglish.com/wp-content/uploads/2025/07/Tufail.png",
+    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Tufail.png",
     experience: "3+ years",
     students: "1400+",
     rating: 4.7
@@ -78,7 +78,7 @@ const instructors = [
   { 
     name: "Zubana Zair", 
     title: "Conversation & Fluency Coach", 
-    img: "https://themrenglish.com/wp-content/uploads/2025/07/Zubana-Zair.png",
+    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Zubana-Zair.png",
     experience: "2+ years",
     students: "1250+",
     rating: 4.8 
