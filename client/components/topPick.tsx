@@ -181,7 +181,7 @@ const TopPickCourse = () => {
               </div>
             </div>
 
-            <Link href={`/course/course-detail?courseId=${topPick._id}`}>
+            <Link href={`/course/course-detail/${topPick._id}`}>
               <Button size="lg" className="w-full lg:w-auto px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all">
                 <Zap className="mr-2 h-5 w-5" />
                 Enroll Now & Start Learning

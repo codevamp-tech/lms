@@ -7,9 +7,9 @@ export default function Blogs() {
 
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="bg-white p-6 rounded-2xl shadow">
-                <h3 className="text-2xl font-semibold mb-3">Blogs</h3>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow">
+                <h3 className="text-xl sm:text-2xl font-semibold mb-3">Blogs</h3>
             </div>
             <Link
                 href="/"

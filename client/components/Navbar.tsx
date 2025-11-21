@@ -186,7 +186,7 @@ const Navbar = () => {
           )}
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {user?.role === "student" && (
             <div className="hidden md:flex items-center gap-4">
               <Link href="/favorites" aria-label="Favorites">
@@ -198,12 +198,12 @@ const Navbar = () => {
             </div>
           )}
           {/* New CTAs: Enroll for Live Classes and Download App */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3">
             <Link href="/enroll-live">
-              <Button variant="outline" className="hidden md:inline-flex">Enroll for Live Classes</Button>
+              <Button variant="outline" className="text-xs lg:text-sm whitespace-nowrap">Enroll for Live Classes</Button>
             </Link>
             <Link href="/download-app">
-              <Button variant="outline" className="hidden md:inline-flex">Download App</Button>
+              <Button variant="outline" className="text-xs lg:text-sm whitespace-nowrap">Download App</Button>
             </Link>
           </div>
           <DarkMode />
@@ -316,33 +316,38 @@ const DropdownMenuItems = ({ user }) => {
 };
 
 const MobileNavbar = ({ user, logoutHandler }) => {
+  const [open, setOpen] = React.useState(false);
+
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button size="icon" variant="outline">
           <Menu className="h-5 w-5" />
           <span className="sr-only">Open menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:w-3/4 md:w-1/2 lg:w-1/3">
+      <SheetContent side="right" className="w-[85vw] sm:w-[400px] flex flex-col h-full">
         <SheetHeader>
           <SheetTitle>
-            <Link href="/" className="flex items-center space-x-2">
-              <School className="h-6 w-6" />
-              <span className="font-bold">MR ENGLISH LEARNING</span>
+            <Link href="/" className="flex items-center space-x-2" onClick={() => setOpen(false)}>
+              <School className="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="font-bold text-sm sm:text-base">MR ENGLISH LEARNING</span>
             </Link>
           </SheetTitle>
         </SheetHeader>
         <Separator className="my-4" />
-        <nav className="flex flex-col space-y-2">
-          <MobileNavLinks user={user} />
+        <nav className="flex flex-col space-y-1 overflow-y-auto flex-1">
+          <MobileNavLinks user={user} onLinkClick={() => setOpen(false)} />
         </nav>
         <Separator className="my-4" />
         <SheetFooter className="mt-auto">
           <Button
-            onClick={logoutHandler}
-            variant="destructive"
-            className="w-full"
+            onClick={() => {
+              logoutHandler();
+              setOpen(false);
+            }}
+            variant="outline"
+            className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
           >
             <LogOut className="mr-2 h-4 w-4" />
             Log out
@@ -353,39 +358,80 @@ const MobileNavbar = ({ user, logoutHandler }) => {
   );
 };
 
-const MobileNavLinks = ({ user }) => {
+const MobileNavLinks = ({ user, onLinkClick }) => {
   if (!user) return null;
   return (
     <>
       {user.role === "student" && (
         <>
           <Link
+            href="/"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
+          >
+            Home
+          </Link>
+          <Link
+            href="/about-us"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
+          >
+            About us
+          </Link>
+          <Link
             href="/courses"
-            className="p-2 rounded-md hover:bg-muted"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
           >
             Courses
           </Link>
           <Link
+            href="/our-team"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
+          >
+            Our team
+          </Link>
+          <Link
+            href="/blogs"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
+          >
+            Blogs
+          </Link>
+          <Link
+            href="/contact-us"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
+          >
+            Contact Us
+          </Link>
+          <div className="my-2 border-t" />
+          <Link
             href="/my-learning"
-            className="p-2 rounded-md hover:bg-muted"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
           >
             My Learning
           </Link>
           <Link
             href="/favorites"
-            className="p-2 rounded-md hover:bg-muted"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
           >
             Favorites
           </Link>
           <Link
             href="/cart"
-            className="p-2 rounded-md hover:bg-muted"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
           >
             Shopping Cart
           </Link>
           <Link
             href="/profile"
-            className="p-2 rounded-md hover:bg-muted"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
           >
             Edit Profile
           </Link>
@@ -395,19 +441,22 @@ const MobileNavLinks = ({ user }) => {
         <>
           <Link
             href="/admin/dashboard"
-            className="p-2 rounded-md hover:bg-muted"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
           >
             Dashboard
           </Link>
           <Link
             href="/profile"
-            className="p-2 rounded-md hover:bg-muted"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
           >
             Edit Profile
           </Link>
           <Link
             href="/admin/live-session"
-            className="p-2 rounded-md hover:bg-muted"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
           >
             Live Session
           </Link>
@@ -417,13 +466,15 @@ const MobileNavLinks = ({ user }) => {
         <>
           <Link
             href="/admin/addinstructor"
-            className="p-2 rounded-md hover:bg-muted"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
           >
             Add Instructor
           </Link>
           <Link
             href="/admin/configuration"
-            className="p-2 rounded-md hover:bg-muted"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
           >
             Settings
           </Link>
@@ -433,15 +484,13 @@ const MobileNavLinks = ({ user }) => {
         <>
           <Link
             href="/admin/company"
-            className="p-2 rounded-md hover:bg-muted"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
           >
             Add Company
           </Link>
         </>
       )}
-      {/* General CTAs available in mobile menu */}
-      <Link href="/enroll-live" className="p-2 rounded-md hover:bg-muted">Enroll for Live Classes</Link>
-      <Link href="/download-app" className="p-2 rounded-md hover:bg-muted">Download App</Link>
     </>
   );
 };

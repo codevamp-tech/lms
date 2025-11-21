@@ -92,7 +92,7 @@ const HeroSection = () => {
       {/* Hero Section */}
       <div
         style={{ backgroundImage: `url('/img/hero-4.jpg')` }}
-        className="relative py-8 px-4 bg-cover bg-center bg-no-repeat"
+        className="relative py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
         aria-label="Hero"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/85 to-primary/20 backdrop-blur-sm" aria-hidden="true" />
@@ -109,12 +109,12 @@ const HeroSection = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6 }}
-              className="mb-6"
+              className="mb-4 sm:mb-6"
             >
-              <h1 className="text-5xl md:text-7xl h-20 font-extrabold mb-3 bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl h-auto font-extrabold mb-2 sm:mb-3 bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent px-2">
                 Mr English Training Academy
               </h1>
-              <div className="h-1 w-40 mx-auto bg-gradient-to-r from-primary to-purple-600 rounded-full" />
+              <div className="h-0.5 sm:h-1 w-24 sm:w-32 lg:w-40 mx-auto bg-gradient-to-r from-primary to-purple-600 rounded-full" />
             </motion.div>
 
             <motion.span
@@ -122,7 +122,7 @@ const HeroSection = () => {
               initial="hidden"
               animate="visible"
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="inline-block text-sm font-semibold tracking-wider uppercase text-primary bg-primary/10 rounded-full px-4 py-2 mb-4"
+              className="inline-block text-xs sm:text-sm font-semibold tracking-wider uppercase text-primary bg-primary/10 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 mb-3 sm:mb-4"
             >
               Master English with Confidence
             </motion.span>
@@ -132,7 +132,7 @@ const HeroSection = () => {
               initial="hidden"
               animate="visible"
               transition={{ delay: 0.5, duration: 0.6 }}
-              className="text-3xl md:text-5xl font-bold mb-4 text-foreground text-balance"
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 text-foreground text-balance px-2"
             >
               Transform Your English Speaking Skills
             </motion.h2>
@@ -142,7 +142,7 @@ const HeroSection = () => {
               initial="hidden"
               animate="visible"
               transition={{ delay: 0.7, duration: 0.6 }}
-              className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto"
+              className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-2"
             >
               Join thousands of learners who have improved their English communication, grammar, and confidence with our expert-led courses and personalized learning paths.
             </motion.p>
@@ -178,7 +178,7 @@ const HeroSection = () => {
               initial="hidden"
               animate="visible"
               transition={{ delay: 1.0, duration: 0.6 }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mb-12"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 max-w-4xl mx-auto mb-8 sm:mb-12"
             >
               {[
                 { title: "Zero to Hero English Course", price: "999", icon: BookOpen, className: "bg-gradient-to-r from-blue-500 to-cyan-500" },

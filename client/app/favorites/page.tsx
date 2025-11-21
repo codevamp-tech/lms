@@ -101,10 +101,10 @@ const Favorites = () => {
 
   return (
     <ProtectedRoutes>
-      <div className="p-4">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="justify-center">
-          <h1 className="text-3xl font-bold mb-4">Favorites</h1>
-          {!loading && <div className="mb-2 text-gray-600">{favorites.length} Course(s) in favorites</div>}
+          <h1 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Favorites</h1>
+          {!loading && <div className="mb-2 text-sm sm:text-base text-gray-600">{favorites.length} Course(s) in favorites</div>}
         </div>
 
         {loading ? (
@@ -119,7 +119,7 @@ const Favorites = () => {
             </Link>
           </p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 p-2 sm:p-4">
             {favorites.map((fav) => {
               const discountPercentage = fav.courseId.courseMRP && fav.courseId.coursePrice
                 ? Math.round(((fav.courseId.courseMRP - fav.courseId.coursePrice) / fav.courseId.courseMRP) * 100)
@@ -130,7 +130,7 @@ const Favorites = () => {
                   <img
                     src={fav.courseId.courseThumbnail}
                     alt={fav.courseId.courseTitle}
-                    className="w-full h-44 object-cover rounded-t-lg" />
+                    className="w-full h-36 sm:h-44 object-cover rounded-t-lg" />
                   {discountPercentage > 0 && (
                     <div className="absolute top-0 right-0 bg-red-500 text-white px-2 py-1 text-xs font-bold rounded-tr-lg rounded-bl-lg">
                       {discountPercentage}% OFF
@@ -139,10 +139,10 @@ const Favorites = () => {
 
                   <CardContent className="gap-2 mt-2">
                     <Link href={`/course/course-detail/${fav.courseId._id}`}>
-                      <h3 className="text-xl hover:underline">{fav.courseId.courseTitle}</h3>
+                      <h3 className="text-base sm:text-lg lg:text-xl hover:underline line-clamp-2">{fav.courseId.courseTitle}</h3>
                     </Link>
                     <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold">₹{fav.courseId.coursePrice}</span>
+                      <span className="text-base sm:text-lg font-bold">₹{fav.courseId.coursePrice}</span>
                       {fav.courseId.courseMRP && fav.courseId.courseMRP > fav.courseId.coursePrice && (
                         <>
                           <span className="text-gray-500 line-through text-sm">₹{fav.courseId.courseMRP}</span>
@@ -150,7 +150,7 @@ const Favorites = () => {
                         </>
                       )}
                     </div>
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2">
                       <div className="flex items-center gap-1 mt-1">
                         {courseRatings[fav.courseId._id] ? (
                           <>
@@ -165,7 +165,7 @@ const Favorites = () => {
                       </div>
                       <Button
                         onClick={() => removeFromFavorites(fav.courseId._id)}
-                        className="bg-red-500 hover:bg-red-600 text-white"
+                        className="bg-red-500 hover:bg-red-600 text-white text-sm w-full sm:w-auto"
                       >
                         Remove
                       </Button>

@@ -37,26 +37,26 @@ export default function ContactUs() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16 max-w-4xl">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 max-w-4xl">
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors mb-6 group"
+        className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors mb-4 sm:mb-6 group"
       >
-        <ArrowLeft className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" />
-        <span>Back</span>
+        <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:-translate-x-1 transition-transform" />
+        <span className="text-sm sm:text-base">Back</span>
       </button>
 
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2 text-gray-900">Contact Us</h1>
+      <header className="mb-6 sm:mb-8 text-center">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-gray-900">Contact Us</h1>
         <p className="text-gray-600">Have questions? Don&apos;t hesitate to contact us</p>
       </header>
 
-      <main className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <main className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {/* Contact Form */}
-        <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-2xl shadow">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
+              <label htmlFor="firstName" className="block text-xs sm:text-sm font-medium text-gray-700">First Name</label>
               <input
                 id="firstName"
                 name="firstName"
@@ -64,25 +64,25 @@ export default function ContactUs() {
                 onChange={(e) => setForm({ ...form, firstName: e.target.value })}
                 placeholder="Enter Your First Name"
                 required
-                className="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full text-sm rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2"
               />
             </div>
 
             <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
+              <label htmlFor="lastName" className="block text-xs sm:text-sm font-medium text-gray-700">Last Name</label>
               <input
                 id="lastName"
                 name="lastName"
                 value={form.lastName}
                 onChange={(e) => setForm({ ...form, lastName: e.target.value })}
                 placeholder="Enter Your Last Name"
-                className="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full text-sm rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+            <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700">Email</label>
             <input
               id="email"
               name="email"
@@ -91,24 +91,24 @@ export default function ContactUs() {
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               placeholder="Email Address"
               required
-              className="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full text-sm rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2"
             />
           </div>
 
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone / Mobile</label>
+            <label htmlFor="phone" className="block text-xs sm:text-sm font-medium text-gray-700">Phone / Mobile</label>
             <input
               id="phone"
               name="phone"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
               placeholder="Mobile Number"
-              className="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full text-sm rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2"
             />
           </div>
 
           <div>
-            <label htmlFor="message" className="block text-sm font-medium text-gray-700">Message</label>
+            <label htmlFor="message" className="block text-xs sm:text-sm font-medium text-gray-700">Message</label>
             <textarea
               id="message"
               name="message"
@@ -116,33 +116,33 @@ export default function ContactUs() {
               onChange={(e) => setForm({ ...form, message: e.target.value })}
               placeholder="Write your message here"
               rows={5}
-              className="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full text-sm rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2"
             />
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
             <button
               type="submit"
               disabled={status.type === "sending"}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
               {status.type === "sending" ? "Sending..." : "Send Message"}
             </button>
 
-            {status.type === "success" && <p className="text-green-600">{status.message}</p>}
-            {status.type === "error" && <p className="text-red-600">{status.message}</p>}
+            {status.type === "success" && <p className="text-xs sm:text-sm text-green-600">{status.message}</p>}
+            {status.type === "error" && <p className="text-xs sm:text-sm text-red-600">{status.message}</p>}
           </div>
         </form>
 
         {/* Contact Details + Map */}
-        <aside className="space-y-6">
-          <div className="bg-white p-6 rounded-2xl shadow">
-            <h3 className="text-xl font-semibold mb-3">Our Location</h3>
-            <p className="text-gray-700">Mr English Training Academy<br />Namblabal, Pampore</p>
+        <aside className="space-y-4 sm:space-y-6">
+          <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow">:rounded-2xl shadow">
+            <h3 className="text-lg sm:text-xl font-semibold mb-3">Our Location</h3>
+            <p className="text-sm sm:text-base text-gray-700">Mr English Training Academy<br />Namblabal, Pampore</p>
 
-            <h4 className="mt-4 font-semibold">Quick Contact</h4>
-            <p className="text-gray-700">Email: <a href="mailto:amangowhar@gmail.com" className="text-blue-600 hover:underline">amangowhar@gmail.com</a></p>
-            <p className="text-gray-700">Phone: <a href="tel:+917006138299" className="text-blue-600 hover:underline">+91 70061 38299</a>, <a href="tel:+919906933270" className="text-blue-600 hover:underline">+91 99069 33270</a></p>
+            <h4 className="mt-4 text-sm sm:text-base font-semibold">Quick Contact</h4>
+            <p className="text-xs sm:text-sm text-gray-700">Email: <a href="mailto:amangowhar@gmail.com" className="text-blue-600 hover:underline break-all">amangowhar@gmail.com</a></p>
+            <p className="text-xs sm:text-sm text-gray-700">Phone: <a href="tel:+917006138299" className="text-blue-600 hover:underline">+91 70061 38299</a>, <a href="tel:+919906933270" className="text-blue-600 hover:underline">+91 99069 33270</a></p>
 
             <div className="mt-4">
               <a
@@ -156,13 +156,14 @@ export default function ContactUs() {
             </div>
           </div>
 
-          <div className="bg-white p-0 overflow-hidden rounded-2xl shadow">
+          <div className="bg-white p-0 overflow-hidden rounded-xl sm:rounded-2xl shadow">
             {/* Live Map Embed */}
             <iframe
               title="Mr English Training Academy - Map"
               src={"https://www.google.com/maps?q=Mr+English+Training+Academy+Namblabal+Pampore+Near+MEI+School+Pampore+Jammu+and+Kashmir+192121&output=embed"}
               width="100%"
-              height="320"
+              height="250"
+              className="sm:h-80"
               style={{ border: 0 }}
               allowFullScreen={false}
               loading="lazy"

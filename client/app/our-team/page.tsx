@@ -10,7 +10,7 @@ export default function OurTeam() {
         {
             name: "Aafreen Nissar",
             title: "IELTS & TOEFL Expert",
-            img: "https://themrenglish.com/wp-content/uploads/2025/07/Aafreen-Nissar.png",
+            img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Aafreen-Nissar.png",
             experience: "3+ years",
             students: "1350+",
             rating: 4.8
@@ -18,7 +18,7 @@ export default function OurTeam() {
         {
             name: "Mir Mohammad Wahid",
             title: "Business English Specialist",
-            img: "https://themrenglish.com/wp-content/uploads/2025/07/Mir-Wahid.png",
+            img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Mir-Wahid.png",
             experience: "3+ years",
             students: "1400+",
             rating: 4.9
@@ -26,7 +26,7 @@ export default function OurTeam() {
         {
             name: "Juzlain Tanzeem",
             title: "Conversation & Fluency Coach",
-            img: "https://themrenglish.com/wp-content/uploads/2025/07/Juzlain-Tanzeem.png",
+            img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Juzlain-Tanzeem.png",
             experience: "3+ years",
             students: "1400+",
             rating: 4.8
@@ -34,7 +34,7 @@ export default function OurTeam() {
         {
             name: "Waqas Masoodi",
             title: "IELTS & TOEFL Expert",
-            img: "https://themrenglish.com/wp-content/uploads/2025/07/Waqas-Masoodi.png",
+            img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Waqas-Masoodi.png",
             experience: "2+ years",
             students: "1300+",
             rating: 4.7
@@ -42,7 +42,7 @@ export default function OurTeam() {
         {
             name: "Mir Tazeem",
             title: "Business English Specialist",
-            img: "https://themrenglish.com/wp-content/uploads/2025/07/Mir-Tazeem.png",
+            img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Mir-Tazeem.png",
             experience: "1+ years",
             students: "1200+",
             rating: 4.8
@@ -50,7 +50,7 @@ export default function OurTeam() {
         {
             name: "Mursaleen Nisar",
             title: "Conversation & Fluency Coach",
-            img: "https://themrenglish.com/wp-content/uploads/2025/07/Mursaleen-Nisar-1.png",
+            img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Mursaleen-Nisar.png",
             experience: "3+ years",
             students: "1300+",
             rating: 4.8
@@ -58,7 +58,7 @@ export default function OurTeam() {
         {
             name: "Aman Gowhar",
             title: "Conversation & Fluency Coach",
-            img: "https://themrenglish.com/wp-content/uploads/2025/07/Aman-Gowhar.png",
+            img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Aman-Gowhar.png",
             experience: "1+ years",
             students: "1200+",
             rating: 4.7
@@ -66,7 +66,7 @@ export default function OurTeam() {
         {
             name: "Asra Rehman",
             title: "Business English Specialist",
-            img: "https://themrenglish.com/wp-content/uploads/2025/07/Asra-Rehman.png",
+            img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Asra-Rehman.png",
             experience: "2+ years",
             students: "1300+",
             rating: 4.8
@@ -74,7 +74,7 @@ export default function OurTeam() {
         {
             name: "Tufail",
             title: "Conversation & Fluency Coach",
-            img: "https://themrenglish.com/wp-content/uploads/2025/07/Tufail.png",
+            img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Tufail.png",
             experience: "3+ years",
             students: "1400+",
             rating: 4.7
@@ -82,7 +82,7 @@ export default function OurTeam() {
         {
             name: "Zubana Zair",
             title: "Conversation & Fluency Coach",
-            img: "https://themrenglish.com/wp-content/uploads/2025/07/Zubana-Zair.png",
+            img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Zubana-Zair.png",
             experience: "2+ years",
             students: "1250+",
             rating: 4.8
@@ -97,19 +97,19 @@ export default function OurTeam() {
         "/images/gallery/6.jpg",
     ];
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="bg-white p-6 rounded-2xl shadow">
-                <h3 className="text-2xl font-semibold mb-3">Course Instructors</h3>
-                <div className="grid grid-cols-3 gap-4">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow">
+                <h3 className="text-xl sm:text-2xl font-semibold mb-4">Course Instructors</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                     {instructors.map((inst) => (
                         <div key={inst.name} className="text-center">
-                            <div className="w-24 h-24 mx-auto rounded-full overflow-hidden bg-gray-100">
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-full overflow-hidden bg-gray-100">
                                 {/* replace with next/image paths in production */}
                                 <img src={inst.img} alt={inst.name} className="w-full h-full object-cover" />
                             </div>
-                            <div className="mt-2 text-gray-800 font-medium">{inst.name}</div>
-                            <div className="text-sm text-gray-600">{inst.title}</div>
-                            <div className="space-y-3 text-sm">
+                            <div className="mt-2 text-xs sm:text-sm lg:text-base text-gray-800 font-medium">{inst.name}</div>
+                            <div className="text-xs sm:text-sm text-gray-600 line-clamp-2">{inst.title}</div>
+                            <div className="space-y-1 sm:space-y-2 lg:space-y-3 text-xs sm:text-sm">
                                 <div className="flex items-center justify-center gap-2 text-muted-foreground">
                                     <Award className="w-4 h-4" />
                                     <span>{inst.experience} Experience</span>

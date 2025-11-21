@@ -109,11 +109,11 @@ const Courses = () => {
 
   return (
     <div className="bg-homeBackground dark:bg-navBackground mt-4">
-      <div className="max-w-7xl mx-auto p-6">
-        <h2 className="font-bold text-3xl text-center mb-6">Our Courses</h2>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <h2 className="font-bold text-2xl sm:text-3xl text-center mb-4 sm:mb-6">Our Courses</h2>
 
         {!isLoading && (
-          <div className="flex flex-wrap justify-center gap-2 mb-8">
+          <div className="flex flex-wrap justify-center gap-2 mb-4 sm:mb-6 lg:mb-8">
             {companyId && (
               <Button
                 onClick={() => setShowOtherCompanies((prev) => !prev)}
@@ -151,7 +151,7 @@ const Courses = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {isLoading && data?.courses.length === 0 ? (
             Array.from({ length: 8 }).map((_, index) => (
               <CourseSkeleton key={index} />

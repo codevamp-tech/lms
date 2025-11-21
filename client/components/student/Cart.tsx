@@ -133,36 +133,36 @@ export default function Cart() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-center mb-12"
+        className="text-center mb-6 sm:mb-8 lg:mb-12"
       >
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold tracking-tight">
           Your Shopping Cart
         </h1>
-        <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+        <p className="mt-3 sm:mt-4 max-w-2xl mx-auto text-base sm:text-lg text-muted-foreground">
           You have {cart.length} course(s) in your cart.
         </p>
       </motion.div>
 
       {quickPurchase ? (
-        <div className="flex flex-col lg:flex-row gap-10">
+        <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 lg:gap-10">
           <div className="w-full lg:w-2/3">
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <motion.div
                 layout
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex flex-col sm:flex-row gap-4 border rounded-lg p-4 bg-card dark:bg-gray-800/50 shadow-sm"
+                className="flex flex-col gap-3 sm:gap-4 border rounded-lg p-3 sm:p-4 bg-card dark:bg-gray-800/50 shadow-sm"
               >
                 <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold text-lg">{quickPurchase.product}</h3>
-                      <div className="mt-2 text-muted-foreground">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-base sm:text-lg">{quickPurchase.product}</h3>
+                      <div className="mt-2 text-xs sm:text-sm text-muted-foreground space-y-1">
                         <p><strong>Name:</strong> {quickPurchase.name}</p>
                         <p><strong>Email:</strong> {quickPurchase.email}</p>
                         <p><strong>WhatsApp:</strong> {quickPurchase.whatsapp}</p>
@@ -171,26 +171,26 @@ export default function Cart() {
                         )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold">₹{quickPurchase.price}</div>
+                    <div className="text-right sm:text-left">
+                      <div className="text-lg sm:text-xl font-bold">₹{quickPurchase.price}</div>
                     </div>
                   </div>
                 </div>
               </motion.div>
             </div>
           </div>
-          <div className="w-full lg:w-1/3 lg:sticky top-24 self-start">
-            <div className="p-6 bg-card dark:bg-gray-800/50 rounded-lg shadow-sm border">
-              <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
+          <div className="w-full lg:w-1/3 lg:sticky lg:top-24 self-start">
+            <div className="p-4 sm:p-6 bg-card dark:bg-gray-800/50 rounded-lg shadow-sm border">
+              <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Order Summary</h2>
               <div className="space-y-2">
-                <div className="flex justify-between text-xl font-bold">
+                <div className="flex justify-between text-lg sm:text-xl font-bold">
                   <span>Total:</span>
                   <span>₹{quickPurchase.price}</span>
                 </div>
               </div>
               <Button 
                 size="lg" 
-                className="w-full mt-6" 
+                className="w-full mt-4 sm:mt-6 text-sm sm:text-base" 
                 onClick={async () => {
                   try {
                     const response = await fetch('/api/enroll-live', {
@@ -268,9 +268,9 @@ export default function Cart() {
       ) : cart.length === 0 ? (
         <EmptyCart />
       ) : (
-        <div className="flex flex-col lg:flex-row gap-10">
+        <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 lg:gap-10">
           <div className="w-full lg:w-2/3">
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <AnimatePresence>
                 {cart.map((item) => (
                   <CartItem
