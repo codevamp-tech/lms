@@ -379,16 +379,16 @@ const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ totalPrice, totalMRP,
     <div className="space-y-2">
       <div className="flex justify-between">
         <span>Original Price:</span>
-        <span className="line-through text-muted-foreground">₹{totalMRP.toFixed(2)}</span>
+        <span className="line-through text-muted-foreground">₹{totalMRP ? totalMRP : '0'}</span>
       </div>
       <div className="flex justify-between text-green-600 dark:text-green-400">
         <span>Discount:</span>
-        <span>-₹{totalDiscount.toFixed(2)}</span>
+        <span>-₹{totalDiscount}</span>
       </div>
       <hr className="my-2" />
       <div className="flex justify-between text-xl font-bold">
         <span>Total:</span>
-        <span>₹{totalPrice.toFixed(2)}</span>
+        <span>₹{totalPrice}</span>
       </div>
     </div>
     <Button size="lg" className="w-full mt-6" onClick={() => toast.success("Proceeding to checkout!")}>

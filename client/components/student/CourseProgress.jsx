@@ -11,6 +11,7 @@ import useCourseProgress from "@/hooks/useCourseProgress";
 const CourseProgress = () => {
   const router = useRouter();
   const { courseId } = useParams();
+  console.log("cousreidd??",courseId);
 
   const userId = getUserIdFromToken();
   const {
@@ -65,12 +66,12 @@ const CourseProgress = () => {
         throw new Error("User is not authenticated");
       }
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/ratings/${courseId}/rating`,
+        `${process.env.NEXT_PUBLIC_API_URL}/ratings/rating`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           // Pass both rating and userId in the request body.
-          body: JSON.stringify({ rating: ratingValue, userId }),
+          body: JSON.stringify({ rating: ratingValue, userId,courseId }),
         }
       );
       if (!response.ok) {

@@ -9,47 +9,47 @@ import { useRef } from "react"
 const testimonials = [
   {
     id: 1,
-    text: "Mr English Training Academy  completely transformed my speaking confidence. The instructors are patient and encouraging. I can now communicate fluently in business meetings!",
-    author: "Shahista Nabi.",
+    text: "I didn’t know that something like this is happening in Kashmir, came to learn English grammar concepts but was amazed to be a part of the interactive sessions and practical exercises that boosted my confidence.",
+    author: "Madiha Nisar.",
     role: "Business Professional",
     rating: 5,
-    image: "/img/testimonial-1.webp",
+    image: "/img/madiha_nisar.jpg",
     achievement: "Achieved IELTS 8.0"
   },
   {
     id: 2,
-    text: "The interactive sessions and personalized feedback helped me overcome my fear of speaking English. Now I can express myself confidently in any situation!",
-    author: "Saqib Majeed",
+    text: "Mr. English training academy is a place where dreams come true.Wahid Sir has always been there for me. His insights on life are exceptional and beautiful. His training skills are truly amazing.",
+    author: "Arbeena Nisar",
     role: "University Student",
     rating: 5,
-    image: "/img/testimonial-2.webp",
+    image: "/img/arbeena_nisar.jpg",
     achievement: "Studying in USA"
   },
   {
     id: 3,
-    text: "I've tried many English courses, but Mr English Training Academy  stands out with its practical approach and real-world applications. Highly recommended!",
-    author: "Umra Hasan",
+    text: "Mr. English training academy is a great place to learn. it won't be an exaggeration if I say that I have learned life skills there. From knowing about english to life , my trainers have taught me all.",
+    author: "Imtiyaz Raina",
     role: "Marketing Manager",
     rating: 5,
-    image: "/img/testimonial-3.webp",
+    image: "/img/imtiyaz_raina.jpg",
     achievement: "Promoted to Team Lead"
   },
   {
     id: 4,
-    text: "The grammar and vocabulary modules are excellent. The bite-sized lessons fit perfectly into my busy schedule. My English has improved dramatically!",
-    author: "Amir Khan",
+    text: "I have never seen a speaker like Gowhar sir in my life and that's not even the best part .The best part is that he works really hard to make his students a speaker like him. Mr. English is the best language academy.",
+    author: "Seerat Sajad",
     role: "High School Student",
     rating: 5,
-    image: "/img/testimonial-4.webp",
+    image: "/img/seerat_sajad.jpg",
     achievement: "Top 5% in Class"
   },
   {
     id: 5,
-    text: "From basic conversations to professional presentations, this platform covered it all. The certificate I earned helped me land my dream job!",
-    author: "Fatima Zahra",
+    text: "At Mr. English, every day comes with a new opportunity and a new challenge. I've spent 4 years at the academy, and I've never felt bored. Every activity done at Mr. English is designed to bring out the best version of a person.",
+    author: "Areeba Rashid",
     role: "Career Changer",
     rating: 5,
-    image: "/img/testimonial-5.webp",
+    image: "/img/areeba_rashid.jpg",
     achievement: "New Career Path"
   },
 ]
