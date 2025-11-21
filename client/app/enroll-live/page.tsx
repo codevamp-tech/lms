@@ -11,7 +11,13 @@ const EnrollLivePage = () => {
     const { getLiveSessionsQuery, enrollLiveSession } = useLiveSessions();
     const { data: sessions, isLoading, error } = getLiveSessionsQuery();
     const { isLoaded: isRazorpayLoaded } = useRazorpay();
-    const studentId = localStorage.getItem("userId");
+    const [studentId, setStudentId] = React.useState<string | null>(null);
+    
+    React.useEffect(() => {
+        const id = localStorage.getItem("userId");
+        setStudentId(id);
+    }, []);
+
 
     const handleEnroll = async (session: LiveSessionData) => {
         if (!studentId) {
