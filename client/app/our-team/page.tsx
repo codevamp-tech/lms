@@ -50,7 +50,7 @@ export default function OurTeam() {
         {
             name: "Mursaleen Nisar",
             title: "Conversation & Fluency Coach",
-            img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Mursaleen-Nisar.png",
+            img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Mursaleen-Nisar-1.png",
             experience: "3+ years",
             students: "1300+",
             rating: 4.8
