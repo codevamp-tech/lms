@@ -113,65 +113,65 @@ const Navbar = () => {
           {user?.role === "student" && (
             <>
               <ul className="space-y-3">
-              <li>
-                <Link 
-                  href="/" 
-                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
-                >
-                  Home
-                </Link>
-              </li>
-            </ul>
-             <ul className="space-y-3">
-              <li>
-                <Link 
-                  href="/about-us" 
-                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
-                >
-                  About us
-                </Link>
-              </li>
-            </ul>
-             <ul className="space-y-3">
-              <li>
-                <Link 
-                  href="/courses" 
-                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
-                >
-                  Courses
-                </Link>
-              </li>
-            </ul>
-            <ul className="space-y-3">
-              <li>
-                <Link 
-                  href="/our-team" 
-                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
-                >
-                  Our team
-                </Link>
-              </li>
-            </ul>
-             <ul className="space-y-3">
-              <li>
-                <Link 
-                  href="/blogs" 
-                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
-                >
-                  Blogs
-                </Link>
-              </li>
-            </ul>
-             <ul className="space-y-3">
-              <li>
-                <Link 
-                  href="/contact-us" 
-                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
-                >
-                  Contact Us
-                </Link>
-              </li>
-            </ul>
+                <li>
+                  <Link
+                    href="/"
+                    className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                  >
+                    Home
+                  </Link>
+                </li>
+              </ul>
+              <ul className="space-y-3">
+                <li>
+                  <Link
+                    href="/about-us"
+                    className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                  >
+                    About us
+                  </Link>
+                </li>
+              </ul>
+              <ul className="space-y-3">
+                <li>
+                  <Link
+                    href="/courses"
+                    className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                  >
+                    Courses
+                  </Link>
+                </li>
+              </ul>
+              <ul className="space-y-3">
+                <li>
+                  <Link
+                    href="/our-team"
+                    className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                  >
+                    Our team
+                  </Link>
+                </li>
+              </ul>
+              <ul className="space-y-3">
+                <li>
+                  <Link
+                    href="/blogs"
+                    className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                  >
+                    Blogs
+                  </Link>
+                </li>
+              </ul>
+              <ul className="space-y-3">
+                <li>
+                  <Link
+                    href="/contact-us"
+                    className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                  >
+                    Contact Us
+                  </Link>
+                </li>
+              </ul>
             </>
           )}
           {user?.role === "instructor" && (
@@ -452,6 +452,13 @@ const MobileNavLinks = ({ user, onLinkClick }) => {
             onClick={onLinkClick}
           >
             Edit Profile
+          </Link>
+          <Link
+            href="/admin/courses"
+            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
+            onClick={onLinkClick}
+          >
+            Courses
           </Link>
           <Link
             href="/admin/live-session"

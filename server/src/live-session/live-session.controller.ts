@@ -22,6 +22,12 @@ export class LiveSessionController {
   findOne(@Param('id') id: string) {
     return this.liveSessionService.findOne(id);
   }
+   @Get('enrolled/:userId')
+  getEnrolledSessions(@Param('userId') userId: string) {
+    return this.liveSessionService.getEnrolledSessions(userId);
+  }
+
+  
 
   @Put(':id')
   update(@Param('id') id: string, @Body() editLiveSessionDto: EditLiveSessionDto) {

@@ -136,7 +136,7 @@ export default function ContactUs() {
 
         {/* Contact Details + Map */}
         <aside className="space-y-4 sm:space-y-6">
-          <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow">:rounded-2xl shadow">
+          <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow">
             <h3 className="text-lg sm:text-xl font-semibold mb-3">Our Location</h3>
             <p className="text-sm sm:text-base text-gray-700">Mr English Training Academy<br />Namblabal, Pampore</p>
 

@@ -365,9 +365,15 @@ export class LiveSessionService {
         return createdLiveSession.save();
     }
 
+
     async findAll(): Promise<LiveSession[]> {
         return this.liveSessionModel.find().exec();
     }
+
+
+    async getEnrolledSessions(userId: string) {
+  return this.liveSessionModel.find({ students: userId }).populate('instructor');
+}
 
     async findOne(id: string): Promise<LiveSession | null> {
         return this.liveSessionModel.findById(id).exec();

@@ -1,6 +1,7 @@
 "use client"
 import { motion } from "framer-motion"
 import { BookOpen, Users, Target, CheckCircle } from "lucide-react"
+import Link from "next/link"
 
 const steps = [
   {
@@ -128,6 +129,7 @@ export default function LearningMethodology() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="text-center mt-16"
         >
+            <Link href="/courses">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -135,6 +137,7 @@ export default function LearningMethodology() {
           >
             Start Your Journey Today
           </motion.button>
+          </Link>
         </motion.div>
       </div>
     </section>
