@@ -121,8 +121,56 @@ const HeroCarousel = () => {
                 {isLoading && Array.from({ length: 5 }).map((_, i) => <CourseSkeleton key={i} />)}
                 {!isLoading &&
                   courses.map((course) => (
-                    <div key={course._id} className="embla__slide p-4">
-                      <Course course={course} />
+                    <div key={course._id} className="embla__slide ">
+                      <Link
+                        href={`/course/course-detail/${course._id}`}
+                        className="flex gap-4 items-start bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg hover:shadow-2xl transition-all"
+                      >
+                        {/* LEFT SIDE : Thumbnail */}
+                        <div className="w-40 h-28 flex-shrink-0">
+                          <img
+                            src={course.courseThumbnail ?? ""}
+                            alt="thumbnail"
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        </div>
+
+                        {/* RIGHT SIDE : Info */}
+                        <div className="flex flex-col w-full space-y-2">
+
+                          {/* Title */}
+                          <h1 className="font-bold text-lg line-clamp-1 hover:underline">
+                            {course.courseTitle}
+                          </h1>
+
+                          {/* Subtitle */}
+                          {course.subTitle && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">
+                              {course.subTitle}
+                            </p>
+                          )}
+
+                          {/* Instructor + Students */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <img
+                                src={course.creator?.photoUrl || "https://github.com/shadcn.png"}
+                                alt="profile"
+                                className="w-7 h-7 rounded-full object-cover border"
+                              />
+                              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                {course.creator?.name}
+                              </span>
+                            </div>
+
+                            {course.enrolledStudents?.length > 0 && (
+                              <span className="text-xs text-gray-500">
+                                {course.enrolledStudents.length} enrolled
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
                     </div>
                   ))}
               </div>

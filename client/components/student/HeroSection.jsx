@@ -111,7 +111,7 @@ const HeroSection = () => {
               transition={{ duration: 0.6 }}
               className="mb-4 sm:mb-6"
             >
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl h-auto font-extrabold mb-2 sm:mb-3 bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent px-2">
+              <h1 className="text-3xl py-2 sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl h-auto font-extrabold mb-2 sm:mb-3 bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent px-2">
                 Mr English Training Academy
               </h1>
               <div className="h-0.5 sm:h-1 w-24 sm:w-32 lg:w-40 mx-auto bg-gradient-to-r from-primary to-purple-600 rounded-full" />
@@ -181,23 +181,23 @@ const HeroSection = () => {
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 max-w-4xl mx-auto mb-8 sm:mb-12"
             >
               {[
-                { title: "Zero to Hero English Course", price: "999", icon: BookOpen, className: "bg-gradient-to-r from-blue-500 to-cyan-500" },
-                { title: "Counselling Session by Founder", price: "749", icon: MessageCircle, className: "bg-gradient-to-r from-green-500 to-lime-400" },
-                { title: "Chat Buddy", price: "199", icon: Award, className: "bg-gradient-to-r from-yellow-400 to-orange-400" }
-              ].map((offer, i) => (
+  { title: <>English<br/>Course</>, price: "999", icon: BookOpen, className: "bg-gradient-to-r from-blue-500 to-cyan-500" },
+  { title: "Counselling Session by Founder", price: "749", icon: MessageCircle, className: "bg-gradient-to-r from-green-500 to-lime-400" },
+  { title: <>Chat<br/>Buddy</>, price: "199", icon: Award, className: "bg-gradient-to-r from-yellow-400 to-orange-400" }
+].map((offer, i) => (
                 <Dialog key={offer.title}>
                   <DialogTrigger asChild>
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 1.1 + i * 0.1, duration: 0.5 }}
-                      // Use offer.className here and include other utility classes
-                      className={`${offer.className} cursor-pointer p-6 rounded-xl border border-border shadow-lg hover:shadow-xl transition-all text-black`}
-                    >
-                      <offer.icon className="w-10 h-10 text-primary mb-4" />
-                      <h3 className="text-lg font-bold mb-2">{offer.title}</h3>
-                      <p className="text-2xl font-bold text-primary">₹{offer.price}</p>
-                    </motion.div>
+                <motion.div
+  initial={{ opacity: 0, y: 10 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 1.1 + i * 0.1, duration: 0.5 }}
+  className={`${offer.className} flex flex-col text-center items-center cursor-pointer p-6 rounded-xl border border-border shadow-lg hover:shadow-xl transition-all text-black`}
+>
+  <offer.icon className="w-10 h-10 text-primary mb-4 mx-auto" />
+  <h3 className="text-lg font-bold mb-2">{offer.title}</h3>
+  <p className="text-2xl font-bold text-primary">₹{offer.price}</p>
+</motion.div>
+
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
@@ -217,12 +217,8 @@ const HeroSection = () => {
                           <Input id="email" name="email" type="email" required />
                         </div>
                         <div className="grid gap-2">
-                          <Label htmlFor="whatsappNo">whatsappNo Number</Label>
+                          <Label htmlFor="whatsappNo">Whatsapp Number</Label>
                           <Input id="whatsappNo" name="whatsappNo" type="tel" required />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="message">Message</Label>
-                          <Input id="message" name="message" />
                         </div>
                       </div>
                       <DialogFooter>
