@@ -66,12 +66,14 @@ const AddInstructor: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/addinstructor`
-, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newInstructor),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/addinstructor`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newInstructor),
+        }
+      );
 
       const data = await response.json();
 
@@ -85,10 +87,8 @@ const AddInstructor: React.FC = () => {
           companyId: companyId || "",
         });
         setShowAddForm(false);
-      } else if (data.error?.includes("Email already in use")) {
-        toast.error("This email is already registered. Please use a different email.");
       } else {
-        toast.error("This email is already registered. Please use a different email.");
+        toast.error("This email is already registered.");
       }
     } catch (err: any) {
       toast.error(err.message || "An unknown error occurred");
@@ -123,11 +123,9 @@ const AddInstructor: React.FC = () => {
     }
   };
 
-  // ✅ FIXED: Proper server-side pagination
   const fetchInstructors = async (page = 1) => {
     try {
       const data = await getInstructor(page, ITEMS_PER_PAGE);
-      console.log("Fetched instructor data:", data);
 
       if (data?.success && Array.isArray(data.instructors)) {
         setInstructors(data.instructors);
@@ -136,7 +134,6 @@ const AddInstructor: React.FC = () => {
         toast.error("Unexpected response format");
       }
     } catch (err) {
-      console.error("fetchInstructors error:", err);
       toast.error("Failed to fetch instructors");
     }
   };
@@ -151,12 +148,12 @@ const AddInstructor: React.FC = () => {
     }
   };
 
-  // ✅ FIXED: Remove extra slicing (server already paginates)
   const filteredInstructors = instructors.filter(
     (instructor) =>
       instructor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       instructor.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
   const paginatedInstructors = filteredInstructors;
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,15 +172,19 @@ const AddInstructor: React.FC = () => {
   };
 
   return (
-    <div className="p-4 dark:bg-card">
+    <div className="p-4 md:p-6 lg:p-8 dark:bg-card">
       {user?.role === "admin" && (
         <div className="bg-white dark:bg-card rounded-lg shadow">
-          <div className="p-6 flex justify-between items-center gap-4">
+
+          {/* Header */}
+          <div className="p-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <h2 className="text-xl font-semibold text-gray-600 dark:text-white">
               Instructors
             </h2>
-            <div className="flex-1 max-w-md relative">
-              <div className="flex items-center gap-2">
+
+            {/* Search */}
+            <div className="w-full md:flex-1 max-w-md relative">
+              <div className="flex items-center gap-2 relative">
                 <Search className="h-5 w-5 text-gray-400 absolute left-3" />
                 <input
                   type="text"
@@ -205,6 +206,8 @@ const AddInstructor: React.FC = () => {
                   </button>
                 )}
               </div>
+
+              {/* Suggestions */}
               {showSuggestions && searchTerm && (
                 <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border rounded-lg shadow-lg max-h-60 overflow-y-auto">
                   {filteredInstructors.map((instructor) => (
@@ -231,59 +234,62 @@ const AddInstructor: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Add button */}
             <button
               onClick={() => setShowAddForm(!showAddForm)}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full md:w-auto"
             >
               Add Instructor
             </button>
           </div>
 
+          {/* Add Instructor Form */}
           {showAddForm && (
-            <div className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Name</Label>
-                  <input
-                    id="name"
-                    type="text"
-                    name="name"
-                    value={newInstructor.name}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full text-gray-900 dark:text-white px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <input
-                    id="email"
-                    type="email"
-                    name="email"
-                    value={newInstructor.email}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full text-gray-900 dark:text-white px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-800 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password">Password</Label>
-                  <input
-                    id="password"
-                    type="password"
-                    name="password"
-                    value={newInstructor.password}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full text-gray-900 dark:text-white px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 sm:text-sm"
-                  />
-                </div>
-                <Button
-                  onClick={handleAddInstructor}
-                  className="dark:text-white dark:bg-blue-600 dark:hover:bg-blue-700"
-                >
-                  Save
-                </Button>
+            <div className="p-6 space-y-4">
+              <div>
+                <Label htmlFor="name">Name</Label>
+                <input
+                  id="name"
+                  type="text"
+                  name="name"
+                  value={newInstructor.name}
+                  onChange={handleInputChange}
+                  className="w-full mt-1 block text-gray-900 dark:text-white px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
+                />
               </div>
+
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  value={newInstructor.email}
+                  onChange={handleInputChange}
+                  className="w-full mt-1 block text-gray-900 dark:text-white px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <input
+                  id="password"
+                  type="password"
+                  name="password"
+                  value={newInstructor.password}
+                  onChange={handleInputChange}
+                  className="w-full mt-1 block text-gray-900 dark:text-white px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
+                />
+              </div>
+
+              <Button className="w-full md:w-auto dark:text-white dark:bg-blue-600 dark:hover:bg-blue-700" onClick={handleAddInstructor}>
+                Save
+              </Button>
             </div>
           )}
+
+          {/* Table */}
           <div className="p-6">
             {paginatedInstructors.length === 0 ? (
               <tr>
@@ -297,47 +303,41 @@ const AddInstructor: React.FC = () => {
               </tr>
             ) : (
               <div>
-                <div className="h-96 overflow-hidden rounded-sm">
+                {/* Responsive scroll */}
+                <div className="h-96 overflow-x-auto rounded-sm">
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
                     <thead>
                       <tr>
-                        <th className="px-6 py-3 dark:text-white text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Name
-                        </th>
-                        <th className="px-6 py-3 dark:text-white text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Email
-                        </th>
-                        <th className="px-6 py-3 dark:text-white text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Date
-                        </th>
-                        <th className="px-6 py-3 dark:text-white text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
+                        {["Name", "Email", "Date", "Status"].map((head) => (
+                          <th
+                            key={head}
+                            className="px-4 md:px-6 py-3 text-[12px] md:text-xs font-medium uppercase text-gray-500 dark:text-white tracking-wider text-left"
+                          >
+                            {head}
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                       {paginatedInstructors.map((instructor) => (
                         <tr key={instructor._id}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-500 dark:text-white">
-                              {instructor.name || "N/A"}
-                            </div>
+                          <td className="px-4 md:px-6 py-4 text-[12px] md:text-sm font-medium text-gray-700 dark:text-white">
+                            {instructor.name || "N/A"}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-500 dark:text-white">
-                              {instructor.email}
-                            </div>
+
+                          <td className="px-4 md:px-6 py-4 text-[12px] md:text-sm text-gray-600 dark:text-gray-200">
+                            {instructor.email}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-500 dark:text-white">
-                              {instructor.createdAt
-                                ? new Date(
-                                    instructor.createdAt as string
-                                  ).toLocaleDateString()
-                                : "N/A"}
-                            </div>
+
+                          <td className="px-4 md:px-6 py-4 text-[12px] md:text-sm text-gray-600 dark:text-gray-200">
+                            {instructor.createdAt
+                              ? new Date(
+                                instructor.createdAt as string
+                              ).toLocaleDateString()
+                              : "N/A"}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+
+                          <td className="px-4 md:px-6 py-4">
                             <Button
                               variant="outline"
                               onClick={() =>
@@ -346,11 +346,10 @@ const AddInstructor: React.FC = () => {
                                   instructor.isStatus
                                 )
                               }
-                              className={
-                                instructor.isStatus
-                                  ? "bg-green-500 hover:bg-green-600 hover:text-white text-white w-[82px]"
-                                  : "bg-red-500 hover:bg-red-600 hover:text-white text-white"
-                              }
+                              className={`w-[70px] md:w-[82px] text-white ${instructor.isStatus
+                                ? "bg-green-500 hover:bg-green-600"
+                                : "bg-red-500 hover:bg-red-600"
+                                }`}
                             >
                               {instructor.isStatus ? "Active" : "Inactive"}
                             </Button>
@@ -360,19 +359,23 @@ const AddInstructor: React.FC = () => {
                     </tbody>
                   </table>
                 </div>
-                <div className="flex justify-end gap-2 mt-4">
+
+                {/* Pagination */}
+                <div className="flex flex-col md:flex-row md:justify-end items-center gap-3 mt-4 text-center md:text-right">
                   <span>
                     Page {currentPage} of {totalPages}
                   </span>
                   <Button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
+                    className="w-full md:w-auto"
                   >
                     Previous
                   </Button>
                   <Button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
+                    className="w-full md:w-auto"
                   >
                     Next
                   </Button>

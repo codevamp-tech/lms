@@ -13,40 +13,74 @@ const LiveSession = () => {
     const { data: sessions, isLoading, error } = getLiveSessionsQuery();
 
     if (isLoading) {
-        return <Loader2 className="animate-spin" />;
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <Loader2 className="animate-spin h-10 w-10 text-gray-600" />
+            </div>
+        );
     }
 
     if (error) {
-        return <div>Error loading live sessions</div>;
+        return (
+            <div className="flex justify-center items-center h-screen text-red-600 font-semibold">
+                Error loading live sessions
+            </div>
+        );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-800">Live Sessions</h1>
-                    <LiveSessionForm />
+        <div className="min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 py-10">
+            <div className="max-w-7xl mx-auto">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
+                    <h1 className="text-3xl font-bold text-gray-800 text-center sm:text-left">
+                        Live Sessions
+                    </h1>
+                    <div className="flex justify-center sm:justify-end">
+                        <LiveSessionForm />
+                    </div>
                 </div>
 
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {sessions?.map((session: LiveSessionData) => (
-                        <Card key={session._id}>
+                        <Card key={session._id} className="shadow-md hover:shadow-lg transition-all">
                             <CardHeader>
-                                <CardTitle>{session.title}</CardTitle>
+                                <CardTitle className="text-lg font-bold break-words">
+                                    {session.title}
+                                </CardTitle>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="space-y-2 text-sm">
                                 <p>{session.description}</p>
-                                <p><strong>Date:</strong> {new Date(session.date).toLocaleString()}</p>
-                                <p><strong>Duration:</strong> {session.duration} minutes</p>
-                                <p><strong>Price:</strong> ${session.price}</p>
-                                <p><strong>Instructor:</strong> {session.instructor}</p>
-                                <div className="flex space-x-2 mt-4">
+                                <p>
+                                    <strong>Date:</strong> {new Date(session.date).toLocaleString()}
+                                </p>
+                                <p>
+                                    <strong>Duration:</strong> {session.duration} minutes
+                                </p>
+                                <p>
+                                    <strong>Price:</strong> ₹{session.price}
+                                </p>
+                                <p>
+                                    <strong>Instructor:</strong> {session.instructor}
+                                </p>
+
+                                <div className="flex flex-wrap gap-2 mt-4">
                                     <LiveSessionForm session={session} />
-                                    <Button variant="outline" onClick={() => deleteLiveSession(session._id!)}>
+
+                                    <Button
+                                        variant="outline"
+                                        className="flex items-center gap-1"
+                                        onClick={() => deleteLiveSession(session._id!)}
+                                    >
                                         <Trash className="h-4 w-4" />
                                     </Button>
-                                    <a href={session.meetLink} target="_blank" rel="noopener noreferrer">
-                                        <Button>
+
+                                    <a
+                                        href={session.meetLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-block"
+                                    >
+                                        <Button className="flex items-center gap-1">
                                             <Video className="h-4 w-4" />
                                         </Button>
                                     </a>

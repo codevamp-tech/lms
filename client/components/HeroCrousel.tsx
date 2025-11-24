@@ -30,7 +30,7 @@ const HeroCarousel = () => {
   return (
     <div className="relative bg-gradient-to-br from-background via-secondary/30 to-background overflow-hidden">
       <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-      
+
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center py-20 px-6">
           {/* Left Content */}
@@ -47,7 +47,7 @@ const HeroCarousel = () => {
             >
               Popular English Courses
             </motion.span>
-            
+
             <motion.h2
               variants={fadeInUp}
               transition={{ delay: 0.2 }}
@@ -56,7 +56,7 @@ const HeroCarousel = () => {
               <span className="block">Master English</span>
               <span className="block text-primary mt-2">From Basics to Fluency</span>
             </motion.h2>
-            
+
             <motion.p
               variants={fadeInUp}
               transition={{ delay: 0.3 }}
@@ -100,7 +100,7 @@ const HeroCarousel = () => {
                   Explore All Courses <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="/about">
+              <Link href="/about-us">
                 <Button size="lg" variant="outline" className="rounded-full">
                   Learn More
                 </Button>
