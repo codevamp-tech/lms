@@ -58,7 +58,7 @@ const Navbar = () => {
 
   const logoutHandler = async () => {
     clearCookies();
-    router.push("/login");
+    router.push("/");
     toast.success("You have been logged out.");
   };
 
@@ -110,70 +110,69 @@ const Navbar = () => {
         </div>
 
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          {user?.role === "student" && (
-            <>
-              <ul className="space-y-3">
-                <li>
-                  <Link
-                    href="/"
-                    className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
-                  >
-                    Home
-                  </Link>
-                </li>
-              </ul>
-              <ul className="space-y-3">
-                <li>
-                  <Link
-                    href="/about-us"
-                    className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
-                  >
-                    About us
-                  </Link>
-                </li>
-              </ul>
-              <ul className="space-y-3">
-                <li>
-                  <Link
-                    href="/courses"
-                    className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
-                  >
-                    Courses
-                  </Link>
-                </li>
-              </ul>
-              <ul className="space-y-3">
-                <li>
-                  <Link
-                    href="/our-team"
-                    className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
-                  >
-                    Our team
-                  </Link>
-                </li>
-              </ul>
-              <ul className="space-y-3">
-                <li>
-                  <Link
-                    href="/blogs"
-                    className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
-                  >
-                    Blogs
-                  </Link>
-                </li>
-              </ul>
-              <ul className="space-y-3">
-                <li>
-                  <Link
-                    href="/contact-us"
-                    className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
-                  >
-                    Contact Us
-                  </Link>
-                </li>
-              </ul>
-            </>
-          )}
+          <>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="/"
+                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  Home
+                </Link>
+              </li>
+            </ul>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="/about-us"
+                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  About Us
+                </Link>
+              </li>
+            </ul>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="/courses"
+                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  Courses
+                </Link>
+              </li>
+            </ul>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="/our-team"
+                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  Our Team
+                </Link>
+              </li>
+            </ul>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="/blogs"
+                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  Blogs
+                </Link>
+              </li>
+            </ul>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  href="/contact-us"
+                  className="text-black hover:text-blue-400 transition-colors duration-200 text-sm"
+                >
+                  Contact Us
+                </Link>
+              </li>
+            </ul>
+          </>
+
           {user?.role === "instructor" && (
             <>
               <Link
@@ -189,9 +188,9 @@ const Navbar = () => {
         <div className="flex items-center gap-2 sm:gap-4">
           {user?.role === "student" && (
             <div className="hidden md:flex items-center gap-4">
-              <Link href="/favorites" aria-label="Favorites">
+              {/* <Link href="/favorites" aria-label="Favorites">
                 <Heart className="h-5 w-5" />
-              </Link>
+              </Link> */}
               <Link href="/cart" aria-label="Shopping Cart">
                 <ShoppingCart className="h-5 w-5" />
               </Link>
