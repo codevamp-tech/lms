@@ -92,7 +92,7 @@ export default function CTASection() {
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Link href="/courses">
+            {/* <Link href="/courses">
               <Button 
                 size="lg" 
                 variant="outline" 
@@ -100,7 +100,7 @@ export default function CTASection() {
               >
                 View Free Lessons
               </Button>
-            </Link>
+            </Link> */}
           </motion.div>
 
           <motion.p

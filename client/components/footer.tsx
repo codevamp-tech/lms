@@ -12,7 +12,7 @@ export function LMSFooter() {
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-400 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-400 rounded-full blur-3xl"></div>
       </div>
-      
+
       <div className="relative container mx-auto px-4 py-16">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
@@ -30,7 +30,7 @@ export function LMSFooter() {
             <p className="text-slate-200 text-sm leading-relaxed mb-6">
               At Mr. English Training Academy, we go beyond textbooks and grammar rules. We are Jammu & Kashmir's leading spoken English and personality.
             </p>
-            
+
             {/* Social Links */}
             <div className="flex items-center gap-3">
               <SocialLink href="https://www.facebook.com/MrEnglissh" icon={Facebook} label="Facebook" color="blue" />
@@ -47,48 +47,48 @@ export function LMSFooter() {
             </h3>
             <ul className="space-y-3">
               <li>
-                <Link 
-                  href="/" 
+                <Link
+                  href="/"
                   className="text-slate-200 hover:text-blue-400 transition-colors duration-200 text-sm"
                 >
                   Home
                 </Link>
               </li>
             </ul>
-             <ul className="space-y-3">
+            <ul className="space-y-3">
               <li>
-                <Link 
-                  href="/about-us" 
+                <Link
+                  href="/about-us"
                   className="text-slate-200 hover:text-blue-400 transition-colors duration-200 text-sm"
                 >
                   About us
                 </Link>
               </li>
             </ul>
-             <ul className="space-y-3">
+            <ul className="space-y-3">
               <li>
-                <Link 
-                  href="/courses" 
+                <Link
+                  href="/courses"
                   className="text-slate-200 hover:text-blue-400 transition-colors duration-200 text-sm"
                 >
                   Courses
                 </Link>
               </li>
             </ul>
-             <ul className="space-y-3">
+            <ul className="space-y-3">
               <li>
-                <Link 
-                  href="/blogs" 
+                <Link
+                  href="/blogs"
                   className="text-slate-200 hover:text-blue-400 transition-colors duration-200 text-sm"
                 >
                   Blogs
                 </Link>
               </li>
             </ul>
-             <ul className="space-y-3">
+            <ul className="space-y-3">
               <li>
-                <Link 
-                  href="/contact-us" 
+                <Link
+                  href="/contact-us"
                   className="text-slate-200 hover:text-blue-400 transition-colors duration-200 text-sm"
                 >
                   Contact Us
@@ -96,8 +96,8 @@ export function LMSFooter() {
               </li>
             </ul>
           </div>
-   
-          
+
+
           {/* Contact Column */}
           <div>
             <h3 className="text-xl font-bold mb-6 text-white">
@@ -122,8 +122,8 @@ export function LMSFooter() {
                 <Mail className="h-5 w-5 text-white shrink-0 mt-1" />
                 <div>
                   <p className="text-white font-semibold text-sm mb-1">Email</p>
-                  <a 
-                    href="mailto:amangowhar@gmail.com" 
+                  <a
+                    href="mailto:amangowhar@gmail.com"
                     className="text-slate-200 hover:text-blue-400 transition-colors text-sm"
                   >
                     info@mrenglisgacademy.com
@@ -148,25 +148,25 @@ export function LMSFooter() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-sm text-slate-300 text-center md:text-left">
               <p>
-                © The Mr. English 2025. All Rights Reserved. Design and Developed by <a href="https://www.codevamp.net/">CodeVamp Technologies</a>
+                © The Mr. English 2025. All Rights Reserved.
               </p>
             </div>
-            
+
             <div className="flex items-center gap-6 text-sm">
-              <Link 
-                href="/privacy-policy" 
+              <Link
+                href="/privacy-policy"
                 className="text-slate-300 hover:text-blue-400 transition-colors"
               >
                 Privacy Policy
               </Link>
-              <Link 
-                href="/terms-conditions" 
+              <Link
+                href="/terms-conditions"
                 className="text-slate-300 hover:text-blue-400 transition-colors"
               >
                 Terms & Conditions
               </Link>
-              <Link 
-                href="/refund-policy" 
+              <Link
+                href="/refund-policy"
                 className="text-slate-300 hover:text-blue-400 transition-colors"
               >
                 Refund Policy
@@ -192,7 +192,7 @@ const SocialLink: React.FC<SocialLinkProps> = ({ href, icon: Icon, label, color 
     pink: "bg-pink-600 hover:bg-pink-700",
     red: "bg-white hover:bg-gray-100"
   };
-  
+
   const iconColorClasses = {
     blue: "text-white",
     pink: "text-white",

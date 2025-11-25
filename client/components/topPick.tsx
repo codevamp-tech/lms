@@ -148,7 +148,7 @@ const TopPickCourse = () => {
                   />
                 ))}
               </div>
-              <span className="text-lg font-semibold text-foreground">
+              <span className="text-sm font-semibold text-foreground">
                 {topPick.rating ? `${topPick.rating} / 5` : "No rating yet"}
               </span>
             </div>
