@@ -5,6 +5,7 @@ import { Star, Quote, Award, TrendingUp, Users } from "lucide-react"
 import useEmblaCarousel from "embla-carousel-react"
 import { motion, useInView, useAnimation } from "framer-motion"
 import { useRef } from "react"
+import Link from "next/link"
 
 const testimonials = [
   {
@@ -89,9 +90,9 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ text, author, role, r
         whileHover={{ scale: 1, rotate: 5 }}
         transition={{ duration: 0.8 }}
       />
-      
+
       <div className="relative z-10">
-        <motion.div 
+        <motion.div
           className="flex items-start gap-4 mb-6"
           initial={{ x: -20, opacity: 0 }}
           animate={isInView ? { x: 0, opacity: 1 } : { x: -20, opacity: 0 }}
@@ -111,7 +112,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ text, author, role, r
             ))}
           </div>
         </motion.div>
-        
+
         <motion.p
           className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6 text-base italic"
           initial={{ opacity: 0 }}
@@ -120,7 +121,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ text, author, role, r
         >
           "{text}"
         </motion.p>
-        
+
         <motion.div
           className="flex items-center gap-4 pt-6 border-t-2 border-gray-100 dark:border-gray-700"
           initial={{ y: 20, opacity: 0 }}
@@ -137,13 +138,13 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({ text, author, role, r
           <div className="flex-1">
             <h4 className="font-bold text-lg text-gray-900 dark:text-white">{author}</h4>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{role}</p>
-            <motion.div
-              className="inline-block bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full"
+            {/* <motion.div
+              className=" text-primary text-xs font-semibold px-3 py-1 rounded-full"
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
               {achievement}
-            </motion.div>
+            </motion.div> */}
           </div>
         </motion.div>
       </div>
@@ -232,7 +233,7 @@ const ModernTestimonials = () => {
           >
             SUCCESS STORIES
           </motion.span>
-          
+
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
@@ -255,7 +256,7 @@ const ModernTestimonials = () => {
               Achieve
             </motion.span>
           </motion.h2>
-          
+
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
@@ -263,7 +264,7 @@ const ModernTestimonials = () => {
             className="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed"
           >
             Join thousands of successful English learners who transformed their lives with{" "}
-            <span className="font-semibold text-primary">Mr English Training Academy</span>
+            <br />   <span className="font-semibold text-primary">Mr English Training Academy</span>
           </motion.p>
 
           {/* Stats Section */}
@@ -327,11 +328,10 @@ const ModernTestimonials = () => {
               <motion.button
                 key={index}
                 onClick={() => emblaApi?.scrollTo(index)}
-                className={`transition-all duration-300 rounded-full ${
-                  selectedIndex === index 
-                    ? "bg-primary w-12 h-3" 
-                    : "bg-gray-300 dark:bg-gray-600 w-3 h-3 hover:bg-primary/50"
-                }`}
+                className={`transition-all duration-300 rounded-full ${selectedIndex === index
+                  ? "bg-primary w-12 h-3"
+                  : "bg-gray-300 dark:bg-gray-600 w-3 h-3 hover:bg-primary/50"
+                  }`}
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
                 aria-label={`Go to testimonial ${index + 1}`}
@@ -353,13 +353,15 @@ const ModernTestimonials = () => {
           <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
             Transform your English skills and unlock new opportunities. Join our community of successful learners today!
           </p>
-          <motion.button
-            whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-primary hover:bg-primary/90 text-white font-bold py-4 px-8 rounded-full text-lg shadow-lg transition-all duration-300"
-          >
-            Start Learning Now
-          </motion.button>
+          <Link href="/courses">
+            <motion.button
+              whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-primary hover:bg-primary/90 text-white font-bold py-4 px-8 rounded-full text-lg shadow-lg transition-all duration-300"
+            >
+              Start Learning Now
+            </motion.button>
+          </Link>
         </motion.div>
       </div>
     </section>
