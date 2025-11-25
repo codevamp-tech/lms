@@ -14,8 +14,13 @@ import { useUserProfile } from "@/hooks/useUsers";
 const SIDEBAR_LINKS = {
   admin: [
     {
-      href: "/admin/addinstructor",
+      href: "/admin/add-instructor",
       label: "Add Instructor",
+      icon: UserPlus,
+    },
+     {
+      href: "/admin/enquiries",
+      label: "Enquiries",
       icon: UserPlus,
     },
   ],

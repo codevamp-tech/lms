@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CoursesModule } from './courses/courses.module';
+import { EnquiryModule } from './enquiries/enquiry.module';
 import { LecturesModule } from './lectures/lectures.module';
 import { CoursePurchaseModule } from './course-purchase/course-purchase.module';
 import { CourseProgressModule } from './course-progress/course-progress.module';
@@ -38,7 +39,7 @@ if (!fs.existsSync(uploadDir)) {
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot('mongodb+srv://root:GXkg9RvCMEYOw7nY@arogyaa.l0qed.mongodb.net/lms'),
+    MongooseModule.forRoot('mongodb://localhost:27017/lms'),
     MulterModule.register({
       storage: multer.diskStorage({
         destination: (req, file, cb) => {
@@ -90,6 +91,7 @@ if (!fs.existsSync(uploadDir)) {
     CartModule,
     LiveSessionModule,
     RazorpayModule,
+    EnquiryModule
   ],
 })
 export class AppModule {}

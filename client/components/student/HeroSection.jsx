@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
-import { BookOpen, MessageCircle, Award } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { BookOpen, MessageCircle, Award } from "lucide-react";
 import {
   Dialog,
   DialogTrigger,
@@ -15,218 +15,184 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 const HeroSection = () => {
-  const [searchQuery, setSearchQuery] = useState("")
-  const router = useRouter()
-
-  const searchHandler = (e) => {
-    e.preventDefault()
-    if (searchQuery.trim() !== "") {
-      router.push(`/course/search?query=${searchQuery}`)
-    }
-    setSearchQuery("")
-  }
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  }
+    visible: { opacity: 1, y: 0 },
+  };
 
-  // 🟢 Replace with your backend API URL
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+  // 🔥 Dialog close button ref
+  const closeRef = useRef(null);
 
   // Function to handle form submission
   const handleSubmit = async (e, offer) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const formData = new FormData(e.target)
+    const formData = new FormData(e.target);
+
+    const typeMap = {
+      "English Course": "course",
+      "Counselling Session by Founder": "counselling",
+      "Chat Buddy": "chat",
+    };
+
+    const cleanTitle =
+      typeof offer.title === "string"
+        ? offer.title
+        : offer.title.props.children.join(" ");
+
+    const type = typeMap[cleanTitle] || "course";
+
     const data = {
       name: formData.get("name"),
       email: formData.get("email"),
-      whatsappNo: formData.get("whatsappNo"),
-      message: formData.get("message"),
-      product: offer.title,
-      price: offer.price
-    }
+      whatsapp: formData.get("whatsappNo"),
+      type: type,
+      status: "open",
+    };
 
     try {
-      const res = await fetch(`${API_URL}/sessions`, {
+      const res = await fetch(`${API_URL}/enquiry`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      })
+      });
 
-      if (!res.ok) {
-        throw new Error("Failed to create session")
-      }
+      if (!res.ok) throw new Error("Failed to submit enquiry");
 
-      const result = await res.json()
-      console.log("✅ Session created:", result)
+      console.log("✅ Enquiry submitted");
 
-      alert("Your session request has been submitted successfully!")
-
-      // Redirect to payment or thank you page
-      router.push(`/cart?product=${encodeURIComponent(offer.title)}&price=${offer.price}`)
+      // 🔥 AUTO CLOSE THE DIALOG
+      if (closeRef.current) closeRef.current.click();
     } catch (error) {
-      console.error("❌ Error creating session:", error)
-      alert("Something went wrong. Please try again.")
+      console.error("❌ Error:", error);
     }
-  }
+  };
 
   return (
     <>
-      {/* Full-width Banner Image */}
+      {/* Banner */}
       <div className="w-full">
         <img
           src="/img/hero_page.jpg"
-          alt="Mr English Training Academy Banner"
-          className="w-full h-auto object-cover max-h-[500px] md:max-h-[500px] lg:max-h-[700px]"
+          alt="Mr English Training Academy"
+          className="w-full h-auto object-cover max-h-[500px] lg:max-h-[700px]"
         />
       </div>
 
       {/* Hero Section */}
       <div
         style={{ backgroundImage: `url('/img/hero-4.jpg')` }}
-        className="relative py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
-        aria-label="Hero"
+        className="relative py-8 lg:py-16 px-4 bg-cover bg-center bg-no-repeat"
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/85 to-primary/20 backdrop-blur-sm" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/85 to-primary/20 backdrop-blur-sm" />
 
-        <div className="relative max-w-6xl mx-auto">
+        <div className="relative max-w-6xl mx-auto text-center">
           <motion.div
             initial="hidden"
             animate="visible"
             variants={fadeIn}
             transition={{ duration: 0.8 }}
-            className="text-center"
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
-              className="mb-4 sm:mb-6"
-            >
-              <h1 className="text-3xl py-2 sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl h-auto font-extrabold mb-2 sm:mb-3 bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent px-2">
-                Mr English Training Academy
-              </h1>
-              <div className="h-0.5 sm:h-1 w-24 sm:w-32 lg:w-40 mx-auto bg-gradient-to-r from-primary to-purple-600 rounded-full" />
-            </motion.div>
-
-            <motion.span
-              variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="inline-block text-xs sm:text-sm font-semibold tracking-wider uppercase text-primary bg-primary/10 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 mb-3 sm:mb-4"
-            >
-              Master English with Confidence
-            </motion.span>
-
-            <motion.h2
-              variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 text-foreground text-balance px-2"
-            >
-              Transform Your English Speaking Skills
-            </motion.h2>
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Mr English Training Academy
+            </h1>
 
             <motion.p
               variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.7, duration: 0.6 }}
-              className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-2"
+              className="text-sm md:text-lg text-muted-foreground max-w-3xl mx-auto mt-4"
             >
-              Join thousands of learners who have improved their English communication, grammar, and confidence with our expert-led courses and personalized learning paths.
+              Transform your English speaking skills with expert-led coaching.
             </motion.p>
-
-            {/* Search form */}
-
-            {/* <motion.form
-              onSubmit={searchHandler}
-              variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.9, duration: 0.6 }}
-              className="flex items-center bg-card rounded-full shadow-2xl overflow-hidden max-w-2xl mx-auto mb-6 border-2 border-primary/20 hover:border-primary/40 transition-all"
-              aria-label="Search courses"
-            >
-              <Input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for English courses..."
-                aria-label="Search courses"
-                className="flex-grow border-none focus-visible:ring-0 px-6 py-4 text-foreground placeholder-muted-foreground bg-transparent text-lg"
-              />
-              <Button type="submit" size="lg" className="px-8 py-6 rounded-none">
-                Search
-              </Button>
-            </motion.form>
-            *
 
             {/* Quick Enroll Boxes */}
             <motion.div
               variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 1.0, duration: 0.6 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 max-w-4xl mx-auto mb-8 sm:mb-12"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto mt-10"
             >
               {[
-  { title: <>English<br/>Course</>, price: "999", icon: BookOpen, className: "bg-gradient-to-r from-blue-500 to-cyan-500" },
-  { title: "Counselling Session by Founder", price: "749", icon: MessageCircle, className: "bg-gradient-to-r from-green-500 to-lime-400" },
-  { title: <>Chat<br/>Buddy</>, price: "199", icon: Award, className: "bg-gradient-to-r from-yellow-400 to-orange-400" }
-].map((offer, i) => (
-                <Dialog key={offer.title}>
+                {
+                  title: <>English<br/>Course</>,
+                  sub:"English Course",
+                  price: "999",
+                  icon: BookOpen,
+                  className:
+                    "bg-gradient-to-r from-blue-500 to-cyan-500",
+                },
+                {
+                  title: "Counselling Session by Founder",
+                    sub:<>Counselling Session by <br/> Founder</>,
+                  price: "749",
+                  icon: MessageCircle,
+                  className:
+                    "bg-gradient-to-r from-green-500 to-lime-400",
+                },
+                {
+                  title: <>Chat<br />Buddy</>,
+                    sub:"Chat Buddy",
+                  price: "199",
+                  icon: Award,
+                  className:
+                    "bg-gradient-to-r from-yellow-400 to-orange-400",
+                },
+              ].map((offer, i) => (
+                <Dialog key={i}>
                   <DialogTrigger asChild>
-                <motion.div
-  initial={{ opacity: 0, y: 10 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 1.1 + i * 0.1, duration: 0.5 }}
-  className={`${offer.className} flex flex-col text-center items-center cursor-pointer p-6 rounded-xl border border-border shadow-lg hover:shadow-xl transition-all text-black`}
->
-  <offer.icon className="w-10 h-10 text-primary mb-4 mx-auto" />
-  <h3 className="text-lg font-bold mb-2">{offer.title}</h3>
-  <p className="text-2xl font-bold text-primary">₹{offer.price}</p>
-</motion.div>
-
+                    <div
+                      className={`${offer.className} p-6 rounded-xl cursor-pointer shadow-lg hover:shadow-xl`}
+                    >
+                      <offer.icon className="w-10 h-10 mb-4 mx-auto" />
+                      <h3 className="text-lg font-bold">{offer.title}</h3>
+                      <p className="text-2xl font-bold">₹{offer.price}</p>
+                    </div>
                   </DialogTrigger>
+
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>{offer.title}</DialogTitle>
-                      <DialogDescription>Fill in your details to enroll</DialogDescription>
+                      <DialogTitle>{offer.sub}</DialogTitle>
+                      <DialogDescription>
+                        Fill in your details to enroll
+                      </DialogDescription>
                     </DialogHeader>
 
-                    {/* 🟢 Updated form — Sends to NestJS backend */}
                     <form onSubmit={(e) => handleSubmit(e, offer)}>
                       <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                          <Label htmlFor="name">Name</Label>
-                          <Input id="name" name="name" required />
+                          <Label>Name</Label>
+                          <Input name="name" required />
                         </div>
                         <div className="grid gap-2">
-                          <Label htmlFor="email">Email</Label>
-                          <Input id="email" name="email" type="email" required />
+                          <Label>Email</Label>
+                          <Input name="email" type="email" required />
                         </div>
                         <div className="grid gap-2">
-                          <Label htmlFor="whatsappNo">Whatsapp Number</Label>
-                          <Input id="whatsappNo" name="whatsappNo" type="tel" required />
+                          <Label>Whatsapp Number</Label>
+                          <Input name="whatsappNo" type="tel" required />
                         </div>
                       </div>
+
                       <DialogFooter>
                         <DialogClose asChild>
-                          <Button type="button" variant="outline">Cancel</Button>
+                          <Button type="button" variant="outline">
+                            Cancel
+                          </Button>
                         </DialogClose>
+
                         <Button type="submit">Submit</Button>
                       </DialogFooter>
+
+                      {/* 🔥 Hidden auto-close button */}
+                      <DialogClose asChild>
+                        <button ref={closeRef} style={{ display: "none" }} />
+                      </DialogClose>
                     </form>
                   </DialogContent>
                 </Dialog>
@@ -236,7 +202,7 @@ const HeroSection = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default HeroSection
+export default HeroSection;
