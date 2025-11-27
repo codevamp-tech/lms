@@ -50,7 +50,7 @@ const TopPickCourse = () => {
             This Week's Top English Course
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Handpicked by our English experts to accelerate your learning journey
+            Handpicked by our English experts to accelerate your learning journey.
           </p>
         </motion.div>
 
