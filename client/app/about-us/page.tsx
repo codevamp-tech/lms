@@ -144,6 +144,30 @@ export default function AboutUs() {
                         </ul>
                     </div>
 
+                </div>
+
+                <aside className="space-y-4 sm:space-y-6">
+                    <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow text-center">
+                        <h4 className="text-lg sm:text-xl font-semibold mb-2">Quick Contact</h4>
+                        <p className="text-gray-700">Email: <a href="mailto:amangowhar@gmail.com" className="text-blue-600 hover:underline">amangowhar@gmail.com</a></p>
+                        <p className="text-gray-700">Phone: <a href="tel:+917006138299" className="text-blue-600 hover:underline">+91 70061 38299</a></p>
+                        <p className="text-gray-700">+91 99069 33270</p>
+
+                        <div className="mt-4">
+                            <a
+                                href={encodeURI("https://www.google.com/maps/search/?api=1&query=Mr+English+Training+Academy+Namblabal+Pampore")}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-block mt-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+                            >
+                                Open in Google Maps
+                            </a>
+                        </div>
+                    </div>
+                </aside>
+                
+            </section>
+            
                     <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow">
                         <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold mb-3">Course Instructors</h3>
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -173,28 +197,6 @@ export default function AboutUs() {
                             ))}
                         </div>
                     </div>
-                </div>
-
-                <aside className="space-y-4 sm:space-y-6">
-                    <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow text-center">
-                        <h4 className="text-lg sm:text-xl font-semibold mb-2">Quick Contact</h4>
-                        <p className="text-gray-700">Email: <a href="mailto:amangowhar@gmail.com" className="text-blue-600 hover:underline">amangowhar@gmail.com</a></p>
-                        <p className="text-gray-700">Phone: <a href="tel:+917006138299" className="text-blue-600 hover:underline">+91 70061 38299</a></p>
-                        <p className="text-gray-700">+91 99069 33270</p>
-
-                        <div className="mt-4">
-                            <a
-                                href={encodeURI("https://www.google.com/maps/search/?api=1&query=Mr+English+Training+Academy+Namblabal+Pampore")}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-block mt-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
-                            >
-                                Open in Google Maps
-                            </a>
-                        </div>
-                    </div>
-                </aside>
-            </section>
 
             <footer className="mt-12 text-center text-sm text-gray-500">
                 © {new Date().getFullYear()} Mr English Training Academy. All rights reserved.

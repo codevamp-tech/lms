@@ -13,10 +13,11 @@ export class RatingsService {
   ) {}
 
   // Create a new rating for a course
-  async createRating(createRatingDto: CreateRatingDto): Promise<Rating> {
-    const newRating = new this.ratingModel({ ...createRatingDto });
-    return await newRating.save();
-  }
+async createRating(createRatingDto: CreateRatingDto): Promise<Rating> {
+  const newRating = new this.ratingModel({ ...createRatingDto });
+  return await newRating.save();
+}
+
 
   // Get the average rating and count for a specific course
   async getAverageRating(

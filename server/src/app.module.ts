@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CoursesModule } from './courses/courses.module';
+import { EnquiryModule } from './enquiries/enquiry.module';
 import { LecturesModule } from './lectures/lectures.module';
 import { CoursePurchaseModule } from './course-purchase/course-purchase.module';
 import { CourseProgressModule } from './course-progress/course-progress.module';
@@ -90,6 +91,7 @@ if (!fs.existsSync(uploadDir)) {
     CartModule,
     LiveSessionModule,
     RazorpayModule,
+    EnquiryModule
   ],
 })
 export class AppModule {}

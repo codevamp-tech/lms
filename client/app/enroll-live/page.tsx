@@ -90,7 +90,7 @@ const EnrollLivePage = () => {
                             <p>{session.description}</p>
                             <p><strong>Date:</strong> {new Date(session.date).toLocaleString()}</p>
                             <p><strong>Duration:</strong> {session.duration} minutes</p>
-                            <p><strong>Price:</strong> ${session.price}</p>
+                            <p><strong>Price:</strong> INR {session.price}</p>
                             {session.enrolledUsers?.includes(studentId!) ? (
                                 <Button className="mt-4" disabled>Enrolled</Button>
                             ) : (

@@ -50,7 +50,7 @@ const TopPickCourse = () => {
             This Week's Top English Course
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Handpicked by our English experts to accelerate your learning journey
+            Handpicked by our English experts to accelerate your learning journey.
           </p>
         </motion.div>
 
@@ -134,24 +134,26 @@ const TopPickCourse = () => {
             </div>
 
             {/* Rating */}
-            <div className="flex items-center justify-center lg:justify-start gap-3 mb-6">
-              <div className="flex items-center">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    size={22}
-                    className={
-                      i < Math.floor(topPick.rating || 0)
-                        ? "text-yellow-400 fill-yellow-400"
-                        : "text-gray-300 dark:text-gray-600"
-                    }
-                  />
-                ))}
+            {topPick.rating &&
+              <div className="flex items-center justify-center lg:justify-start gap-3 mb-6">
+                <div className="flex items-center">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      size={22}
+                      className={
+                        i < Math.floor(topPick.rating || 0)
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-300 dark:text-gray-600"
+                      }
+                    />
+                  ))}
+                </div>
+                <span className="text-sm font-semibold text-foreground">
+                  {topPick.rating ? `${topPick.rating} / 5` : "No rating yet"}
+                </span>
               </div>
-              <span className="text-sm font-semibold text-foreground">
-                {topPick.rating ? `${topPick.rating} / 5` : "No rating yet"}
-              </span>
-            </div>
+            }
 
             {/* Price */}
             <div className="mb-8">
@@ -172,10 +174,10 @@ const TopPickCourse = () => {
                   </>
                 ) : (
                   <>
-                    <span className="text-4xl font-bold text-green-600 dark:text-green-400">FREE</span>
+                    {/* <span className="text-4xl font-bold text-green-600 dark:text-green-400">FREE</span>
                     <span className="text-sm text-muted-foreground bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1 rounded-full font-medium">
                       Limited offer
-                    </span>
+                    </span> */}
                   </>
                 )}
               </div>
