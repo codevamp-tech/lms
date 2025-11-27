@@ -1,181 +1,260 @@
-"use client";
+"use client"
 
-import { ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import type React from "react"
+import { Mail, Phone, MapPin, ArrowLeft, Loader2, CheckCircle, AlertCircle } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export default function ContactUs() {
-  const router = useRouter();
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", message: "" });
-  const [status, setStatus] = useState<{ type: "idle" | "sending" | "success" | "error"; message?: string }>(
-    { type: "idle" }
-  );
+  const router = useRouter()
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", message: "" })
+  const [status, setStatus] = useState<{ type: "idle" | "sending" | "success" | "error"; message?: string }>({
+    type: "idle",
+  })
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setStatus({ type: "sending" });
+ async function handleSubmit(e: React.FormEvent) {
+  e.preventDefault();
+  setStatus({ type: "sending" });
 
-    try {
-      // Try to post to an API route (implement on your server). If you don't have an API, you can replace
-      // the fetch URL with a mailto fallback or other integration.
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+  try {
+    const res = await fetch("http://localhost:3001/enquiry", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: form.firstName + " " + form.lastName,
+        email: form.email,
+        whatsapp: form.phone,
+        message: form.message,
+        type: "Contact",
+      }),
+    });
 
-      if (res.ok) {
-        setStatus({ type: "success", message: "Thanks — we received your message and will get back to you soon." });
-        setForm({ firstName: "", lastName: "", email: "", phone: "", message: "" });
-      } else {
-        const data = await res.json().catch(() => ({}));
-        setStatus({ type: "error", message: data?.error || "Something went wrong. Please try again later." });
-      }
-    } catch (err) {
-      setStatus({ type: "error", message: "Network error. Please try again later." });
+    if (res.ok) {
+      setStatus({ type: "success", message: "Your enquiry has been submitted successfully!" });
+      setForm({ firstName: "", lastName: "", email: "", phone: "", message: "" });
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setStatus({ type: "error", message: data?.error || "Something went wrong. Please try again later." });
     }
+  } catch (err) {
+    setStatus({ type: "error", message: "Network error. Please try again later." });
   }
+}
+
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 max-w-4xl">
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors mb-4 sm:mb-6 group"
-      >
-        <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:-translate-x-1 transition-transform" />
-        <span className="text-sm sm:text-base">Back</span>
-      </button>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 max-w-5xl">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8 group text-sm font-medium"
+        >
+          <ArrowLeft className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" />
+          <span>Back</span>
+        </button>
 
-      <header className="mb-6 sm:mb-8 text-center">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-gray-900">Contact Us</h1>
-        <p className="text-gray-600">Have questions? Don&apos;t hesitate to contact us</p>
-      </header>
+        <header className="mb-12 text-center">
+          <h1 className="text-4xl sm:text-5xl font-bold mb-3 text-foreground">Get in Touch</h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Have questions about our training programs? We&apos;d love to hear from you.
+          </p>
+        </header>
 
-      <main className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-        {/* Contact Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="firstName" className="block text-xs sm:text-sm font-medium text-gray-700">First Name</label>
+        <main className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          <form
+            onSubmit={handleSubmit}
+            className="lg:col-span-2 bg-card rounded-2xl shadow-sm border border-border p-8 space-y-6"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label htmlFor="firstName" className="block text-sm font-semibold text-foreground">
+                  First Name <span className="text-primary">*</span>
+                </label>
+                <input
+                  id="firstName"
+                  name="firstName"
+                  value={form.firstName}
+                  onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                  placeholder="John"
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="lastName" className="block text-sm font-semibold text-foreground">
+                  Last Name <span className="text-primary">*</span>
+                </label>
+                <input
+                  id="lastName"
+                  name="lastName"
+                  value={form.lastName}
+                  onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                  placeholder="Doe"
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-foreground">
+                Email <span className="text-primary">*</span>
+              </label>
               <input
-                id="firstName"
-                name="firstName"
-                value={form.firstName}
-                onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                placeholder="Enter Your First Name"
+                id="email"
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="john@example.com"
                 required
-                className="mt-1 block w-full text-sm rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2"
+                className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary"
               />
             </div>
 
-            <div>
-              <label htmlFor="lastName" className="block text-xs sm:text-sm font-medium text-gray-700">Last Name</label>
+            <div className="space-y-2">
+              <label htmlFor="phone" className="block text-sm font-semibold text-foreground">
+                Phone / Mobile
+              </label>
               <input
-                id="lastName"
-                name="lastName"
-                value={form.lastName}
-                onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                placeholder="Enter Your Last Name"
-                className="mt-1 block w-full text-sm rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2"
+                id="phone"
+                name="phone"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="+91 XXXXX XXXXX"
+                className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary"
               />
             </div>
-          </div>
 
-          <div>
-            <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700">Email</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="Email Address"
-              required
-              className="mt-1 block w-full text-sm rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2"
-            />
-          </div>
+            <div className="space-y-2">
+              <label htmlFor="message" className="block text-sm font-semibold text-foreground">
+                Message <span className="text-primary">*</span>
+              </label>
+              <textarea
+                id="message"
+                name="message"
+                value={form.message}
+                onChange={(e) => setForm({ ...form, message: e.target.value })}
+                placeholder="Tell us about your inquiry..."
+                rows={5}
+                required
+                className="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary resize-none"
+              />
+            </div>
 
-          <div>
-            <label htmlFor="phone" className="block text-xs sm:text-sm font-medium text-gray-700">Phone / Mobile</label>
-            <input
-              id="phone"
-              name="phone"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="Mobile Number"
-              className="mt-1 block w-full text-sm rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2"
-            />
-          </div>
+            <div className="space-y-3">
+              <button
+                type="submit"
+                disabled={status.type === "sending"}
+                className="w-full bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-primary-foreground font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2"
+              >
+                {status.type === "sending" ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Send Message"
+                )}
+              </button>
 
-          <div>
-            <label htmlFor="message" className="block text-xs sm:text-sm font-medium text-gray-700">Message</label>
-            <textarea
-              id="message"
-              name="message"
-              value={form.message}
-              onChange={(e) => setForm({ ...form, message: e.target.value })}
-              placeholder="Write your message here"
-              rows={5}
-              className="mt-1 block w-full text-sm rounded-md border-gray-200 shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2"
-            />
-          </div>
+              {status.type === "success" && (
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-green-100 border border-green-300">
+                  <CheckCircle className="w-5 h-5 text-green-700" />
+                  <p className="text-sm text-green-700">{status.message}</p>
+                </div>
+              )}
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-            <button
-              type="submit"
-              disabled={status.type === "sending"}
-              className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              {status.type === "sending" ? "Sending..." : "Send Message"}
-            </button>
+              {status.type === "error" && (
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-red-100 border border-red-300">
+                  <AlertCircle className="w-5 h-5 text-red-700" />
+                  <p className="text-sm text-red-700">{status.message}</p>
+                </div>
+              )}
+            </div>
+          </form>
 
-            {status.type === "success" && <p className="text-xs sm:text-sm text-green-600">{status.message}</p>}
-            {status.type === "error" && <p className="text-xs sm:text-sm text-red-600">{status.message}</p>}
-          </div>
-        </form>
+          {/* RIGHT SIDE CONTACT CARD (unchanged) */}
+          <aside className="lg:col-span-1 space-y-6">
+            <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-primary/20">
+                  <MapPin className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Our Location</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Mr English Training Academy <br />
+                    <span className="text-xs">Namblabal, Pampore</span> <br />
+                    <span className="text-xs">Jammu & Kashmir</span>
+                  </p>
+                </div>
+              </div>
 
-        {/* Contact Details + Map */}
-        <aside className="space-y-4 sm:space-y-6">
-          <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow">
-            <h3 className="text-lg sm:text-xl font-semibold mb-3">Our Location</h3>
-            <p className="text-sm sm:text-base text-gray-700">Mr English Training Academy<br />Namblabal, Pampore</p>
-
-            <h4 className="mt-4 text-sm sm:text-base font-semibold">Quick Contact</h4>
-            <p className="text-xs sm:text-sm text-gray-700">Email: <a href="mailto:amangowhar@gmail.com" className="text-blue-600 hover:underline break-all">amangowhar@gmail.com</a></p>
-            <p className="text-xs sm:text-sm text-gray-700">Phone: <a href="tel:+917006138299" className="text-blue-600 hover:underline">+91 70061 38299</a>, <a href="tel:+919906933270" className="text-blue-600 hover:underline">+91 99069 33270</a></p>
-
-            <div className="mt-4">
               <a
-                href={encodeURI("https://www.google.com/maps/search/?api=1&query=Mr+English+Training+Academy+Namblabal+Pampore+Near+MEI+School+Pampore+Jammu+and+Kashmir+192121")}
+                href={encodeURI(
+                  "https://www.google.com/maps/search/?api=1&query=Mr+English+Training+Academy+Namblabal+Pampore+Near+MEI+School+Pampore+Jammu+and+Kashmir+192121"
+                )}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-block mt-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+                className="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-medium text-sm"
               >
-                Open in Google Maps
+                Open in Maps
               </a>
             </div>
-          </div>
 
-          <div className="bg-white p-0 overflow-hidden rounded-xl sm:rounded-2xl shadow">
-            {/* Live Map Embed */}
-            <iframe
-              title="Mr English Training Academy - Map"
-              src={"https://www.google.com/maps?q=Mr+English+Training+Academy+Namblabal+Pampore+Near+MEI+School+Pampore+Jammu+and+Kashmir+192121&output=embed"}
-              width="100%"
-              height="250"
-              className="sm:h-80"
-              style={{ border: 0 }}
-              allowFullScreen={false}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-          </div>
-        </aside>
-      </main>
+            <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-primary/20">
+                  <Mail className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Email</h3>
+                  <a href="mailto:amangowhar@gmail.com" className="text-sm text-primary hover:underline break-all">
+                    amangowhar@gmail.com
+                  </a>
+                </div>
+              </div>
+            </div>
 
-      <footer className="mt-12 text-center text-sm text-gray-500">
-        © {new Date().getFullYear()} Mr English Training Academy. All rights reserved.
-      </footer>
+            <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-primary/20">
+                  <Phone className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">Phone</h3>
+                  <div className="space-y-1">
+                    <a href="tel:+917006138299" className="block text-sm text-primary hover:underline">
+                      +91 70061 38299
+                    </a>
+                    <a href="tel:+919906933270" className="block text-sm text-primary hover:underline">
+                      +91 99069 33270
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </main>
+
+        <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
+          <iframe
+            title="Mr English Training Academy - Map"
+            src="https://www.google.com/maps?q=Mr+English+Training+Academy+Namblabal+Pampore+Near+MEI+School+Pampore+Jammu+and+Kashmir+192121&output=embed"
+            width="100%"
+            height="400"
+            className="w-full"
+            style={{ border: 0 }}
+            loading="lazy"
+          />
+        </div>
+
+        <footer className="mt-16 pt-8 border-t border-border text-center text-sm text-muted-foreground">
+          <p>© {new Date().getFullYear()} Mr English Training Academy. All rights reserved.</p>
+        </footer>
+      </div>
     </div>
-  );
+  )
 }

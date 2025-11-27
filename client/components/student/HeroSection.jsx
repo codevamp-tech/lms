@@ -102,9 +102,10 @@ const HeroSection = () => {
             variants={fadeIn}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent leading-snug py-2">
               Mr English Training Academy
             </h1>
+
 
             <motion.p
               variants={fadeIn}
@@ -120,8 +121,8 @@ const HeroSection = () => {
             >
               {[
                 {
-                  title: <>English<br/>Course</>,
-                  sub:"English Course",
+                  title: <>English<br />Course</>,
+                  sub: "English Course",
                   price: "999",
                   icon: BookOpen,
                   className:
@@ -129,7 +130,7 @@ const HeroSection = () => {
                 },
                 {
                   title: "Counselling Session by Founder",
-                    sub:<>Counselling Session by <br/> Founder</>,
+                  sub: <>Counselling Session by <br /> Founder</>,
                   price: "749",
                   icon: MessageCircle,
                   className:
@@ -137,7 +138,7 @@ const HeroSection = () => {
                 },
                 {
                   title: <>Chat<br />Buddy</>,
-                    sub:"Chat Buddy",
+                  sub: "Chat Buddy",
                   price: "199",
                   icon: Award,
                   className:

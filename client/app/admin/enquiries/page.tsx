@@ -129,12 +129,23 @@ export default function EnquiryPage() {
                   </td>
 
                   <td className="text-gray-600">{item.price || "-"}</td>
+
+                  {/* Mail To Button */}
                   <td className="text-gray-600">
-                    <button>Send Email</button>
+                    <a
+                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=${item.email}&su=Regarding Your Enquiry&body=Hello ${item.name || item.nmae || ""},%0A%0AWe received your enquiry and will contact you soon.`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      Send Email
+                    </a>
+
                   </td>
                 </tr>
               ))}
             </tbody>
+
           </table>
         </div>
 
@@ -147,11 +158,10 @@ export default function EnquiryPage() {
           <button
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
-            className={`px-4 py-2 rounded-lg border ${
-              currentPage === 1
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                : "bg-white hover:bg-gray-100"
-            }`}
+            className={`px-4 py-2 rounded-lg border ${currentPage === 1
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : "bg-white hover:bg-gray-100"
+              }`}
           >
             Previous
           </button>
@@ -159,11 +169,10 @@ export default function EnquiryPage() {
           <button
             onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className={`px-4 py-2 rounded-lg border ${
-              currentPage === totalPages
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
+            className={`px-4 py-2 rounded-lg border ${currentPage === totalPages
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
           >
             Next
           </button>
