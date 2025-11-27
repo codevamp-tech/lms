@@ -261,7 +261,7 @@ export class LiveSessionService {
             console.log(`\n📧 [${index + 1}/${studentUsers.length}] Preparing email for:`, student.email);
 
             const mailOptions = {
-                from: process.env.EMAIL_USER || 'mohsinansari4843@gmail.com',
+                from: process.env.EMAIL_USER || 'support@paperdeals.in',
                 to: student.email,
                 subject: 'Live Session Invitation',
                 html: `
