@@ -23,13 +23,13 @@ export class LiveSessionService {
         // Initialize nodemailer
         console.log('📧 Setting up nodemailer...');
         this.transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'in-v3.mailjet.com',
             auth: {
-                user: process.env.EMAIL_USER || 'mohsinansari4843@gmail.com',
-                pass: process.env.EMAIL_PASS || 'zgyc pkar kyjc vfmm',
+                user: '7a398468d064c91603bdedd9fa1fed72',
+                pass: '1e68082af92350e3a6c91ed7fff7dceb',
             },
         });
-        console.log('✅ Nodemailer configured with user:', process.env.EMAIL_USER || 'mohsinansari4843@gmail.com');
+        console.log('✅ Nodemailer configured with user:', process.env.EMAIL_USER || 'info@mrenglisgacademy.com');
 
         // Initialize Google OAuth2 Client
         console.log('🔑 Setting up Google OAuth2 Client...');
@@ -372,8 +372,8 @@ export class LiveSessionService {
 
 
     async getEnrolledSessions(userId: string) {
-  return this.liveSessionModel.find({ students: userId }).populate('instructor');
-}
+        return this.liveSessionModel.find({ students: userId }).populate('instructor');
+    }
 
     async findOne(id: string): Promise<LiveSession | null> {
         return this.liveSessionModel.findById(id).exec();

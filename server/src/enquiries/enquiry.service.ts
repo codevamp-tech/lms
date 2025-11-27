@@ -12,10 +12,10 @@ export class EnquiryService {
   ) { }
 
   private transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'in-v3.mailjet.com',
     auth: {
-      user: 'mohsinansari4843@gmail.com',
-      pass: 'zgyc pkar kyjc vfmm',
+      user: '7a398468d064c91603bdedd9fa1fed72',
+      pass: '1e68082af92350e3a6c91ed7fff7dceb',
     },
   });
 
@@ -50,9 +50,9 @@ export class EnquiryService {
     name: string
   ) {
     const mailOptions = {
-      from: 'mohsinansari4843@gmail.com',
+      from: 'info@mrenglisgacademy.com',
       to: `${email}`,
-      subject: 'This is the requested Enquiry',
+      subject: 'Welcome to Mr English Training Academy',
       html: `
       <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
         <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
