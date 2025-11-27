@@ -25,10 +25,10 @@ export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) { }
 
   private transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'in-v3.mailjet.com',
     auth: {
-      user: 'mohsinansari4843@gmail.com',
-      pass: 'zgyc pkar kyjc vfmm',
+      user: '7a398468d064c91603bdedd9fa1fed72',
+      pass: '1e68082af92350e3a6c91ed7fff7dceb',
     },
   });
 
@@ -384,7 +384,7 @@ export class UsersService {
     });
     const resetLink = `http://localhost:3000/reset-password?token=${token}`;
     const mailOptions = {
-      from: 'mohsinansari4843@gmail.com',
+      from: 'info@mrenglisgacademy.com',
       to: `${email}`,
       subject: 'Welcome to Our Platform and Reset Your Password',
       html: `
@@ -435,7 +435,7 @@ export class UsersService {
 
     const resetLink = `http://localhost:3000/reset-password?token=${token}`;
     const mailOptions = {
-      from: 'mohsinansari4843@gmail.com',
+      from: 'info@mrenglisgacademy.com',
       to: email,
       subject: 'Reset Password Request',
       html: `
@@ -487,7 +487,7 @@ export class UsersService {
     });
     const resetLink = `http://localhost:3000/reset-password?token=${token}`;
     const mailOptions = {
-      from: 'mohsinansari4843@gmail.com',
+      from: 'info@mrenglisgacademy.com',
       to: `${email}`,
       subject: 'Welcome to Our Platform and Reset Your Password',
       html: `
