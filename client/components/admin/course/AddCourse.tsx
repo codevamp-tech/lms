@@ -65,13 +65,13 @@ const AddCourse = () => {
   const createCourseHandler = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!category || !courseTitle.trim()) {
-      toast.error("Please provide all required fields.");
-      return;
-    }
+    // if (!category || !courseTitle.trim()) {
+    //   toast.error("Please provide all required fields.");
+    //   return;
+    // }
 
     try {
-      await createNewCourse({ courseTitle, category, creatorId: userId, companyId: companyId || "" });
+      await createNewCourse({ courseTitle, creatorId: userId, companyId: companyId || "" });
       toast.success("Course created successfully.");
 
       // Keep all categories, and pre-select the current category
@@ -105,7 +105,7 @@ const AddCourse = () => {
             placeholder="Your Course Name"
           />
         </div>
-        <div>
+        {/* <div>
           <Label>Category</Label>
           <Select onValueChange={(value) => setCategory(value)} value={category}>
             <SelectTrigger className="w-[180px]">
@@ -130,7 +130,7 @@ const AddCourse = () => {
               </SelectGroup>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
