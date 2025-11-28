@@ -86,7 +86,7 @@ const Login = () => {
         } else if (response?.user?.role === "student") {
           router.push("/");
         } else if (response?.user?.role === "admin") {
-          router.push("/admin/addinstructor");
+          router.push("/admin/add-instructor");
         } else if (response?.user?.role === "superadmin") {
           router.push("/admin/company");
         } else {
@@ -113,7 +113,7 @@ const Login = () => {
 
           {/* ⭐ UPDATED LEFT HEADER WITH LOGO */}
           <div className="relative z-10 space-y-10">
-            <div className="flex flex-col items-start">
+            <div className="flex flex-col items-start cursor-pointer" onClick={() => router.push("/")}>
               <Image
                 src="/img/MrLogo.png"
                 alt="Mr English Training Academy"
@@ -123,6 +123,7 @@ const Login = () => {
                 priority
               />
             </div>
+
 
             <div className="space-y-4">
               <h1 className="text-3xl xl:text-4xl font-serif font-semibold tracking-tight">
