@@ -12,34 +12,34 @@ export default function ContactUs() {
     type: "idle",
   })
 
- async function handleSubmit(e: React.FormEvent) {
-  e.preventDefault();
-  setStatus({ type: "sending" });
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setStatus({ type: "sending" });
 
-  try {
-    const res = await fetch("http://localhost:3001/enquiry", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: form.firstName + " " + form.lastName,
-        email: form.email,
-        whatsapp: form.phone,
-        message: form.message,
-        type: "Contact",
-      }),
-    });
+    try {
+      const res = await fetch("http://localhost:3001/enquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.firstName + " " + form.lastName,
+          email: form.email,
+          whatsapp: form.phone,
+          message: form.message,
+          type: "Contact",
+        }),
+      });
 
-    if (res.ok) {
-      setStatus({ type: "success", message: "Your enquiry has been submitted successfully!" });
-      setForm({ firstName: "", lastName: "", email: "", phone: "", message: "" });
-    } else {
-      const data = await res.json().catch(() => ({}));
-      setStatus({ type: "error", message: data?.error || "Something went wrong. Please try again later." });
+      if (res.ok) {
+        setStatus({ type: "success", message: "Your enquiry has been submitted successfully!" });
+        setForm({ firstName: "", lastName: "", email: "", phone: "", message: "" });
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setStatus({ type: "error", message: data?.error || "Something went wrong. Please try again later." });
+      }
+    } catch (err) {
+      setStatus({ type: "error", message: "Network error. Please try again later." });
     }
-  } catch (err) {
-    setStatus({ type: "error", message: "Network error. Please try again later." });
   }
-}
 
 
   return (
@@ -211,12 +211,19 @@ export default function ContactUs() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground">Email</h3>
-                  <a href="mailto:amangowhar@gmail.com" className="text-sm text-primary hover:underline break-all">
+                  <a
+                    href="https://mail.google.com/mail/?view=cm&to=amangowhar@gmail.com"
+                    className="text-sm text-primary hover:underline"
+                  >
                     amangowhar@gmail.com
                   </a>
+
+
+
                 </div>
               </div>
             </div>
+
 
             <div className="bg-card rounded-2xl shadow-sm border border-border p-6 space-y-4">
               <div className="flex items-start gap-4">
