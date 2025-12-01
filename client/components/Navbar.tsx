@@ -358,141 +358,79 @@ const MobileNavbar = ({ user, logoutHandler }) => {
 };
 
 const MobileNavLinks = ({ user, onLinkClick }) => {
-  if (!user) return null;
   return (
     <>
-      {user.role === "student" && (
+      {/* Guest + Logged-in Common Links */}
+      <Link href="/" className="p-3 rounded-md hover:bg-muted text-sm" onClick={onLinkClick}>
+        Home
+      </Link>
+      <Link href="/about-us" className="p-3 rounded-md hover:bg-muted text-sm" onClick={onLinkClick}>
+        About Us
+      </Link>
+      <Link href="/courses" className="p-3 rounded-md hover:bg-muted text-sm" onClick={onLinkClick}>
+        Courses
+      </Link>
+      <Link href="/our-team" className="p-3 rounded-md hover:bg-muted text-sm" onClick={onLinkClick}>
+        Our Team
+      </Link>
+      <Link href="/blogs" className="p-3 rounded-md hover:bg-muted text-sm" onClick={onLinkClick}>
+        Blogs
+      </Link>
+      <Link href="/contact-us" className="p-3 rounded-md hover:bg-muted text-sm" onClick={onLinkClick}>
+        Contact Us
+      </Link>
+
+      <div className="my-2 border-t" />
+
+      {/* Logged-in role-based links */}
+      {user?.role === "student" && (
         <>
-          <Link
-            href="/"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
-            Home
-          </Link>
-          <Link
-            href="/about-us"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
-            About us
-          </Link>
-          <Link
-            href="/courses"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
-            Courses
-          </Link>
-          <Link
-            href="/our-team"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
-            Our team
-          </Link>
-          <Link
-            href="/blogs"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
-            Blogs
-          </Link>
-          <Link
-            href="/contact-us"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
-            Contact Us
-          </Link>
-          <div className="my-2 border-t" />
-          <Link
-            href="/my-learning"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
+          <Link href="/my-learning" className="p-3 hover:bg-muted text-sm" onClick={onLinkClick}>
             My Learning
           </Link>
-          <Link
-            href="/favorites"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
+          <Link href="/favorites" className="p-3 hover:bg-muted text-sm" onClick={onLinkClick}>
             Favorites
           </Link>
-          <Link
-            href="/cart"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
+          <Link href="/cart" className="p-3 hover:bg-muted text-sm" onClick={onLinkClick}>
             Shopping Cart
           </Link>
-          <Link
-            href="/profile"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
+          <Link href="/profile" className="p-3 hover:bg-muted text-sm" onClick={onLinkClick}>
             Edit Profile
           </Link>
         </>
       )}
-      {user.role === "instructor" && (
+
+      {user?.role === "instructor" && (
         <>
-          <Link
-            href="/admin/dashboard"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
+          <Link href="/admin/dashboard" className="p-3 hover:bg-muted text-sm" onClick={onLinkClick}>
             Dashboard
           </Link>
-          <Link
-            href="/profile"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
+          <Link href="/profile" className="p-3 hover:bg-muted text-sm" onClick={onLinkClick}>
             Edit Profile
           </Link>
-          <Link
-            href="/admin/courses"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
+          <Link href="/admin/courses" className="p-3 hover:bg-muted text-sm" onClick={onLinkClick}>
             Courses
           </Link>
-          <Link
-            href="/admin/live-session"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
+          <Link href="/admin/live-session" className="p-3 hover:bg-muted text-sm" onClick={onLinkClick}>
             Live Session
           </Link>
         </>
       )}
-      {user.role === "admin" && (
+
+      {user?.role === "admin" && (
         <>
-          <Link
-            href="/admin/addinstructor"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
+          <Link href="/admin/add-instructor" className="p-3 hover:bg-muted text-sm" onClick={onLinkClick}>
             Add Instructor
           </Link>
-          <Link
-            href="/admin/configuration"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
+          <Link href="/admin/configuration" className="p-3 hover:bg-muted text-sm" onClick={onLinkClick}>
             Settings
           </Link>
         </>
       )}
-      {user.role === "superadmin" && (
+
+      {user?.role === "superadmin" && (
         <>
-          <Link
-            href="/admin/company"
-            className="p-3 rounded-md hover:bg-muted text-sm transition-colors"
-            onClick={onLinkClick}
-          >
+          <Link href="/admin/company" className="p-3 hover:bg-muted text-sm" onClick={onLinkClick}>
             Add Company
           </Link>
         </>
@@ -500,5 +438,4 @@ const MobileNavLinks = ({ user, onLinkClick }) => {
     </>
   );
 };
-
 export default Navbar;
