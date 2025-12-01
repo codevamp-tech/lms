@@ -112,7 +112,7 @@ const Courses = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         <h2 className="font-bold text-2xl sm:text-3xl text-center mb-4 sm:mb-6">Our Courses</h2>
 
-        {!isLoading && (
+        {/* {!isLoading && (
           <div className="flex flex-wrap justify-center gap-2 mb-4 sm:mb-6 lg:mb-8">
             {companyId && (
               <Button
@@ -125,15 +125,6 @@ const Courses = () => {
                 Show All Courses
               </Button>
             )}
-            <Button
-              onClick={() => setSelectedCategory("")}
-              className={`rounded-full ${selectedCategory === ""
-                ? "bg-blue-500 text-white"
-                : "bg-white dark:bg-gray-800 hover:bg-gray-500 hover:text-white text-black"
-                }`}
-            >
-              All Category
-            </Button>
             {courseCategory.map((category) => (
               <Button
                 key={category}
@@ -149,7 +140,9 @@ const Courses = () => {
               </Button>
             ))}
           </div>
-        )}
+        )} */}
+
+
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {isLoading && data?.courses.length === 0 ? (
