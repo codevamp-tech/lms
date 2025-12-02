@@ -30,9 +30,23 @@ export class CoursePurchaseController {
     return this.coursePurchaseService.createRazorpayOrder(userId, courseId);
   }
 
+  @Post(':userId/:courseId/cancel')
+  async cancelPurchase(
+    @Param('courseId') courseId: string,
+    @Param('userId') userId: string,
+    @Body() body?: { orderId?: string },
+  ) {
+    return this.coursePurchaseService.cancelPurchase(userId, courseId, body?.orderId);
+  }
+
   @Post('verify-payment')
   async verifyPayment(@Body() body: { razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string }) {
     return this.coursePurchaseService.verifyPayment(body.razorpay_order_id, body.razorpay_payment_id, body.razorpay_signature);
+  }
+
+  @Post('mark-failed')
+  async markFailed(@Body() body: { razorpay_order_id?: string; razorpay_payment_id?: string; userId?: string; courseId?: string; }) {
+    return this.coursePurchaseService.markFailed(body);
   }
 
   @Post('webhook')

@@ -237,8 +237,9 @@ const Login = () => {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="login-password" className="text-sm font-medium">Password</Label>
+                      
                       <Link
-                        href="/forgot-password"
+                        href="/forget-password"
                         className="text-xs font-medium text-accent hover:underline"
                       >
                         Forgot password?

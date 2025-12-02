@@ -39,8 +39,10 @@ export class UsersService {
     if (existingUser) {
       throw new Error('Email is already registered');
     }
-
+    console.log('data.password', data.password);
     const hashedPassword = await bcrypt.hash(data.password, 10);
+    console.log('hashedPassword', hashedPassword);
+
     const newUser = new this.userModel({
       ...data,
       password: hashedPassword,
@@ -50,13 +52,19 @@ export class UsersService {
 
   async login(email: string, password: string) {
     const user = await this.userModel.findOne({ email });
+
+    console.log("login user lookup:", user);
+
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid email');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    bcrypt.compare("test@123#", "$2a$10$IYVst4upWOhH2HhYbM4y7.BVnLQhUGXpSuu1BpuOqlHGGgb9/wBUq")
+    .then(res => console.log("test bcrypt compare result:", res));
+    console.log("ispassword",isPasswordValid, password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid password');
     }
 
     return user;

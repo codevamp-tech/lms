@@ -61,20 +61,100 @@ const HeroSection = () => {
     };
 
     try {
-      const res = await fetch(`${API_URL}/enquiry`, {
+      // Ensure Razorpay script is loaded
+      if (!window.Razorpay) {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        document.body.appendChild(script);
+        await new Promise((resolve) => {
+          script.onload = resolve;
+          script.onerror = resolve;
+        });
+      }
+
+      // Parse numeric amount from offer.price (strip non-digits)
+      const priceString = String(offer.price || "0");
+      const priceDigits = priceString.match(/\d+/);
+      const amountINR = priceDigits ? parseInt(priceDigits[0], 10) : 0;
+
+      if (amountINR <= 0) {
+        // If amount is zero or invalid, just submit enquiry without payment
+        const resNoPay = await fetch(`${API_URL}/enquiry`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        if (!resNoPay.ok) throw new Error("Failed to submit enquiry");
+        toast.success("Enquiry submitted");
+        if (closeRef.current) closeRef.current.click();
+        return;
+      }
+
+      // Create Razorpay order on server
+      const orderResp = await fetch(`${API_URL}/razorpay/create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          amount: amountINR,
+          currency: "INR",
+          receipt: `enquiry_receipt_${Date.now()}`,
+        }),
       });
+      if (!orderResp.ok) throw new Error("Failed to create payment order");
+      const order = await orderResp.json();
 
-      if (!res.ok) throw new Error("Failed to submit enquiry");
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: "Mr English Training Academy",
+        description: cleanTitle,
+        order_id: order.id,
+        handler: async function (response) {
+          try {
+            // Attach razorpay details to enquiry payload
+            const payload = {
+              ...data,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              amount: order.amount,
+              currency: order.currency,
+            };
 
-      toast.success(" Enquiry submitted");
+            const res = await fetch(`${API_URL}/enquiry`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
 
-      // 🔥 AUTO CLOSE THE DIALOG
-      if (closeRef.current) closeRef.current.click();
+            if (!res.ok) {
+              toast.error("Failed to save enquiry after payment");
+              return;
+            }
+
+            toast.success("Payment successful and enquiry saved");
+            if (closeRef.current) closeRef.current.click();
+          } catch (err) {
+            console.error("Error saving enquiry after payment:", err);
+            toast.error("Error saving enquiry after payment");
+          }
+        },
+        prefill: {
+          name: formData.get("name") || "",
+          email: formData.get("email") || "",
+          contact: formData.get("whatsappNo") || "",
+        },
+        notes: {},
+        theme: { color: "#b28704" },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (error) {
       console.error("❌ Error:", error);
+      toast.error("Payment failed or could not start checkout");
     }
   };
 
@@ -124,7 +204,7 @@ const HeroSection = () => {
                 {
                   title: <>English<br />Course</>,
                   sub: "English Course",
-                  price: "999",
+                  price: "1499",
                   icon: BookOpen,
                   className:
                     "bg-gradient-to-r from-blue-500 to-cyan-500",
@@ -132,7 +212,7 @@ const HeroSection = () => {
                 {
                   title: "Counselling Session by Founder",
                   sub: <>Counselling Session by <br /> Founder</>,
-                  price: "749",
+                  price: "499",
                   icon: MessageCircle,
                   className:
                     "bg-gradient-to-r from-green-500 to-lime-400",
@@ -140,7 +220,7 @@ const HeroSection = () => {
                 {
                   title: <>Chat<br />Buddy</>,
                   sub: "Chat Buddy",
-                  price: "199",
+                  price: "2000/m",
                   icon: Award,
                   className:
                     "bg-gradient-to-r from-yellow-400 to-orange-400",

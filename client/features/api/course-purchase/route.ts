@@ -8,7 +8,19 @@ export const getCoursedetailWithPurchaseStatus = async (courseId: string, userId
       const {data} = await axios.get(`${API_BASE_URL}/${courseId}`, {
         params: { userId }
       });
-      return data;
+
+      // Normalize `purchased` based on any purchase record status returned from server.
+      // Some backends may return a `coursePurchase` object with a `status` field
+      // (eg. 'pending', 'paid', 'failed'). Only treat as purchased when status
+      // clearly indicates success.
+      let purchasedFlag = !!data?.purchased;
+      const status = data?.coursePurchase?.status;
+      if (status && typeof status === 'string') {
+        const s = status.toLowerCase();
+        purchasedFlag = s === 'paid' || s === 'success' || s === 'completed';
+      }
+
+      return { ...data, purchased: purchasedFlag };
     } catch (error) {
       console.error("Error fetching course:", error);
     }
