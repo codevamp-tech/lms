@@ -17,6 +17,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import toast from "react-hot-toast";
 
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,7 +69,7 @@ const HeroSection = () => {
 
       if (!res.ok) throw new Error("Failed to submit enquiry");
 
-      console.log("✅ Enquiry submitted");
+      toast.success(" Enquiry submitted");
 
       // 🔥 AUTO CLOSE THE DIALOG
       if (closeRef.current) closeRef.current.click();
@@ -176,7 +177,13 @@ const HeroSection = () => {
                         </div>
                         <div className="grid gap-2">
                           <Label>Whatsapp Number</Label>
-                          <Input name="whatsappNo" type="tel" required />
+                          <Input
+                            name="whatsappNo"
+                            type="tel"
+                            required
+                            pattern="[0-9]{10}"
+                          />
+
                         </div>
                       </div>
 
