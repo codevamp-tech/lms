@@ -20,18 +20,29 @@ export class EnquiryService {
   });
 
   async create(createEnquiryDto: CreateEnquiryDto): Promise<Enquiry> {
-    const created = new this.enquiryModel(createEnquiryDto);
-    const createdEnquiry = created.save();
+  console.log("Received data:", createEnquiryDto);
 
-    console.log(createdEnquiry, 'enquiry hogya')
-    // Send welcome email to the instructor
-    await this.sendEnquiryEmail(
-      createEnquiryDto.email,
-      createEnquiryDto.name
-    );
-    console.log('email send hogya')
+  try {
+    console.log("Connecting to database...");
+
+    const created = new this.enquiryModel(createEnquiryDto);
+    console.log("Model created, saving now...");
+
+    const createdEnquiry = await created.save();
+    console.log("Saved successfully:", createdEnquiry);
+
+    console.log("Email sending starting...");
+    // await this.sendEnquiryEmail(createEnquiryDto.email, createEnquiryDto.name);
+    console.log("Email sent successfully");
+
     return createdEnquiry;
+
+  } catch (error) {
+    console.error("ERROR in create enquiry:", error);
+    throw error;
   }
+}
+
 
   async findAll(): Promise<Enquiry[]> {
     return this.enquiryModel.find().exec();
@@ -50,7 +61,7 @@ export class EnquiryService {
     name: string
   ) {
     const mailOptions = {
-      from: 'info@mrenglisgacademy.com',
+      from: 'amangowhar@gmail.com',
       to: `${email}`,
       subject: 'Welcome to Mr English Training Academy',
       html: `
@@ -63,7 +74,7 @@ export class EnquiryService {
           <p>Best Regards,</p>
           <p>The LMS Team</p>
         </div>
-      </div>
+      </div> 
     `,
     };
     try {
