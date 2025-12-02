@@ -23,6 +23,22 @@ export class Enquiry {
 
   @Prop()
   price?: string;
+
+  @Prop()
+  razorpay_payment_id: string;
+
+  @Prop()
+  razorpay_order_id: string;
+
+  @Prop()
+
+  razorpay_signature: string;
+
+  @Prop()
+  amount: string;
+
+  @Prop()
+  currency: string;
 }
 
 export const EnquirySchema = SchemaFactory.createForClass(Enquiry);

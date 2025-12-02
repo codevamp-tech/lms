@@ -28,6 +28,7 @@ import { createRazorpayOrder, verifyPayment } from "@/features/api/course-purcha
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQueryClient } from '@tanstack/react-query';
 
 const CourseDetail = () => {
   const { courseId } = useParams();
@@ -47,6 +48,7 @@ const CourseDetail = () => {
     isLoading,
     error,
   } = useCourseDetails(courseId, userId);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -129,6 +131,12 @@ const CourseDetail = () => {
 
           if (data?.success) {
             toast.success("Payment successful!");
+            // Ensure UI reflects the updated purchase status by invalidating the query.
+            try {
+              queryClient.invalidateQueries(['courseDetails', courseId, userId]);
+            } catch (err) {
+              // ignore
+            }
             router.push(`/course/course-progress/${courseId}`);
           } else {
             toast.error("Payment verification failed.");
@@ -145,12 +153,56 @@ const CourseDetail = () => {
         theme: {
           color: "#3399cc",
         },
+        // When the user closes the Razorpay modal without completing payment
+        // the `modal.ondismiss` callback is invoked. Use it to refresh course
+        // status so pending purchases are not treated as paid in the UI.
+        modal: {
+          ondismiss: async function () {
+            try {
+              // Try to notify backend to mark the purchase cancelled/finalized.
+              // NOTE: Server endpoint may not exist; this is a best-effort call.
+              await fetch(`${process.env.NEXT_PUBLIC_API_URL}/course-purchase/${userId}/${courseId}/cancel`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: order.id }),
+              });
+            } catch (err) {
+              // ignore network errors
+            }
+            try {
+              queryClient.invalidateQueries(['courseDetails', courseId, userId]);
+            } catch (err) {}
+            toast('Payment cancelled');
+          }
+        }
       };
 
       const rzp = new window.Razorpay(options);
+      // handle payment failed event
+      try {
+        rzp.on('payment.failed', async function(response) {
+          try {
+            // Best-effort: inform backend that payment failed so pending record can be updated.
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/course-purchase/mark-failed`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.error?.metadata?.order_id || order.id,
+                razorpay_payment_id: response.error?.metadata?.payment_id || null,
+                userId,
+                courseId,
+              }),
+            });
+          } catch (err) {}
+          try { queryClient.invalidateQueries(['courseDetails', courseId, userId]); } catch (err) {}
+          toast.error('Payment failed');
+        });
+      } catch (err) {
+        // Some environments may not support `.on`; ignore silently
+      }
       rzp.open();
     } catch (error) {
-      toast.error("Error during checkout:", error);
+      toast.error("Error during checkout");
     }
   };
 

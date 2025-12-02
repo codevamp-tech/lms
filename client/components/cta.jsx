@@ -63,7 +63,7 @@ export default function CTASection() {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 text-balance"
           >
-            Join 15,000+ English Learners Worldwide
+            Join 10,000+ English Learners Worldwide
           </motion.h2>
           
           <motion.p

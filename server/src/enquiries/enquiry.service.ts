@@ -20,20 +20,14 @@ export class EnquiryService {
   });
 
   async create(createEnquiryDto: CreateEnquiryDto): Promise<Enquiry> {
-  console.log("Received data:", createEnquiryDto);
 
   try {
-    console.log("Connecting to database...");
 
     const created = new this.enquiryModel(createEnquiryDto);
-    console.log("Model created, saving now...");
 
     const createdEnquiry = await created.save();
-    console.log("Saved successfully:", createdEnquiry);
-
-    console.log("Email sending starting...");
+  
     // await this.sendEnquiryEmail(createEnquiryDto.email, createEnquiryDto.name);
-    console.log("Email sent successfully");
 
     return createdEnquiry;
 

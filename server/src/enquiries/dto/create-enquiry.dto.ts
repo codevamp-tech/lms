@@ -24,4 +24,25 @@ export class CreateEnquiryDto {
   @IsOptional()
   @IsString()
   price?: string;
+
+  @IsOptional()
+  @IsString()
+
+  razorpay_payment_id: string;
+
+  @IsOptional()
+  @IsString()
+  razorpay_order_id: string;
+
+  @IsOptional()
+  @IsString()
+  razorpay_signature: string;
+
+  @IsOptional()
+  @IsString()
+  amount: string;
+
+  @IsOptional()
+  @IsString()
+  currency: string;
 }

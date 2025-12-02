@@ -41,17 +41,24 @@ export class CoursePurchaseService {
       throw new NotFoundException('Course not found!');
     }
 
-    let purchased = null;
+    let purchaseRecord = null;
     if (userId) {
-      purchased = await this.coursePurchaseModel.findOne({
+      purchaseRecord = await this.coursePurchaseModel.findOne({
         userId,
         courseId,
       });
     }
 
+    // Only consider the course 'purchased' when the purchase record
+    // explicitly indicates a completed payment. Pending/failed should
+    // not grant access.
+    const purchased = !!(purchaseRecord && purchaseRecord.status === 'completed');
+
     return {
       course,
-      purchased: !!purchased,
+      purchased,
+      // expose the raw purchase record so clients can show pending/failed state
+      coursePurchase: purchaseRecord || null,
     };
   }
 
@@ -156,6 +163,47 @@ export class CoursePurchaseService {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  async cancelPurchase(userId: string, courseId: string, orderId?: string) {
+    // Mark a pending purchase as failed/cancelled when user dismisses checkout
+    const query: any = { userId, courseId };
+    if (orderId) query.paymentId = orderId;
+
+    const purchase = await this.coursePurchaseModel.findOne(query);
+    if (!purchase) {
+      return { success: false, message: 'No pending purchase found' };
+    }
+
+    if (purchase.status === 'completed') {
+      return { success: false, message: 'Purchase already completed' };
+    }
+
+    purchase.status = 'failed';
+    await purchase.save();
+
+    return { success: true };
+  }
+
+  async markFailed(body: { razorpay_order_id?: string; razorpay_payment_id?: string; userId?: string; courseId?: string; }) {
+    const { razorpay_order_id } = body;
+    if (!razorpay_order_id) {
+      throw new HttpException('Order id required', HttpStatus.BAD_REQUEST);
+    }
+
+    const purchase = await this.coursePurchaseModel.findOne({ paymentId: razorpay_order_id });
+    if (!purchase) {
+      return { success: false, message: 'Purchase not found' };
+    }
+
+    if (purchase.status === 'completed') {
+      return { success: false, message: 'Purchase already completed' };
+    }
+
+    purchase.status = 'failed';
+    await purchase.save();
+
+    return { success: true };
   }
 
   async handleWebhook(signature: string, body: any) {
