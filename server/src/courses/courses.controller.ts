@@ -23,14 +23,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('courses')
 export class CoursesController {
-  constructor(private readonly coursesService: CoursesService) {}
+  constructor(private readonly coursesService: CoursesService) { }
 
-  @Delete(':id')
-  async deleteCourse(
-    @Param('id') courseId: string,
-  ): Promise<{ message: string }> {
-    return this.coursesService.deleteCourse(courseId);
-  }
+
 
   @Post()
   async createCourse(@Body() createCourseDto: CreateCourseDto) {
@@ -73,6 +68,15 @@ export class CoursesController {
     }
   }
 
+  @Get('summary')
+  async getCourseAnalytics() {
+    try {
+      return await this.coursesService.getCourseAnalytics();
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch analytics');
+    }
+  }
+
   @Patch(':courseId')
   @UseInterceptors(FileInterceptor('thumbnail')) // Intercept the 'thumbnail' file
   async editCourse(
@@ -90,6 +94,13 @@ export class CoursesController {
       course,
       message: 'Course updated successfully.',
     };
+  }
+
+  @Delete(':id')
+  async deleteCourse(
+    @Param('id') courseId: string,
+  ): Promise<{ message: string }> {
+    return this.coursesService.deleteCourse(courseId);
   }
 
   @Get(':courseId')
@@ -169,6 +180,10 @@ export class CoursesController {
   async findAll(): Promise<Course[]> {
     return this.coursesService.findAll();
   }
+
+
+
+
 
   // You can add more routes here for updating or deleting courses
 }
