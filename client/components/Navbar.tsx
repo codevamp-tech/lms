@@ -47,7 +47,7 @@ const Navbar = () => {
   const userId = getUserIdFromToken();
   const { data: user, isLoading, error, refetch } = useUserProfile(userId);
   const [logo, setLogo] = useState<string>("/img/MrLogo.png");
-
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(!!user);
   const clearCookies = () => {
     const cookies = document.cookie.split("; ");
     cookies.forEach((cookie) => {
@@ -58,6 +58,16 @@ const Navbar = () => {
 
   const logoutHandler = async () => {
     clearCookies();
+    // update local login state so UI updates immediately
+    setIsLoggedIn(false);
+    // trigger a refetch of profile data (if available) to keep hook state in-sync
+    try {
+      await refetch?.();
+    } catch (err) {
+      // ignore refetch errors; UI already updated
+      // eslint-disable-next-line no-console
+      console.error("refetch error:", err);
+    }
     router.push("/");
     toast.success("You have been logged out.");
   };
@@ -68,6 +78,11 @@ const Navbar = () => {
       refetch();
     }
   }, [userId, router, refetch]);
+
+  // keep local isLoggedIn in-sync with `user` returned from the hook
+  useEffect(() => {
+    setIsLoggedIn(!!user);
+  }, [user]);
 
   const fetchLogo = useCallback(async () => {
     const companyId = localStorage.getItem("companyId");
@@ -206,7 +221,7 @@ const Navbar = () => {
             </Link>
           </div>
           <DarkMode />
-          {user ? (
+          {user && isLoggedIn ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar className="cursor-pointer">
@@ -312,6 +327,13 @@ const DropdownMenuItems = ({ user }) => {
           </Link>
         </>
       )}
+      {/* Common: Change Password for all logged-in users */}
+      <Link href="/change-password">
+        <DropdownMenuItem className="cursor-pointer">
+          <Shield className="mr-2 h-4 w-4" />
+          <span>Change Password</span>
+        </DropdownMenuItem>
+      </Link>
     </>
   );
 };

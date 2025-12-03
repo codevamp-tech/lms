@@ -11,6 +11,7 @@ export interface LiveSessionData {
     companyId: string;
     meetLink?: string;
     enrolledUsers?: string[];
+    imageUrl?: string;
 }
 
 export const createLiveSession = async (sessionData: LiveSessionData): Promise<LiveSessionData> => {

@@ -1,8 +1,10 @@
-import { Controller, Post, Body, Get, Query, Res, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Res, Param, Put, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { LiveSessionService } from './live-session.service';
 import { Response } from 'express';
 import { CreateLiveSessionDto } from './dto/create-live-session.dto';
 import { EditLiveSessionDto } from './dto/edit-live-session.dto';
+import { uploadMedia } from '../../utils/cloudinary';
 
 @Controller('live-session')
 export class LiveSessionController {
@@ -11,6 +13,16 @@ export class LiveSessionController {
   @Post()
   create(@Body() createLiveSessionDto: CreateLiveSessionDto) {
     return this.liveSessionService.create(createLiveSessionDto);
+  }
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      return { error: 'No file provided' };
+    }
+    const result: any = await uploadMedia(file.buffer, { folder: 'live_sessions' });
+    return { url: result.secure_url, public_id: result.public_id };
   }
 
   @Get()

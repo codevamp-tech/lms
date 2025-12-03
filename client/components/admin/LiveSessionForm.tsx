@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { LiveSessionData } from "@/features/api/live-session";
 import useLiveSessions from "@/hooks/useLiveSessions";
+import { axiosInstance } from "@/lib/axios";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -50,6 +51,10 @@ const LiveSessionForm: React.FC<LiveSessionFormProps> = ({ session, onFinished }
     },
   });
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
   useEffect(() => {
     if (session) {
       reset({
@@ -59,37 +64,73 @@ const LiveSessionForm: React.FC<LiveSessionFormProps> = ({ session, onFinished }
         duration: session.duration?.toString(),
         price: session.price?.toString(),
       });
+      if ((session as any).imageUrl) {
+        setPreviewUrl((session as any).imageUrl);
+      }
     }
   }, [session, reset]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    if (session) {
-      const updatedData = {
-        ...values,
-        date: new Date(values.date),
-        duration: parseInt(values.duration),
-        price: parseInt(values.price),
-      };
-      updateLiveSession({ sessionId: session._id!, updatedData });
-    } else {
-      const companyId = localStorage.getItem("companyId");
-      const instructorId = localStorage.getItem("userId");
-      if (!companyId || !instructorId) {
-        alert("Company ID or Instructor ID not found. Please log in again.");
-        return;
+    (async () => {
+      let imageUrl: string | undefined = undefined;
+      if (selectedFile) {
+        try {
+          setUploading(true);
+          const formData = new FormData();
+          formData.append("file", selectedFile);
+          const resp = await axiosInstance.post("/live-session/upload", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          imageUrl = resp.data.url;
+        } catch (err) {
+          alert("Image upload failed. Please try again.");
+          setUploading(false);
+          return;
+        } finally {
+          setUploading(false);
+        }
       }
-      const sessionData = {
-        ...values,
-        date: new Date(values.date),
-        duration: parseInt(values.duration),
-        price: parseInt(values.price),
-        companyId,
-        instructor: instructorId,
-      };
-      createLiveSession(sessionData);
+
+      if (session) {
+        const updatedData: any = {
+          ...values,
+          date: new Date(values.date),
+          duration: parseInt(values.duration),
+          price: parseInt(values.price),
+        };
+        if (imageUrl) updatedData.imageUrl = imageUrl;
+        updateLiveSession({ sessionId: session._id!, updatedData });
+      } else {
+        const companyId = localStorage.getItem("companyId");
+        const instructorId = localStorage.getItem("userId");
+        if (!companyId || !instructorId) {
+          alert("Company ID or Instructor ID not found. Please log in again.");
+          return;
+        }
+        const sessionData: any = {
+          ...values,
+          date: new Date(values.date),
+          duration: parseInt(values.duration),
+          price: parseInt(values.price),
+          companyId,
+          instructor: instructorId,
+        };
+        if (imageUrl) sessionData.imageUrl = imageUrl;
+        createLiveSession(sessionData);
+      }
+      setIsOpen(false);
+      if (onFinished) onFinished();
+    })();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setSelectedFile(file);
+    if (file) {
+      setPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setPreviewUrl(null);
     }
-    setIsOpen(false);
-    if (onFinished) onFinished();
   };
 
   return (
@@ -146,8 +187,15 @@ const LiveSessionForm: React.FC<LiveSessionFormProps> = ({ session, onFinished }
             />
             {errors.price && <p className="text-red-500">{errors.price.message}</p>}
           </div>
-          <Button type="submit">
-            {session ? "Update Session" : "Create Session"}
+          <div>
+            <label>Image (optional)</label>
+            <input type="file" accept="image/*" onChange={handleFileChange} />
+            {previewUrl && (
+              <img src={previewUrl} alt="preview" className="h-32 mt-2 object-cover" />
+            )}
+          </div>
+          <Button type="submit" disabled={uploading}>
+            {uploading ? "Uploading..." : session ? "Update Session" : "Create Session"}
           </Button>
         </form>
       </DialogContent>

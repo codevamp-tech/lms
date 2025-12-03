@@ -27,6 +27,7 @@ import { CreateInstructorDto } from './dto/create-instructor';
 import { ResetPasswordDto } from './dto/reset-password';
 import { ForgotPasswordDto } from './dto/forgot-password';
 import { CreateAdminDto } from './dto/create-admin';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('users')
 export class UsersController {
@@ -182,6 +183,24 @@ export class UsersController {
         { message: error.message || 'Password reset failed.' },
         HttpStatus.BAD_REQUEST,
       );
+    }
+  }
+
+  @Post('change-password')
+  async changePassword(@Body() changePasswordDto: ChangePasswordDto) {
+    const { userId, currentPassword, newPassword } = changePasswordDto;
+    try {
+      const result = await this.usersService.changePassword(
+        userId,
+        currentPassword,
+        newPassword,
+      );
+      return result;
+    } catch (error) {
+      if (error.status && error.message) {
+        throw error;
+      }
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

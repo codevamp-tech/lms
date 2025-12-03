@@ -378,6 +378,37 @@ export class UsersService {
     }
   }
 
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    try {
+      const user = await this.userModel.findById(userId);
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        throw new HttpException(
+          'Current password is incorrect',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      user.password = hashedPassword;
+      await user.save();
+
+      return { success: true, message: 'Password changed successfully' };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      console.error('Error in changePassword:', error);
+      throw new HttpException('Failed to change password', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   private async sendWelcomeEmail(
     email: string,
     name: string,

@@ -82,7 +82,12 @@ const EnrollLivePage = () => {
             <h1 className="text-3xl font-bold mb-8">Available Live Sessions</h1>
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {sessions?.map((session: LiveSessionData) => (
-                    <Card key={session._id}>
+                    <Card key={session._id} className="overflow-hidden">
+                        {session.imageUrl && (
+                            <div className="w-full h-48 overflow-hidden bg-gray-100">
+                                <img src={session.imageUrl} alt={session.title} className="w-full h-full object-cover" />
+                            </div>
+                        )}
                         <CardHeader>
                             <CardTitle>{session.title}</CardTitle>
                         </CardHeader>
