@@ -29,6 +29,9 @@ export class LiveSession extends Document {
 
   @Prop()
   companyId: string;
+
+  @Prop()
+  imageUrl: string;
 }
 
 export const LiveSessionSchema = SchemaFactory.createForClass(LiveSession);

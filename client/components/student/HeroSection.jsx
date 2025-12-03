@@ -22,6 +22,8 @@ import toast from "react-hot-toast";
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
+  const [selectedEnquiry, setSelectedEnquiry] = useState(null);
+  const enquiryFormRef = useRef(null);
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
@@ -33,33 +35,37 @@ const HeroSection = () => {
   // 🔥 Dialog close button ref
   const closeRef = useRef(null);
 
+  function waitForFormData() {
+    return new Promise((resolve) => {
+
+      const checkForm = setInterval(() => {
+        const form = enquiryFormRef.current;
+
+        if (form) {
+          clearInterval(checkForm);
+
+          form.onsubmit = (e) => {
+            e.preventDefault();
+
+            const data = new FormData(form);
+
+            resolve({
+              name: data.get("name"),
+              email: data.get("email"),
+              whatsapp: data.get("whatsappNo"),
+              status: "open",
+            });
+          };
+        }
+      }, 50); // checks every 50ms until form exists
+    });
+  }
+
+
+
   // Function to handle form submission
-  const handleSubmit = async (e, offer) => {
-    e.preventDefault();
-
-    const formData = new FormData(e.target);
-
-    const typeMap = {
-      "English Course": "course",
-      "Counselling Session by Founder": "counselling",
-      "Chat Buddy": "chat",
-    };
-
-    const cleanTitle =
-      typeof offer.title === "string"
-        ? offer.title
-        : offer.title.props.children.join(" ");
-
-    const type = typeMap[cleanTitle] || "course";
-
-    const data = {
-      name: formData.get("name"),
-      email: formData.get("email"),
-      whatsapp: formData.get("whatsappNo"),
-      type: type,
-      status: "open",
-    };
-
+  const handleEnquiryAndPayment = async (offer) => {
+   const title = offer.sub;
     try {
       // Ensure Razorpay script is loaded
       if (!window.Razorpay) {
@@ -77,19 +83,6 @@ const HeroSection = () => {
       const priceString = String(offer.price || "0");
       const priceDigits = priceString.match(/\d+/);
       const amountINR = priceDigits ? parseInt(priceDigits[0], 10) : 0;
-
-      if (amountINR <= 0) {
-        // If amount is zero or invalid, just submit enquiry without payment
-        const resNoPay = await fetch(`${API_URL}/enquiry`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-        if (!resNoPay.ok) throw new Error("Failed to submit enquiry");
-        toast.success("Enquiry submitted");
-        if (closeRef.current) closeRef.current.click();
-        return;
-      }
 
       // Create Razorpay order on server
       const orderResp = await fetch(`${API_URL}/razorpay/create-order`, {
@@ -109,19 +102,30 @@ const HeroSection = () => {
         amount: order.amount,
         currency: order.currency,
         name: "Mr English Training Academy",
-        description: cleanTitle,
+        description: title,
         order_id: order.id,
         handler: async function (response) {
           try {
             // Attach razorpay details to enquiry payload
-            const payload = {
-              ...data,
+            let payload = {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
               amount: order.amount,
               currency: order.currency,
             };
+
+            toast.success("Payment successful.");
+
+            // open form submission after payment success
+            setSelectedEnquiry(offer);
+
+            // 🔥 WAIT until the form is submitted (PAUSE here)
+            const formData = await waitForFormData();
+
+            // add type
+            formData.type = title;
+            payload = { ...payload, ...formData };
 
             const res = await fetch(`${API_URL}/enquiry`, {
               method: "POST",
@@ -141,11 +145,11 @@ const HeroSection = () => {
             toast.error("Error saving enquiry after payment");
           }
         },
-        prefill: {
-          name: formData.get("name") || "",
-          email: formData.get("email") || "",
-          contact: formData.get("whatsappNo") || "",
-        },
+        // prefill: {
+        //   name: formData.get("name") || "",
+        //   email: formData.get("email") || "",
+        //   contact: formData.get("whatsappNo") || "",
+        // },
         notes: {},
         theme: { color: "#b28704" },
       };
@@ -202,8 +206,8 @@ const HeroSection = () => {
             >
               {[
                 {
-                  title: <>English<br />Course</>,
-                  sub: "English Course",
+                  title: "English Course",
+                  sub: "course",
                   price: "1499",
                   icon: BookOpen,
                   className:
@@ -211,80 +215,80 @@ const HeroSection = () => {
                 },
                 {
                   title: "Counselling Session by Founder",
-                  sub: <>Counselling Session by <br /> Founder</>,
+                  sub: "course",
                   price: "499",
                   icon: MessageCircle,
                   className:
                     "bg-gradient-to-r from-green-500 to-lime-400",
                 },
                 {
-                  title: <>Chat<br />Buddy</>,
-                  sub: "Chat Buddy",
+                  title: "Chat Buddy",
+                  sub: "chat",
                   price: "2000/m",
                   icon: Award,
                   className:
                     "bg-gradient-to-r from-yellow-400 to-orange-400",
                 },
-              ].map((offer, i) => (
-                <Dialog key={i}>
-                  <DialogTrigger asChild>
-                    <div
-                      className={`${offer.className} p-6 rounded-xl cursor-pointer shadow-lg hover:shadow-xl`}
-                    >
-                      <offer.icon className="w-10 h-10 mb-4 mx-auto" />
-                      <h3 className="text-lg font-bold">{offer.title}</h3>
-                      <p className="text-2xl font-bold">₹{offer.price}</p>
-                    </div>
-                  </DialogTrigger>
-
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>{offer.sub}</DialogTitle>
-                      <DialogDescription>
-                        Fill in your details to enroll
-                      </DialogDescription>
-                    </DialogHeader>
-
-                    <form onSubmit={(e) => handleSubmit(e, offer)}>
-                      <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                          <Label>Name</Label>
-                          <Input name="name" required />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Email</Label>
-                          <Input name="email" type="email" required />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label>Whatsapp Number</Label>
-                          <Input
-                            name="whatsappNo"
-                            type="tel"
-                            required
-                            pattern="[0-9]{10}"
-                          />
-
-                        </div>
-                      </div>
-
-                      <DialogFooter>
-                        <DialogClose asChild>
-                          <Button type="button" variant="outline">
-                            Cancel
-                          </Button>
-                        </DialogClose>
-
-                        <Button type="submit">Submit</Button>
-                      </DialogFooter>
-
-                      {/* 🔥 Hidden auto-close button */}
-                      <DialogClose asChild>
-                        <button ref={closeRef} style={{ display: "none" }} />
-                      </DialogClose>
-                    </form>
-                  </DialogContent>
-                </Dialog>
+              ].map((offer) => (
+                <>
+                  <div
+                    className={`${offer.className} p-6 rounded-xl cursor-pointer shadow-lg hover:shadow-xl`}
+                    onClick={() => handleEnquiryAndPayment(offer)}
+                  >
+                    <offer.icon className="w-10 h-10 mb-4 mx-auto" />
+                    <h3 className="text-lg font-bold">{offer.title}</h3>
+                    <p className="text-2xl font-bold">₹{offer.price}</p>
+                  </div>
+                </>
               ))}
+              <Dialog open={!!selectedEnquiry} onOpenChange={() => setSelectedEnquiry(null)}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{selectedEnquiry?.title}</DialogTitle>
+                    <DialogDescription>
+                      Fill in your details to enroll
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <form id="enquiryForm" ref={enquiryFormRef}>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label>Name</Label>
+                        <Input name="name" required />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Email</Label>
+                        <Input name="email" type="email" required />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Whatsapp Number</Label>
+                        <Input
+                          name="whatsappNo"
+                          type="tel"
+                          required
+                          pattern="[0-9]{10}"
+                        />
+
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button type="button" variant="outline">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+
+                      <Button type="submit">Submit</Button>
+                    </DialogFooter>
+
+                    {/* 🔥 Hidden auto-close button */}
+                    <DialogClose asChild>
+                      <button ref={closeRef} style={{ display: "none" }} />
+                    </DialogClose>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </motion.div>
           </motion.div>
         </div>

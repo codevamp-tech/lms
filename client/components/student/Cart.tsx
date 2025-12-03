@@ -128,6 +128,59 @@ export default function Cart() {
     return { totalPrice, totalMRP, totalDiscount };
   }, [cart]);
 
+  const handleProceedToCheckout = async () => {
+    if (!userId) {
+      router.push("/login");
+      return;
+    }
+
+    if (cart.length === 0) {
+      toast.error("Your cart is empty.");
+      return;
+    }
+
+    const courseId = cart[0].courseId._id;
+
+    try {
+      const { order } = await createRazorpayOrder(courseId, userId);
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: "LMS Platform",
+        description: "Course Purchase",
+        order_id: order.id,
+        handler: async function (response: { razorpay_payment_id: any; razorpay_order_id: any; razorpay_signature: any; }) {
+          const data = await verifyPayment({
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+          });
+          if (data?.success) {
+            toast.success("Payment successful!");
+            router.push(`/course/course-progress/${courseId}`);
+          } else {
+            toast.error("Payment verification failed.");
+          }
+        },
+        prefill: {
+          name: "",
+          email: "",
+          contact: "",
+        },
+        notes: {},
+        theme: { color: "#3399cc" },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      toast.error("Failed to initiate payment. Please try again.");
+      console.error(error);
+    }
+  };
+
   if (isLoading) {
     return <CartSkeleton />;
   }
@@ -288,6 +341,7 @@ export default function Cart() {
               totalPrice={totalPrice}
               totalMRP={totalMRP}
               totalDiscount={totalDiscount}
+              onProceed={handleProceedToCheckout}
             />
           </div>
         </div>
@@ -371,27 +425,24 @@ interface CheckoutSummaryProps {
   totalPrice: number;
   totalMRP: number;
   totalDiscount: number;
+  onProceed: () => void | Promise<void>;
 }
 
-const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ totalPrice, totalMRP, totalDiscount }) => (
+const CheckoutSummary: React.FC<CheckoutSummaryProps> = ({ totalPrice, totalMRP, totalDiscount, onProceed }) => (
   <div className="p-6 bg-card dark:bg-gray-800/50 rounded-lg shadow-sm border">
     <h2 className="text-2xl font-bold mb-4">Order Summary</h2>
     <div className="space-y-2">
       <div className="flex justify-between">
-        {/* <span>Original Price:</span> */}
-        {/* <span className="line-through text-muted-foreground">₹{totalMRP ? totalMRP : '0'}</span> */}
       </div>
       <div className="flex justify-between text-green-600 dark:text-green-400">
-        {/* <span>Discount:</span> */}
-        {/* <span>-₹{totalDiscount}</span> */}
       </div>
       <hr className="my-2" />
       <div className="flex justify-between text-xl font-bold">
         <span>Total:</span>
-        <span>₹{199}</span>
+        <span>₹{totalPrice}</span>
       </div>
     </div>
-    <Button size="lg" className="w-full mt-6" onClick={() => toast.success("Proceeding to checkout!")}>
+    <Button size="lg" className="w-full mt-6" onClick={onProceed}>
       Proceed to Checkout <ArrowRight className="ml-2 h-5 w-5" />
     </Button>
   </div>

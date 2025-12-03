@@ -233,12 +233,33 @@ export default function ContactUs() {
                 <div>
                   <h3 className="font-semibold text-foreground">Phone</h3>
                   <div className="space-y-1">
-                    <a href="tel:+917006138299" className="block text-sm text-primary hover:underline">
-                      +91 70061 38299
-                    </a>
-                    <a href="tel:+919906933270" className="block text-sm text-primary hover:underline">
-                      +91 99069 33270
-                    </a>
+                    <div>
+                      <a href="tel:+917006138299" className="block text-sm text-primary hover:underline">
+                        +91 70061 38299
+                      </a>
+                      <a
+                        href={encodeURI("https://wa.me/917006138299?text=Hello%20Mr%20English%20Training%20Academy")}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 mt-1 text-sm text-white bg-[#25D366] px-3 py-1 rounded-lg hover:opacity-90"
+                      >
+                        Chat on WhatsApp
+                      </a>
+                    </div>
+
+                    <div>
+                      <a href="tel:+919906933270" className="block text-sm text-primary hover:underline">
+                        +91 99069 33270
+                      </a>
+                      <a
+                        href={encodeURI("https://wa.me/919906933270?text=Hello%20Mr%20English%20Training%20Academy")}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 mt-1 text-sm text-white bg-[#25D366] px-3 py-1 rounded-lg hover:opacity-90"
+                      >
+                        Chat on WhatsApp
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -27,4 +27,8 @@ export class CreateLiveSessionDto {
 
     @IsNumber()
     readonly price: number;
+
+    @IsString()
+    @IsOptional()
+    readonly imageUrl?: string;
 }
