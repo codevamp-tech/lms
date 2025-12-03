@@ -17,7 +17,7 @@ export default function ContactUs() {
     setStatus({ type: "sending" });
 
     try {
-      const res = await fetch("http://localhost:3001/enquiry", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/enquiry`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

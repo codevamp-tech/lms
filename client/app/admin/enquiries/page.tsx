@@ -26,7 +26,7 @@ export default function EnquiryPage() {
   useEffect(() => {
     const fetchEnquiry = async () => {
       try {
-        const res = await fetch("http://localhost:3001/enquiry");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/enquiry`);
         const data = await res.json();
         setEnquiries(data);
       } catch (error) {

@@ -12,30 +12,32 @@ export class EnquiryService {
   ) { }
 
   private transporter = nodemailer.createTransport({
-    host: 'in-v3.mailjet.com',
+    host: "in-v3.mailjet.com",
+    port: 587,
+    secure: false, // STARTTLS
     auth: {
-      user: '7a398468d064c91603bdedd9fa1fed72',
-      pass: '1e68082af92350e3a6c91ed7fff7dceb',
+      user: "6d9d2b695aaa468ff27e6092aa898e46", // API Key
+      pass: "c58fcc66806be8c52dd4ea90005ac0b9",     // Secret Key (unmasked)
     },
   });
 
   async create(createEnquiryDto: CreateEnquiryDto): Promise<Enquiry> {
 
-  try {
+    try {
 
-    const created = new this.enquiryModel(createEnquiryDto);
+      const created = new this.enquiryModel(createEnquiryDto);
 
-    const createdEnquiry = await created.save();
-  
-    // await this.sendEnquiryEmail(createEnquiryDto.email, createEnquiryDto.name);
+      const createdEnquiry = await created.save();
 
-    return createdEnquiry;
+      await this.sendEnquiryEmail(createEnquiryDto.email, createEnquiryDto.name);
 
-  } catch (error) {
-    console.error("ERROR in create enquiry:", error);
-    throw error;
+      return createdEnquiry;
+
+    } catch (error) {
+      console.error("ERROR in create enquiry:", error);
+      throw error;
+    }
   }
-}
 
 
   async findAll(): Promise<Enquiry[]> {
@@ -55,7 +57,7 @@ export class EnquiryService {
     name: string
   ) {
     const mailOptions = {
-      from: 'amangowhar@gmail.com',
+      from: 'info@themrenglish.com',
       to: `${email}`,
       subject: 'Welcome to Mr English Training Academy',
       html: `
@@ -66,7 +68,7 @@ export class EnquiryService {
           <p>We are excited to inform you that you have been successfully enquired to our platform.</p>
           <p>If you did not request this, you can safely ignore this email.</p>
           <p>Best Regards,</p>
-          <p>The LMS Team</p>
+          <p>Mr English Training Academy</p>
         </div>
       </div> 
     `,
