@@ -7,6 +7,21 @@ import { getUserIdFromToken } from "@/utils/helpers"
 import useCourses from "@/hooks/useCourses"
 import { TrendingUp, ShoppingCart, DollarSign, BookOpen, IndianRupee } from "lucide-react"
 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts"
+
 interface StatCardProps {
   label: string
   value: string | number
@@ -16,6 +31,8 @@ interface StatCardProps {
   trend?: string
   trendUp?: boolean
 }
+
+const COLORS = ["#3b82f6", "#10b981", "#f59e0b"]
 
 const StatCard: React.FC<StatCardProps> = ({ label, value, href, isLoading, icon, trend, trendUp = true }) => {
   const content = (
@@ -60,10 +77,26 @@ const Dashboard: React.FC = () => {
 
   console.log("Dashboard API Response ===>", response)
 
-  // Read values directly from API
   const totalCourses = response?.totalCourses ?? 0
   const totalSales = response?.totalSales ?? 0
   const totalRevenue = response?.totalRevenue ?? 0
+
+  // Example chart data (replace with backend chart data if available)
+  const salesData = [
+    { month: "Jan", sales: totalSales / 2 },
+    { month: "Feb", sales: totalSales },
+    { month: "Mar", sales: totalSales * 1.4 },
+  ]
+
+  const revenueData = [
+    { name: "Revenue", value: totalRevenue },
+    { name: "Courses", value: totalCourses * 500 },
+  ]
+
+  const coursesDistribution = [
+    { name: "Paid", value: totalCourses },
+    { name: "Free", value: totalCourses > 0 ? 2 : 0 },
+  ]
 
   if (isLoading) {
     return (
@@ -103,71 +136,93 @@ const Dashboard: React.FC = () => {
           label="Total Courses"
           value={totalCourses}
           icon={<BookOpen className="w-5 h-5" />}
-        // trend={totalCourses > 0 ? "+2 this month" : "Start creating"}
         />
         <StatCard
           label="Total Sales"
           value={totalSales}
           icon={<ShoppingCart className="w-5 h-5" />}
-          // trend={totalSales > 0 ? `${totalSales} transactions` : "No sales yet"}
           trendUp={totalSales > 0}
         />
         <StatCard
           label="Total Revenue"
           value={`₹${totalRevenue.toLocaleString()}`}
           icon={<IndianRupee className="w-5 h-5" />}
-          // trend={totalRevenue > 0 ? "↑ 12% from last month" : "Generate revenue"}
           trendUp={totalRevenue > 0}
         />
       </div>
 
-      {/* Empty State */}
-      {totalCourses === 0 && (
-        <div className="rounded-lg border border-dashed border-border bg-card/30 p-12">
-          <div className="flex flex-col items-center justify-center text-center space-y-3">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <BookOpen className="w-8 h-8 text-primary" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-foreground">No courses yet</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Create your first course to start earning and building your teaching portfolio
-              </p>
-            </div>
-            <Link
-              href="/add-instructor"
-              className="mt-4 inline-flex items-center justify-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
-            >
-              Create Your First Course
-            </Link>
-          </div>
-        </div>
-      )}
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-      {/* Quick Stats Footer */}
-      {/* {totalCourses > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-6 rounded-lg bg-card/50 border border-border">
-          <div className="text-center">
-            <p className="text-sm font-medium text-muted-foreground">Avg. Students</p>
-            <p className="text-2xl font-bold text-foreground mt-1">{Math.round(totalSales / totalCourses) || 0}</p>
-          </div>
-          <div className="text-center border-l border-r border-border">
-            <p className="text-sm font-medium text-muted-foreground">Conversion Rate</p>
-            <p className="text-2xl font-bold text-foreground mt-1">{totalSales > 0 ? "85%" : "−−%"}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-sm font-medium text-muted-foreground">Avg. Revenue</p>
-            <p className="text-2xl font-bold text-foreground mt-1">
-              ₹
-              {totalRevenue > 0
-                ? (totalRevenue / totalCourses).toLocaleString("en-IN", {
-                  maximumFractionDigits: 0,
-                })
-                : "0"}
-            </p>
-          </div>
-        </div>
-      )} */}
+        {/* Sales Line Chart */}
+        <Card className="p-4">
+          <CardHeader>
+            <CardTitle>Sales Trend</CardTitle>
+          </CardHeader>
+          <CardContent className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={salesData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="sales" stroke="#3b82f6" strokeWidth={3} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Revenue Bar Chart */}
+        <Card className="p-4">
+          <CardHeader>
+            <CardTitle>Course Distribution</CardTitle>
+          </CardHeader>
+          <CardContent className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={coursesDistribution}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  dataKey="value"
+                  label
+                >
+                  {coursesDistribution.map((_, index) => (
+                    <Cell key={index} fill={COLORS[index]} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Courses Pie Chart */}
+        {/* <Card className="p-4 lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Course Distribution</CardTitle>
+          </CardHeader>
+          <CardContent className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={coursesDistribution}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  dataKey="value"
+                  label
+                >
+                  {coursesDistribution.map((_, index) => (
+                    <Cell key={index} fill={COLORS[index]} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card> */}
+
+      </div>
     </div>
   )
 }
