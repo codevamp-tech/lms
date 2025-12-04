@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       const SMTP_USER = process.env.SMTP_USER;
       const SMTP_PASS = process.env.SMTP_PASS;
       const SMTP_PORT = process.env.SMTP_PORT;
-      const FROM_EMAIL = process.env.FROM_EMAIL || SMTP_USER;
+      const FROM_EMAIL = process.env.FROM_EMAIL || "info@themrenglisgacademy.com";
 
       if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
         // dynamic require to avoid build-time errors if nodemailer isn't installed
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
         });
 
         const mailOptions = {
-          from: FROM_EMAIL,
+          from: "info@themrenglisgacademy.com",
           to: email,
           subject: `Enrollment Receipt - ${product}`,
           text: `Hi ${name},\n\nThank you for enrolling in ${product}.\nAmount: ₹${price}\n\nWe have received your enrollment request and will follow up shortly with payment instructions or confirmation.\n\n- Mr English Team`,

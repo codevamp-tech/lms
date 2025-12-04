@@ -212,10 +212,10 @@ export default function ContactUs() {
                 <div>
                   <h3 className="font-semibold text-foreground">Email</h3>
                   <a
-                    href="https://mail.google.com/mail/?view=cm&to=amangowhar@gmail.com"
+                    href="https://mail.google.com/mail/?view=cm&to=info@themrenglisgacademy.com"
                     className="text-sm text-primary hover:underline"
                   >
-                    amangowhar@gmail.com
+                    info@themrenglisgacademy.com
                   </a>
 
 

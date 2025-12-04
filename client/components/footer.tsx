@@ -123,10 +123,10 @@ export function LMSFooter() {
                 <div>
                   <p className="text-white font-semibold text-sm mb-1">Email</p>
                   <a
-                    href="mailto:amangowhar@gmail.com"
+                    href="mailto:info@themrenglisgacademy.com"
                     className="text-slate-200 hover:text-blue-400 transition-colors text-sm"
                   >
-                    info@mrenglisgacademy.com
+                    info@themrenglisgacademy.com
                   </a>
                 </div>
               </li>

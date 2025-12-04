@@ -12,7 +12,7 @@ export class EnquiryService {
   ) { }
 
   private transporter = nodemailer.createTransport({
-    host: "in-v3.mailjet.com",
+     host: "in-v3.mailjet.com",
     port: 587,
     secure: false, // STARTTLS
     auth: {
