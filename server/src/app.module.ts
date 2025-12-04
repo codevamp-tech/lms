@@ -27,6 +27,7 @@ import { LiveSessionModule } from './live-session/live-session.module';
 import { ConfigModule } from '@nestjs/config';
 import { RazorpayModule } from './razorpay/razorpay.module';
 import { SessionsModule } from './session/session.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 // Ensure uploads directory exists
 const uploadDir = './uploads';
@@ -36,6 +37,7 @@ if (!fs.existsSync(uploadDir)) {
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -51,9 +53,9 @@ if (!fs.existsSync(uploadDir)) {
           cb(
             null,
             file.fieldname +
-              '-' +
-              uniqueSuffix +
-              path.extname(file.originalname),
+            '-' +
+            uniqueSuffix +
+            path.extname(file.originalname),
           );
         },
       }),
@@ -94,4 +96,4 @@ if (!fs.existsSync(uploadDir)) {
     EnquiryModule
   ],
 })
-export class AppModule {}
+export class AppModule { }

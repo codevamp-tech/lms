@@ -43,6 +43,9 @@ export class LiveSession extends Document {
   })
   status: string;
 
+  @Prop({ default: false })
+  isReminderSent: boolean;
+
 }
 
 export const LiveSessionSchema = SchemaFactory.createForClass(LiveSession);
