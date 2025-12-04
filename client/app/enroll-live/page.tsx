@@ -85,7 +85,7 @@ const EnrollLivePage = () => {
                     <Card key={session._id} className="overflow-hidden">
                         {session.imageUrl && (
                             <div className="w-full h-48 overflow-hidden bg-gray-100">
-                                <img src={session.imageUrl} alt={session.title} className="w-full h-full object-cover" />
+                                <img src={session.imageUrl} alt={session.title} className="w-full h-full object-fill" />
                             </div>
                         )}
                         <CardHeader>
