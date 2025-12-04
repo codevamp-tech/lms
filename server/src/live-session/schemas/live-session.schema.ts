@@ -32,6 +32,17 @@ export class LiveSession extends Document {
 
   @Prop()
   imageUrl: string;
+
+  @Prop({ required: true })
+  link: string;
+
+  @Prop({
+    type: String,
+    enum: ['upcoming', 'live', 'completed'],
+    default: 'upcoming',
+  })
+  status: string;
+
 }
 
 export const LiveSessionSchema = SchemaFactory.createForClass(LiveSession);

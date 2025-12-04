@@ -82,7 +82,7 @@ const Login = () => {
         toast.success("Login successful!");
 
         if (response?.user?.role === "instructor") {
-          router.push("/admin/dashboard");
+          router.push("/admin/courses");
         } else if (response?.user?.role === "student") {
           router.push("/");
         } else if (response?.user?.role === "admin") {

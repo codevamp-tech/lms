@@ -1,6 +1,7 @@
 import { axiosInstance } from "@/lib/axios";
 
 export interface LiveSessionData {
+    link: string;
     _id?: string;
     title: string;
     description?: string;
