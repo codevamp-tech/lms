@@ -11,6 +11,7 @@ import {
   getPublishedCourses,
   deleteCourse,
   togglePrivateCourse,
+  getAnalyticsSummary,
 } from "../features/api/courses/route";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
@@ -110,6 +111,17 @@ const useCourses = () => {
     return query;
   };
 
+ const useAnalyticsSummary = () => {
+  const query = useQuery({
+    queryKey: ["courseAnalyticsSummary"],
+    queryFn: getAnalyticsSummary,
+    staleTime: 5000,
+    refetchOnWindowFocus: false
+  });
+
+  return query;
+};
+
   // Query for fetching a course by ID
   const getCourseByIdQuery = (courseId: string) => {
     const query = useQuery({
@@ -200,6 +212,7 @@ const useCourses = () => {
     deleteCourse: deleteCourseMutation.mutate,
     privateCourse: privateCourseMutation.mutate,
     getCreatorCoursesQuery,
+    useAnalyticsSummary,
     getCourseByIdQuery,
     getCourseLecturesQuery,
     getPublishedCoursesQuery,

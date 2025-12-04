@@ -54,6 +54,15 @@ export const getCreatorCourses = async (
   }
 };
 
+export const getAnalyticsSummary = async () => {
+  try {
+    const { data } = await axios.get(`${API_BASE_URL}/summary`);
+    return data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to fetch analytics");
+  }
+};
+
 export const getCourseById = async (courseId: string) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/${courseId}`);

@@ -14,6 +14,11 @@ import { useUserProfile } from "@/hooks/useUsers";
 const SIDEBAR_LINKS = {
   admin: [
     {
+      href: "/admin/dashboard",
+      label: "Dashboard",
+      icon: ChartNoAxesColumn,
+    },
+    {
       href: "/admin/add-instructor",
       label: "Add Instructor",
       icon: UserPlus,
@@ -37,11 +42,7 @@ const SIDEBAR_LINKS = {
     },
   ],
   instructor: [
-    {
-      href: "/admin/dashboard",
-      label: "Dashboard",
-      icon: ChartNoAxesColumn,
-    },
+    
     {
       href: "/admin/courses",
       label: "Courses",

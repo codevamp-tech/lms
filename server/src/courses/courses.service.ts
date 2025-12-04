@@ -251,6 +251,36 @@ export class CoursesService {
       throw new InternalServerErrorException('Failed to delete course.');
     }
   }
+  
+  async getCourseAnalytics() {
+  try {
+    // Fetch all courses with only needed fields
+    const courses = await this.courseModel.find({}, 'coursePrice enrolledStudents');
+
+    const totalCourses = courses.length;
+
+    let totalSales = 0;
+    let totalRevenue = 0;
+
+    courses.forEach((course) => {
+      const enrolledCount = course.enrolledStudents?.length || 0;
+      totalSales += enrolledCount;
+
+      const price = Number(course.coursePrice) || 0;
+      totalRevenue += price * enrolledCount;
+    });
+
+    return {
+      totalCourses,
+      totalSales,
+      totalRevenue,
+    };
+  } catch (error) {
+    console.error(error);
+    throw new InternalServerErrorException('Error generating course analytics');
+  }
+}
+
 }
 
 // Add methods for updating, deleting, or finding a single course

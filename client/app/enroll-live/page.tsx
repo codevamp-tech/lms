@@ -12,12 +12,33 @@ const EnrollLivePage = () => {
     const { data: sessions, isLoading, error } = getLiveSessionsQuery();
     const { isLoaded: isRazorpayLoaded } = useRazorpay();
     const [studentId, setStudentId] = React.useState<string | null>(null);
-    
+
     React.useEffect(() => {
         const id = localStorage.getItem("userId");
         setStudentId(id);
     }, []);
 
+    // Check current status based on date + duration
+    const getSessionStatus = (session: LiveSessionData) => {
+        const now = new Date();
+        const start = new Date(session.date);
+        const end = new Date(start.getTime() + session.duration * 60000);
+
+        const thirtyMinutesBefore = new Date(start.getTime() - 30 * 60000);
+
+        if (now < thirtyMinutesBefore) return "upcoming";
+        if (now >= thirtyMinutesBefore && now <= end) return "live";
+        return "completed";
+    };
+
+
+    const handleJoin = (session: LiveSessionData) => {
+        if (!session.link) {
+            alert("Meeting link is not available yet!");
+            return;
+        }
+        window.open(session.link, "_blank");
+    };
 
     const handleEnroll = async (session: LiveSessionData) => {
         if (!studentId) {
@@ -32,7 +53,6 @@ const EnrollLivePage = () => {
                 return;
             }
 
-            // Create a Razorpay order
             const orderResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/razorpay/create-order`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -44,7 +64,6 @@ const EnrollLivePage = () => {
             });
             const order = await orderResponse.json();
 
-            // Open Razorpay checkout
             const options = {
                 key: razorpayKeyId,
                 amount: order.amount,
@@ -52,15 +71,11 @@ const EnrollLivePage = () => {
                 name: "Your Company Name",
                 description: `Enroll in ${session.title}`,
                 order_id: order.id,
-                handler: async (response: any) => {
-                    // Verify payment and enroll student
+                handler: async () => {
                     enrollLiveSession({ sessionId: session._id!, studentId });
                 },
-                prefill: {
-                    name: localStorage.getItem("userName") || "",
-                    email: "", // You can prefill the user's email if you have it
-                },
             };
+
             const rzp = new (window as any).Razorpay(options);
             rzp.open();
         } catch (error) {
@@ -81,31 +96,57 @@ const EnrollLivePage = () => {
         <div className="container mx-auto px-4 py-12">
             <h1 className="text-3xl font-bold mb-8">Available Live Sessions</h1>
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {sessions?.map((session: LiveSessionData) => (
-                    <Card key={session._id} className="overflow-hidden">
-                        {session.imageUrl && (
-                            <div className="w-full h-48 overflow-hidden bg-gray-100">
-                                <img src={session.imageUrl} alt={session.title} className="w-full h-full object-fill" />
-                            </div>
-                        )}
-                        <CardHeader>
-                            <CardTitle>{session.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p>{session.description}</p>
-                            <p><strong>Date:</strong> {new Date(session.date).toLocaleString()}</p>
-                            <p><strong>Duration:</strong> {session.duration} minutes</p>
-                            <p><strong>Price:</strong> INR {session.price}</p>
-                            {session.enrolledUsers?.includes(studentId!) ? (
-                                <Button className="mt-4" disabled>Enrolled</Button>
-                            ) : (
-                                <Button onClick={() => handleEnroll(session)} className="mt-4" disabled={!isRazorpayLoaded}>
-                                    {isRazorpayLoaded ? "Enroll" : "Loading..."}
-                                </Button>
+                {sessions?.map((session: LiveSessionData) => {
+                    const status = getSessionStatus(session);
+                    const isEnrolled = session.enrolledUsers?.includes(studentId!);
+
+                    return (
+                        <Card key={session._id} className="overflow-hidden">
+                            {session.imageUrl && (
+                                <div className="w-full h-48 overflow-hidden bg-gray-100">
+                                    <img
+                                        src={session.imageUrl}
+                                        alt={session.title}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
                             )}
-                        </CardContent>
-                    </Card>
-                ))}
+                            <CardHeader>
+                                <CardTitle>{session.title}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p>{session.description}</p>
+                                <p><strong>Date:</strong> {new Date(session.date).toLocaleString()}</p>
+                                <p><strong>Duration:</strong> {session.duration} minutes</p>
+                                <p><strong>Price:</strong> INR {session.price}</p>
+
+                                {isEnrolled ? (
+                                    status === "live" ? (
+                                        <Button className="mt-4" onClick={() => handleJoin(session)}>
+                                            Join Now
+                                        </Button>
+                                    ) : status === "upcoming" ? (
+                                        <Button className="mt-4" disabled>
+                                            Starts Soon
+                                        </Button>
+                                    ) : (
+                                        <Button className="mt-4" disabled>
+                                            Completed
+                                        </Button>
+                                    )
+                                ) : (
+                                    <Button
+                                        onClick={() => handleEnroll(session)}
+                                        className="mt-4"
+                                        disabled={!isRazorpayLoaded}
+                                    >
+                                        {isRazorpayLoaded ? "Enroll" : "Loading..."}
+                                    </Button>
+                                )}
+                            </CardContent>
+                        </Card>
+                    );
+                })}
             </div>
         </div>
     );
