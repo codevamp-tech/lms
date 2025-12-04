@@ -25,10 +25,12 @@ export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) { }
 
   private transporter = nodemailer.createTransport({
-    host: 'in-v3.mailjet.com',
+     host: "in-v3.mailjet.com",
+    port: 587,
+    secure: false, // STARTTLS
     auth: {
-      user: '7a398468d064c91603bdedd9fa1fed72',
-      pass: '1e68082af92350e3a6c91ed7fff7dceb',
+      user: "6d9d2b695aaa468ff27e6092aa898e46", // API Key
+      pass: "c58fcc66806be8c52dd4ea90005ac0b9",     // Secret Key (unmasked)
     },
   });
 
@@ -61,8 +63,8 @@ export class UsersService {
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     bcrypt.compare("test@123#", "$2a$10$IYVst4upWOhH2HhYbM4y7.BVnLQhUGXpSuu1BpuOqlHGGgb9/wBUq")
-    .then(res => console.log("test bcrypt compare result:", res));
-    console.log("ispassword",isPasswordValid, password, user.password);
+      .then(res => console.log("test bcrypt compare result:", res));
+    console.log("ispassword", isPasswordValid, password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid password');
     }
@@ -423,7 +425,7 @@ export class UsersService {
     });
     const resetLink = `http://localhost:3000/reset-password?token=${token}`;
     const mailOptions = {
-      from: 'info@mrenglisgacademy.com',
+      from: 'info@themrenglisgacademy.com',
       to: `${email}`,
       subject: 'Welcome to Our Platform and Reset Your Password',
       html: `
@@ -474,7 +476,7 @@ export class UsersService {
 
     const resetLink = `http://localhost:3000/reset-password?token=${token}`;
     const mailOptions = {
-      from: 'info@mrenglisgacademy.com',
+      from: 'info@themrenglisgacademy.com',
       to: email,
       subject: 'Reset Password Request',
       html: `
@@ -526,7 +528,7 @@ export class UsersService {
     });
     const resetLink = `http://localhost:3000/reset-password?token=${token}`;
     const mailOptions = {
-      from: 'info@mrenglisgacademy.com',
+      from: 'info@themrenglisgacademy.com',
       to: `${email}`,
       subject: 'Welcome to Our Platform and Reset Your Password',
       html: `

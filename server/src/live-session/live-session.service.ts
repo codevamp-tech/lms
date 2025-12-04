@@ -23,13 +23,15 @@ export class LiveSessionService {
         // Initialize nodemailer
         console.log('📧 Setting up nodemailer...');
         this.transporter = nodemailer.createTransport({
-            host: 'in-v3.mailjet.com',
+            host: "in-v3.mailjet.com",
+            port: 587,
+            secure: false, // STARTTLS
             auth: {
-                user: '7a398468d064c91603bdedd9fa1fed72',
-                pass: '1e68082af92350e3a6c91ed7fff7dceb',
+                user: "6d9d2b695aaa468ff27e6092aa898e46", // API Key
+                pass: "c58fcc66806be8c52dd4ea90005ac0b9",     // Secret Key (unmasked)
             },
         });
-        console.log('✅ Nodemailer configured with user:', process.env.EMAIL_USER || 'info@mrenglisgacademy.com');
+        console.log('✅ Nodemailer configured with user:', process.env.EMAIL_USER || 'info@themrenglisgacademy.com');
 
         // Initialize Google OAuth2 Client
         console.log('🔑 Setting up Google OAuth2 Client...');
@@ -261,7 +263,7 @@ export class LiveSessionService {
             console.log(`\n📧 [${index + 1}/${studentUsers.length}] Preparing email for:`, student.email);
 
             const mailOptions = {
-                from: process.env.EMAIL_USER || 'support@paperdeals.in',
+                from: 'info@themrenglisgacademy.com',
                 to: student.email,
                 subject: 'Live Session Invitation',
                 html: `
