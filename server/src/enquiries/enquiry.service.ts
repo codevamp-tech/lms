@@ -4,22 +4,13 @@ import { Model } from 'mongoose';
 import * as nodemailer from 'nodemailer';
 import { CreateEnquiryDto } from './dto/create-enquiry.dto';
 import { Enquiry, EnquiryDocument } from './schemas/enquiry.schema';
+import { sendMail } from '../../utils/mail';
 
 @Injectable()
 export class EnquiryService {
   constructor(
     @InjectModel(Enquiry.name) private readonly enquiryModel: Model<EnquiryDocument>,
   ) { }
-
-  private transporter = nodemailer.createTransport({
-     host: "in-v3.mailjet.com",
-    port: 587,
-    secure: false, // STARTTLS
-    auth: {
-      user: "6d9d2b695aaa468ff27e6092aa898e46", // API Key
-      pass: "c58fcc66806be8c52dd4ea90005ac0b9",     // Secret Key (unmasked)
-    },
-  });
 
   async create(createEnquiryDto: CreateEnquiryDto): Promise<Enquiry> {
 
@@ -57,8 +48,8 @@ export class EnquiryService {
     name: string
   ) {
     const mailOptions = {
-      from: 'info@themrenglish.com',
       to: `${email}`,
+      name: name,
       subject: 'Welcome to Mr English Training Academy',
       html: `
       <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -74,7 +65,10 @@ export class EnquiryService {
     `,
     };
     try {
-      await this.transporter.sendMail(mailOptions);
+      // await this.transporter.sendMail(mailOptions);
+
+      await sendMail(mailOptions);
+
       console.log(`Enquiry email sent to ${email}`);
     } catch (error) {
       console.error(`Failed to send enquiry email to ${email}`, error);

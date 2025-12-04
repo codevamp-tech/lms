@@ -12,27 +12,16 @@ import { User } from './schemas/user.schema';
 import * as jwt from 'jsonwebtoken';
 import { deleteMediaFromCloudinary, uploadMedia } from 'utils/cloudinary';
 import * as nodemailer from 'nodemailer';
-import { createTransport } from 'nodemailer';
 import { CreateInstructorDto } from './dto/create-instructor';
 import { CreateAdminDto } from './dto/create-admin';
-import { exec } from 'child_process';
-import { Company } from 'src/company/schemas/company.schema';
+import { sendMail } from '../../utils/mail';
+
 // import { uploadMedia, deleteMediaFromCloudinary } from './media.service';
 
 @Injectable()
 export class UsersService {
   instructorModel: any;
   constructor(@InjectModel(User.name) private userModel: Model<User>) { }
-
-  private transporter = nodemailer.createTransport({
-     host: "in-v3.mailjet.com",
-    port: 587,
-    secure: false, // STARTTLS
-    auth: {
-      user: "6d9d2b695aaa468ff27e6092aa898e46", // API Key
-      pass: "c58fcc66806be8c52dd4ea90005ac0b9",     // Secret Key (unmasked)
-    },
-  });
 
   async signup(data: { name: string; email: string; password: string }) {
     const existingUser = await this.userModel
@@ -423,10 +412,10 @@ export class UsersService {
     const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
-    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+    const resetLink = `${process.env.SITE_URL}/reset-password?token=${token}`;
     const mailOptions = {
-      from: 'info@themrenglisgacademy.com',
       to: `${email}`,
+      name: name,
       subject: 'Welcome to Our Platform and Reset Your Password',
       html: `
       <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -448,13 +437,13 @@ export class UsersService {
           <p>If you did not request this, you can safely ignore this email.</p>
           <p style="margin-top: 20px;">This link will expire in 1 hour.</p>
           <p>Best Regards,</p>
-          <p>The LMS Team</p>
+          <p>Mr English Academy</p>
         </div>
       </div>
     `,
     };
     try {
-      await this.transporter.sendMail(mailOptions);
+      await sendMail(mailOptions);
       console.log(`Welcome and reset email sent to ${email}`);
     } catch (error) {
       console.error(`Failed to send welcome email to ${email}`, error);
@@ -474,10 +463,10 @@ export class UsersService {
       expiresIn: '1h',
     });
 
-    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+    const resetLink = `${process.env.SITE_URL}/reset-password?token=${token}`;
     const mailOptions = {
-      from: 'info@themrenglisgacademy.com',
       to: email,
+      name: user.name,
       subject: 'Reset Password Request',
       html: `
         <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -493,7 +482,7 @@ export class UsersService {
             </div>
             <p style="margin-top: 20px;">This link will expire in 1 hour. If you did not request this, you can safely ignore this email.</p>
             <p>Best Regards,</p>
-            <p>The LMS Team</p>
+            <p>Mr English Academy</p>
           </div>
         </div>
       `,
@@ -501,7 +490,7 @@ export class UsersService {
 
     try {
       // Send email
-      await this.transporter.sendMail(mailOptions);
+      await sendMail(mailOptions);
       console.log(`Reset password email sent to ${email}`);
       return {
         success: true,
@@ -526,10 +515,10 @@ export class UsersService {
     const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
-    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+    const resetLink = `${process.env.SITE_URL}/reset-password?token=${token}`;
     const mailOptions = {
-      from: 'info@themrenglisgacademy.com',
       to: `${email}`,
+      name: name,
       subject: 'Welcome to Our Platform and Reset Your Password',
       html: `
       <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -551,13 +540,13 @@ export class UsersService {
           <p>If you did not request this, you can safely ignore this email.</p>
           <p style="margin-top: 20px;">This link will expire in 1 hour.</p>
           <p>Best Regards,</p>
-          <p>The LMS Team</p>
+          <p>Mr English Academy</p>
         </div>
       </div>
     `,
     };
     try {
-      await this.transporter.sendMail(mailOptions);
+      await sendMail(mailOptions);
       console.log(`Welcome and reset email sent to ${email}`);
     } catch (error) {
       console.error(`Failed to send welcome email to ${email}`, error);

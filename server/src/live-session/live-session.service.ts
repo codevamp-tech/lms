@@ -7,10 +7,10 @@ import { EditLiveSessionDto } from './dto/edit-live-session.dto';
 import { UsersService } from '../users/users.service';
 import * as nodemailer from 'nodemailer';
 import { google } from 'googleapis';
+import { sendMail } from '../../utils/mail';
 
 @Injectable()
 export class LiveSessionService {
-    private transporter: nodemailer.Transporter;
     private oAuth2Client: any;
 
     constructor(
@@ -19,20 +19,6 @@ export class LiveSessionService {
     ) {
         console.log('🔧 ========== CONSTRUCTOR START ==========');
         console.log('🔧 Initializing LiveSessionService...');
-
-        // Initialize nodemailer
-        console.log('📧 Setting up nodemailer...');
-        this.transporter = nodemailer.createTransport({
-            host: "in-v3.mailjet.com",
-            port: 587,
-            secure: false, // STARTTLS
-            auth: {
-                user: "6d9d2b695aaa468ff27e6092aa898e46", // API Key
-                pass: "c58fcc66806be8c52dd4ea90005ac0b9",     // Secret Key (unmasked)
-            },
-        });
-        console.log('✅ Nodemailer configured with user:', process.env.EMAIL_USER || 'info@themrenglisgacademy.com');
-
         // Initialize Google OAuth2 Client
         console.log('🔑 Setting up Google OAuth2 Client...');
         const credentials = {
@@ -263,9 +249,9 @@ export class LiveSessionService {
             console.log(`\n📧 [${index + 1}/${studentUsers.length}] Preparing email for:`, student.email);
 
             const mailOptions = {
-                from: 'info@themrenglisgacademy.com',
                 to: student.email,
                 subject: 'Live Session Invitation',
+                name: student.name,
                 html: `
                     <!DOCTYPE html>
                     <html>
@@ -313,7 +299,7 @@ export class LiveSessionService {
 
             try {
                 console.log(`📤 Sending email to ${student.email}...`);
-                await this.transporter.sendMail(mailOptions);
+                await sendMail(mailOptions);
                 console.log(`✅ Email sent successfully to ${student.email}`);
             } catch (error) {
                 console.error(`❌ Failed to send email to ${student.email}:`, error.message);
