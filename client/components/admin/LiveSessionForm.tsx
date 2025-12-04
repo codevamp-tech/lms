@@ -25,6 +25,7 @@ const formSchema = z.object({
   date: z.string().min(1, "Date is required"),
   duration: z.string().min(1, "Duration is required"),
   price: z.string().min(1, "Price is required"),
+  link: z.string().url("Invalid Zoom meeting link").min(1, "Zoom link required"),
 });
 
 interface LiveSessionFormProps {
@@ -48,6 +49,7 @@ const LiveSessionForm: React.FC<LiveSessionFormProps> = ({ session, onFinished }
       description: "",
       date: "",
       instructor: "",
+      link: "",
     },
   });
 
@@ -63,6 +65,7 @@ const LiveSessionForm: React.FC<LiveSessionFormProps> = ({ session, onFinished }
         date: new Date(session.date).toISOString().slice(0, 16),
         duration: session.duration?.toString(),
         price: session.price?.toString(),
+        link: session.link || "",
       });
       if ((session as any).imageUrl) {
         setPreviewUrl((session as any).imageUrl);
@@ -138,7 +141,7 @@ const LiveSessionForm: React.FC<LiveSessionFormProps> = ({ session, onFinished }
       <DialogTrigger asChild>
         <Button>{session ? "Edit Session" : "Create New Session"}</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-sm">
         <DialogHeader>
           <DialogTitle>{session ? "Edit Live Session" : "Create a New Live Session"}</DialogTitle>
         </DialogHeader>
@@ -194,8 +197,17 @@ const LiveSessionForm: React.FC<LiveSessionFormProps> = ({ session, onFinished }
               <img src={previewUrl} alt="preview" className="h-32 mt-2 object-cover" />
             )}
           </div>
-          <Button type="submit" disabled={uploading}>
-            {uploading ? "Uploading..." : session ? "Update Session" : "Create Session"}
+          <div>
+            <label> Meeting Link</label>
+            <Controller
+              name="link"
+              control={control}
+              render={({ field }) => <Input type="url" {...field} />}
+            />
+            {errors.link && <p className="text-red-500">{errors.link.message}</p>}
+          </div>
+          <Button type="submit">
+            {session ? "Update Session" : "Create Session"}
           </Button>
         </form>
       </DialogContent>

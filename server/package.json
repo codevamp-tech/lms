@@ -27,6 +27,7 @@
     "@nestjs/mongoose": "^10.1.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.4.15",
+    "@nestjs/schedule": "^6.0.1",
     "@types/stripe": "^8.0.416",
     "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",

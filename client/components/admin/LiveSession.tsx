@@ -67,6 +67,9 @@ const LiveSession = () => {
                                 <p>
                                     <strong>Instructor:</strong> {session.instructor}
                                 </p>
+                                {/* <p>
+                                    <strong>Link:</strong> {session.link}
+                                </p> */}
 
                                 <div className="flex flex-wrap gap-2 mt-4">
                                     <LiveSessionForm session={session} />
@@ -80,7 +83,7 @@ const LiveSession = () => {
                                     </Button>
 
                                     <a
-                                        href={session.meetLink}
+                                        href={session.link}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="inline-block"

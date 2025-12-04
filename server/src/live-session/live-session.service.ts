@@ -396,4 +396,19 @@ export class LiveSessionService {
             { new: true }
         ).exec();
     }
+
+    async updateStatusForLive(now: Date) {
+        return this.liveSessionModel.updateMany(
+            { date: { $lte: now }, status: "upcoming" },
+            { status: "live" }
+        );
+    }
+
+    async updateStatusForCompleted(now: Date) {
+        return this.liveSessionModel.updateMany(
+            { endDate: { $lte: now }, status: "live" },
+            { status: "completed" }
+        );
+    }
+
 }
