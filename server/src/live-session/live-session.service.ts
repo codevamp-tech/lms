@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { LiveSession } from './schemas/live-session.schema';
 import { CreateLiveSessionDto } from './dto/create-live-session.dto';
 import { EditLiveSessionDto } from './dto/edit-live-session.dto';
@@ -378,7 +378,7 @@ export class LiveSessionService {
     async enroll(sessionId: string, studentId: string): Promise<LiveSession | null> {
         return this.liveSessionModel.findByIdAndUpdate(
             sessionId,
-            { $addToSet: { enrolledUsers: studentId } },
+            { $addToSet: { enrolledUsers: new Types.ObjectId(studentId) } }, // ✅ Ensure ObjectId
             { new: true }
         ).exec();
     }
@@ -395,6 +395,71 @@ export class LiveSessionService {
             { endDate: { $lte: now }, status: "live" },
             { status: "completed" }
         );
+    }
+
+    // Get sessions starting in 30 mins that haven't received reminders
+    async getSessionsStartingAt(dateTime: Date) {
+        return this.liveSessionModel.find({
+            date: {
+                $gte: new Date(dateTime.getTime() - 60000),
+                $lte: new Date(dateTime.getTime() + 60000),
+            },
+            status: 'upcoming',
+            isReminderSent: false,
+        })
+            .populate({
+                path: 'enrolledUsers',
+                select: 'name email', // ensures only needed fields
+            })
+            .exec(); // <-- Make sure to call exec()
+    }
+
+
+
+
+    // Send email reminders to all enrolled students
+    async sendReminderEmails(session: any) {
+        console.log("📌 Populated Users:", session.enrolledUsers);
+
+        if (!session.enrolledUsers?.length) {
+            console.warn("⚠ No enrolled users found for session:", session._id);
+            return;
+        }
+
+        const emailPromises = session.enrolledUsers.map(async (student: any) => {
+            if (!student?.email) {
+                console.warn(`⚠ Student missing email: ${student._id || student}`);
+                return;
+            }
+
+            const mailOptions = {
+                to: student.email,
+                name: student.name,
+                subject: `Reminder: Your Live Class Starts in 30 Minutes`,
+                html: `
+        <p>Hello ${student.name},</p>
+        <p>Your live session <strong>${session.title}</strong> will start in <strong>30 minutes</strong>.</p>
+        <p><strong>Join Link:</strong> <a href="${session.link}">${session.link}</a></p>
+        <p><strong>Start Time:</strong> ${new Date(session.date).toLocaleString()}</p>
+        <p>See you there!</p>
+      `,
+            };
+
+            try {
+                await sendMail(mailOptions);
+                console.log(`✔ Email sent: ${student.email}`);
+            } catch (err) {
+                console.error(`❌ Error sending email to ${student.email}:`, err);
+            }
+        });
+
+        await Promise.all(emailPromises);
+
+        await this.liveSessionModel.findByIdAndUpdate(session._id, {
+            isReminderSent: true,
+        });
+
+        console.log(`🎯 Reminder status updated for session: ${session._id}`);
     }
 
 }
