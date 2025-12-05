@@ -1,32 +1,55 @@
 "use client"
+/* global grecaptcha */
+declare const grecaptcha: any;
 
 import type React from "react"
 import { Mail, Phone, MapPin, ArrowLeft, Loader2, CheckCircle, AlertCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 export default function ContactUs() {
   const router = useRouter()
+  const SITE_KEY = "6LfAKCIsAAAAAApdK6PwrrD18AFNQkU4n__cJVQE"
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", phone: "", message: "" })
   const [status, setStatus] = useState<{ type: "idle" | "sending" | "success" | "error"; message?: string }>({
     type: "idle",
   })
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = `https://www.google.com/recaptcha/api.js?render=${SITE_KEY}`;
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus({ type: "sending" });
 
     try {
+      const token = await new Promise<string>((resolve, reject) => {
+        grecaptcha.ready(() => {
+          grecaptcha
+            .execute(SITE_KEY, { action: "submit" })
+            .then((t: string) => resolve(t))
+            .catch(reject);
+        });
+      });
+
+      const dataToSend = {
+        name: form.firstName + " " + form.lastName,
+        email: form.email,
+        whatsapp: form.phone,
+        message: form.message,
+        type: "Contact",
+        recaptchaToken: token,
+      };
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/enquiry`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: form.firstName + " " + form.lastName,
-          email: form.email,
-          whatsapp: form.phone,
-          message: form.message,
-          type: "Contact",
-        }),
+        body: JSON.stringify(dataToSend),
       });
 
       if (res.ok) {

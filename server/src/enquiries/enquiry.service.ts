@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as nodemailer from 'nodemailer';
 import { CreateEnquiryDto } from './dto/create-enquiry.dto';
 import { Enquiry, EnquiryDocument } from './schemas/enquiry.schema';
 import { sendMail } from '../../utils/mail';
+import axios from 'axios';
 
 @Injectable()
 export class EnquiryService {
@@ -13,22 +14,30 @@ export class EnquiryService {
   ) { }
 
   async create(createEnquiryDto: CreateEnquiryDto): Promise<Enquiry> {
-
     try {
+      // Validate reCAPTCHA only if type is "Contact"
+      if (createEnquiryDto.type === "Contact") {
+        const isHuman = await this.verifyRecaptcha(createEnquiryDto.recaptchaToken);
+        console.log("isHuman = ", isHuman, "token =", createEnquiryDto.recaptchaToken);
+        if (!isHuman) {
+          throw new BadRequestException("Bot detected");
+        }
+      }
+
 
       const created = new this.enquiryModel(createEnquiryDto);
-
-      const createdEnquiry = await created.save();
+      const savedEnquiry = await created.save();
 
       await this.sendEnquiryEmail(createEnquiryDto.email, createEnquiryDto.name);
 
-      return createdEnquiry;
+      return savedEnquiry;
 
     } catch (error) {
       console.error("ERROR in create enquiry:", error);
       throw error;
     }
   }
+
 
 
   async findAll(): Promise<Enquiry[]> {
@@ -75,5 +84,47 @@ export class EnquiryService {
       throw new Error('Could not send enquiry email');
     }
   }
+
+  private async verifyRecaptcha(token: string | undefined): Promise<boolean> {
+    if (!token) {
+      console.log("⚠️ No reCAPTCHA token received");
+      return false;
+    }
+
+    const secret = process.env.RECAPTCHA_SECRET;
+    if (!secret) {
+      console.error("⚠️ RECAPTCHA_SECRET not set");
+      return false;
+    }
+
+    try {
+      const response = await axios.post(
+        "https://www.google.com/recaptcha/api/siteverify",
+        null,
+        {
+          params: {
+            secret,
+            response: token,
+          },
+        }
+      );
+
+      console.log("reCAPTCHA verify response:", response.data);
+
+      const data = response.data;
+
+      // If it's v3, there will be a score
+      if (typeof data.score === "number") {
+        return data.success === true && data.score >= 0.5;
+      }
+
+      // If it's v2, just check success
+      return data.success === true;
+    } catch (error) {
+      console.error("reCAPTCHA verification failed:", error);
+      return false;
+    }
+  }
+
 
 }

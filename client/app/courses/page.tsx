@@ -5,6 +5,8 @@ import React, { useEffect, useRef, useState } from "react";
 import useCourses from "@/hooks/useCourses";
 import { getUserIdFromToken } from "@/utils/helpers";
 import Course from "@/components/student/Course";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface Course {
   _id: string;
@@ -106,9 +108,17 @@ const Courses = () => {
       </div>
     );
   }
+  const router = useRouter();
 
   return (
     <div className="bg-homeBackground dark:bg-navBackground mt-4">
+      <button
+        onClick={() => router.back()}
+        className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors mb-4 sm:mb-6 group"
+      >
+        <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:-translate-x-1 transition-transform" />
+        <span className="text-sm sm:text-base">Back</span>
+      </button>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         <h2 className="font-bold text-2xl sm:text-3xl text-center mb-4 sm:mb-6">Our Courses</h2>
 

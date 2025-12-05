@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Heart, Clock, User, ChevronRight, Search } from "lucide-react";
+import { Heart, Clock, User, ChevronRight, Search, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 // Dummy blog data for English learning
 const DUMMY_BLOGS = [
@@ -132,6 +133,7 @@ const DUMMY_BLOGS = [
 const CATEGORIES = ["All", "Grammar", "Vocabulary", "Speaking", "Writing", "Listening", "Business"];
 
 export default function Blogs() {
+    const router = useRouter();
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
     const [likedBlogs, setLikedBlogs] = useState(new Set<number>());
@@ -170,8 +172,17 @@ export default function Blogs() {
 
     const selectedBlog = DUMMY_BLOGS.find((b) => b.id === selectedBlogId) || DUMMY_BLOGS[0];
 
+
+
     return (
         <div className="min-h-screen bg-white text-gray-900">
+            <button
+                onClick={() => router.back()}
+                className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors mb-4 sm:mb-6 group"
+            >
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:-translate-x-1 transition-transform" />
+                <span className="text-sm sm:text-base">Back</span>
+            </button>
             {/* Header Section */}
             <div className="bg-white text-gray-900 py-10 border-b border-yellow-100">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -210,11 +221,10 @@ export default function Blogs() {
                             <button
                                 key={category}
                                 onClick={() => setSelectedCategory(category)}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                                    selectedCategory === category
-                                        ? "bg-yellow-500 text-black"
-                                                : "bg-transparent border border-yellow-200 text-yellow-600 hover:bg-yellow-50"
-                                }`}
+                                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedCategory === category
+                                    ? "bg-yellow-500 text-black"
+                                    : "bg-transparent border border-yellow-200 text-yellow-600 hover:bg-yellow-50"
+                                    }`}
                             >
                                 {category}
                             </button>
@@ -224,35 +234,35 @@ export default function Blogs() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left: Active Blog (span 2 cols on large screens) */}
-                            <div className="lg:col-span-2" ref={leftColumnRef}>
+                    <div className="lg:col-span-2" ref={leftColumnRef}>
                         <motion.article
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.4 }}
-                                    className="bg-white rounded-xl shadow-sm overflow-hidden"
+                            className="bg-white rounded-xl shadow-sm overflow-hidden"
                         >
-                                    <div className="relative h-72 md:h-96 bg-gray-100">
+                            <div className="relative h-72 md:h-96 bg-gray-100">
                                 <img
                                     src={selectedBlog.image}
                                     alt={selectedBlog.title}
                                     onError={handleImgError}
-                                            className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover"
                                 />
                                 <div className="absolute top-4 left-4">
-                                            <span className="inline-block bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-semibold">
+                                    <span className="inline-block bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-semibold">
                                         {selectedBlog.category}
                                     </span>
                                 </div>
                             </div>
 
                             <div className="p-6">
-                                        <h2 className="text-3xl font-extrabold text-gray-900 mb-2">{selectedBlog.title}</h2>
-                                        <p className="text-sm text-gray-500 mb-4">By {selectedBlog.author} • {new Date(selectedBlog.date).toLocaleDateString()}</p>
+                                <h2 className="text-3xl font-extrabold text-gray-900 mb-2">{selectedBlog.title}</h2>
+                                <p className="text-sm text-gray-500 mb-4">By {selectedBlog.author} • {new Date(selectedBlog.date).toLocaleDateString()}</p>
 
-                                        <div className="prose max-w-none text-gray-800">
-                                            <p>{selectedBlog.content}</p>
-                                            <p>Read time: {selectedBlog.readTime} minutes</p>
-                                            <hr className="my-4 border-yellow-100" />
+                                <div className="prose max-w-none text-gray-800">
+                                    <p>{selectedBlog.content}</p>
+                                    <p>Read time: {selectedBlog.readTime} minutes</p>
+                                    <hr className="my-4 border-yellow-100" />
                                     <p>
                                         {/* Expand the content a bit for the detailed view */}
                                         {selectedBlog.content} — This article dives deeper into examples, exercises and practical tips. Use these lessons in daily practice to see improvement quickly.
@@ -261,23 +271,23 @@ export default function Blogs() {
 
                                 <div className="mt-6 flex items-center justify-between gap-4">
                                     <div className="flex items-center gap-3">
-                                                <img src={selectedBlog.authorImage} alt={selectedBlog.author} className="w-10 h-10 rounded-full" onError={handleImgError} />
+                                        <img src={selectedBlog.authorImage} alt={selectedBlog.author} className="w-10 h-10 rounded-full" onError={handleImgError} />
                                         <div>
                                             <div className="text-sm font-medium">{selectedBlog.author}</div>
-                                                    <div className="text-xs text-gray-500">{new Date(selectedBlog.date).toLocaleDateString()}</div>
+                                            <div className="text-xs text-gray-500">{new Date(selectedBlog.date).toLocaleDateString()}</div>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-3">
-                                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                        <div className="flex items-center gap-2 text-sm text-gray-600">
                                             <Clock className="w-4 h-4" />
                                             <span>{selectedBlog.readTime} min</span>
                                         </div>
-                                                <button
-                                                    onClick={() => toggleLike(selectedBlog.id)}
-                                                    className={`px-3 py-2 rounded-md text-sm font-medium transition ${likedBlogs.has(selectedBlog.id) ? 'bg-yellow-500 text-black' : 'bg-yellow-100 text-yellow-800'}`}>
-                                                    <Heart className="w-4 h-4 inline-block mr-2" /> {selectedBlog.likes + (likedBlogs.has(selectedBlog.id) ? 1 : 0)} Like
-                                                </button>
+                                        <button
+                                            onClick={() => toggleLike(selectedBlog.id)}
+                                            className={`px-3 py-2 rounded-md text-sm font-medium transition ${likedBlogs.has(selectedBlog.id) ? 'bg-yellow-500 text-black' : 'bg-yellow-100 text-yellow-800'}`}>
+                                            <Heart className="w-4 h-4 inline-block mr-2" /> {selectedBlog.likes + (likedBlogs.has(selectedBlog.id) ? 1 : 0)} Like
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -294,9 +304,8 @@ export default function Blogs() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.25 }}
                                     whileHover={{ scale: 1.02 }}
-                                    className={`flex gap-3 items-center p-3 rounded-lg cursor-pointer transition-shadow ${
-                                        blog.id === selectedBlogId ? 'bg-yellow-50 ring-1 ring-yellow-300' : 'bg-white shadow-sm'
-                                    }`}
+                                    className={`flex gap-3 items-center p-3 rounded-lg cursor-pointer transition-shadow ${blog.id === selectedBlogId ? 'bg-yellow-50 ring-1 ring-yellow-300' : 'bg-white shadow-sm'
+                                        }`}
                                     onClick={() => setSelectedBlogId(blog.id)}
                                 >
                                     <div className="w-20 h-14 flex-shrink-0 rounded-md overflow-hidden bg-gray-100">

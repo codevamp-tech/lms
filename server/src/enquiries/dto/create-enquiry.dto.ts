@@ -1,6 +1,7 @@
 import { IsNotEmpty, IsString, IsEmail, IsOptional } from 'class-validator';
 
 export class CreateEnquiryDto {
+
   @IsNotEmpty()
   @IsString()
   name: string;
@@ -45,4 +46,8 @@ export class CreateEnquiryDto {
   @IsOptional()
   @IsString()
   currency: string;
+
+  @IsOptional()
+  @IsString()
+  recaptchaToken?: string;
 }

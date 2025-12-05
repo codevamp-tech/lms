@@ -57,20 +57,30 @@ const Navbar = () => {
   };
 
   const logoutHandler = async () => {
+    // Clear cookies
     clearCookies();
-    // update local login state so UI updates immediately
+
+    // Clear localStorage completely
+    localStorage.clear();
+
+    // Update login state immediately
     setIsLoggedIn(false);
-    // trigger a refetch of profile data (if available) to keep hook state in-sync
+
     try {
       await refetch?.();
     } catch (err) {
-      // ignore refetch errors; UI already updated
-      // eslint-disable-next-line no-console
       console.error("refetch error:", err);
     }
+
+    // Redirect to home
     router.push("/");
+
+    // Reload to reset all UI states + hooks
+    window.location.reload();
+
     toast.success("You have been logged out.");
   };
+
 
   useEffect(() => {
     if (!userId) {
@@ -388,6 +398,12 @@ const MobileNavLinks = ({ user, onLinkClick }) => {
       <Link href="/" className="p-3 rounded-md hover:bg-muted text-sm" onClick={onLinkClick}>
         Home
       </Link>
+      <Link href="/enroll-live" className="p-3 rounded-md hover:bg-muted text-sm" onClick={onLinkClick}>
+        Enroll for Live Classes
+      </Link>
+      <Link href="/download-app" className="p-3 rounded-md hover:bg-muted text-sm" onClick={onLinkClick}>
+        Download App
+      </Link>
       <Link href="/about-us" className="p-3 rounded-md hover:bg-muted text-sm" onClick={onLinkClick}>
         About Us
       </Link>
@@ -459,6 +475,10 @@ const MobileNavLinks = ({ user, onLinkClick }) => {
           </Link>
         </>
       )}
+
+
+      <div className="my-2 border-t" />
+
     </>
   );
 };
