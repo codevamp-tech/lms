@@ -10,7 +10,7 @@ import { User, UserSchema } from 'src/users/schemas/user.schema';
 @Module({
   imports: [
     UsersModule,
-    MongooseModule.forFeature([{ name: LiveSession.name, schema: LiveSessionSchema }, { name: User.name, schema: UserSchema },]),
+    MongooseModule.forFeature([{ name: LiveSession.name, schema: LiveSessionSchema }]),
 
   ],
   controllers: [LiveSessionController],

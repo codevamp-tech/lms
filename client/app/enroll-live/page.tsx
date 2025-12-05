@@ -153,11 +153,11 @@ const EnrollLivePage = () => {
 
                                 {/* BUTTONS */}
                                 {isEnrolled ? (
-                                    <div className="flex flex-col gap-3 mt-4">
+                                    <div className="flex flex-row gap-3 mt-4">
                                         {/* ENROLLED BUTTON */}
                                         <Button
                                             disabled
-                                            className="bg-green-600 text-white cursor-default"
+                                            className="bg-gray-600 text-white cursor-default"
                                         >
                                             Enrolled
                                         </Button>
