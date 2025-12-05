@@ -18,7 +18,7 @@ export class LiveSessionCron {
     await this.liveSessionService.updateStatusForCompleted(now);
   }
 
-  @Cron('* * * * *')
+  @Cron('* * * * *') // Every minute
   async sendLiveSessionReminders() {
     const now = new Date();
     const thirtyMinFromNow = new Date(now.getTime() + 30 * 60000);
@@ -27,13 +27,7 @@ export class LiveSessionCron {
 
     const upcomingSessions = await this.liveSessionService.getSessionsStartingAt(thirtyMinFromNow);
 
-    console.log("Found Sessions:", upcomingSessions.map(s => ({
-      id: s._id,
-      date: s.date,
-      isReminderSent: s.isReminderSent,
-      status: s.status,
-      users: s.enrolledUsers.length
-    })));
+
 
     console.log(`🔎 Found ${upcomingSessions.length} sessions for reminders`);
 

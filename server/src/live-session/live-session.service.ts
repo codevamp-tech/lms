@@ -353,11 +353,9 @@ export class LiveSessionService {
         return createdLiveSession.save();
     }
 
-
     async findAll(): Promise<LiveSession[]> {
         return this.liveSessionModel.find().exec();
     }
-
 
     async getEnrolledSessions(userId: string) {
         return this.liveSessionModel.find({ students: userId }).populate('instructor');
@@ -399,7 +397,7 @@ export class LiveSessionService {
 
     // Get sessions starting in 30 mins that haven't received reminders
     async getSessionsStartingAt(dateTime: Date) {
-        return this.liveSessionModel.find({
+        const sessions = await this.liveSessionModel.find({
             date: {
                 $gte: new Date(dateTime.getTime() - 60000),
                 $lte: new Date(dateTime.getTime() + 60000),
@@ -409,17 +407,18 @@ export class LiveSessionService {
         })
             .populate({
                 path: 'enrolledUsers',
-                select: 'name email', // ensures only needed fields
+                select: 'name email',
+                model: 'User', // <-- Explicitly specify the model name
             })
-            .exec(); // <-- Make sure to call exec()
+            .exec();
+
+        // Debug log to see if populate worked
+        console.log('Session with populated users:', JSON.stringify(sessions, null, 2));
+
+        return sessions;
     }
-
-
-
-
     // Send email reminders to all enrolled students
     async sendReminderEmails(session: any) {
-        console.log("📌 Populated Users:", session.enrolledUsers);
 
         if (!session.enrolledUsers?.length) {
             console.warn("⚠ No enrolled users found for session:", session._id);
@@ -459,7 +458,5 @@ export class LiveSessionService {
             isReminderSent: true,
         });
 
-        console.log(`🎯 Reminder status updated for session: ${session._id}`);
     }
-
 }
