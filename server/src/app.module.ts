@@ -28,6 +28,9 @@ import { ConfigModule } from '@nestjs/config';
 import { RazorpayModule } from './razorpay/razorpay.module';
 import { SessionsModule } from './session/session.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 // Ensure uploads directory exists
 const uploadDir = './uploads';
@@ -93,7 +96,17 @@ if (!fs.existsSync(uploadDir)) {
     CartModule,
     LiveSessionModule,
     RazorpayModule,
-    EnquiryModule
+    EnquiryModule,
+    ThrottlerModule.forRoot([{
+      ttl: 60, // time window in seconds
+      limit: 5, // max requests per IP within ttl
+    }])
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard, // global rate limiting
+    },
   ],
 })
 export class AppModule { }
