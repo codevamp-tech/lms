@@ -1,11 +1,12 @@
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Course } from 'src/courses/schemas/course.schema';
 import { CoursePurchase } from './schemas/course-purchase.schema';
 import { User } from 'src/users/schemas/user.schema';
@@ -26,7 +27,7 @@ export class CoursePurchaseService {
     @InjectModel(CoursePurchase.name)
     private coursePurchaseModel: Model<CoursePurchase>,
     private readonly razorpayService: RazorpayService,
-  ) {}
+  ) { }
 
   async getCourseDetailWithPurchaseStatus(
     courseId: string,
@@ -62,7 +63,7 @@ export class CoursePurchaseService {
     };
   }
 
-  async createRazorpayOrder(userId: string, courseId: string) {
+  async createRazorpayOrder(courseId: string) {
     try {
       const course = await this.courseModel.findById(courseId);
       if (!course) {
@@ -86,7 +87,6 @@ export class CoursePurchaseService {
 
       await this.coursePurchaseModel.create({
         courseId,
-        userId,
         amount: course.coursePrice,
         status: 'pending',
         paymentId: order.id,
@@ -123,47 +123,46 @@ export class CoursePurchaseService {
     return expectedSignature === razorpay_signature;
   }
 
-  async verifyPayment(
-    razorpay_order_id: string,
-    razorpay_payment_id: string,
-    razorpay_signature: string,
-  ) {
-    const isAuthentic = await this.verifyPaymentSignature({ razorpay_order_id, razorpay_payment_id, razorpay_signature });
+  async verifyPayment(dto) {
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      userId,
+      courseId,
+    } = dto;
 
-    if (isAuthentic) {
-      const purchase = await this.coursePurchaseModel.findOne({
-        paymentId: razorpay_order_id,
-      });
+    const valid = await this.verifyPaymentSignature(dto);
+    if (!valid) throw new BadRequestException("Invalid payment");
 
-      if (!purchase) {
-        throw new NotFoundException('Purchase not found!');
-      }
+    const updatedPurchase = await this.coursePurchaseModel.findOneAndUpdate(
+      { orderId: razorpay_order_id }, // FIXED 🔥
+      {
+        userId,
+        courseId,
+        paymentId: razorpay_payment_id,
+        status: "completed",
+      },
+      { new: true }
+    );
 
-      purchase.status = 'completed';
-      await purchase.save();
-
-      await this.userModel.findByIdAndUpdate(
-        purchase.userId,
-        { $addToSet: { enrolledCourses: purchase.courseId } },
-        { new: true },
-      );
-
-      await this.courseModel.findByIdAndUpdate(
-        purchase.courseId,
-        { $addToSet: { enrolledStudents: purchase.userId } },
-        { new: true },
-      );
-
-      return {
-        success: true,
-      };
-    } else {
-      throw new HttpException(
-        'Payment verification failed',
-        HttpStatus.BAD_REQUEST,
-      );
+    if (!updatedPurchase) {
+      throw new BadRequestException("Order not found or already processed");
     }
+
+    await this.userModel.findByIdAndUpdate(
+      userId,
+      { $addToSet: { enrolledCourses: updatedPurchase.courseId } }
+    );
+
+    await this.courseModel.findByIdAndUpdate(
+      updatedPurchase.courseId,
+      { $addToSet: { enrolledStudents: userId } }
+    );
+
+    return { success: true };
   }
+
 
   async cancelPurchase(userId: string, courseId: string, orderId?: string) {
     // Mark a pending purchase as failed/cancelled when user dismisses checkout

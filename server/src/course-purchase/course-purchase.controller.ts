@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 
 @Controller('course-purchase')
 export class CoursePurchaseController {
-  constructor(private readonly coursePurchaseService: CoursePurchaseService) {}
+  constructor(private readonly coursePurchaseService: CoursePurchaseService) { }
 
   @Get(':courseId')
   async getCoursedetailWithPurchaseStatus(
@@ -22,12 +22,9 @@ export class CoursePurchaseController {
     }
   }
 
-  @Post(':userId/:courseId/create-razorpay-order')
-  async createRazorpayOrder(
-    @Param('courseId') courseId: string,
-    @Param('userId') userId: string,
-  ) {
-    return this.coursePurchaseService.createRazorpayOrder(userId, courseId);
+  @Post(':courseId/create-razorpay-order')
+  createOrder(@Param('courseId') courseId: string) {
+    return this.coursePurchaseService.createRazorpayOrder(courseId);
   }
 
   @Post(':userId/:courseId/cancel')
@@ -40,8 +37,8 @@ export class CoursePurchaseController {
   }
 
   @Post('verify-payment')
-  async verifyPayment(@Body() body: { razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string }) {
-    return this.coursePurchaseService.verifyPayment(body.razorpay_order_id, body.razorpay_payment_id, body.razorpay_signature);
+  verify(@Body() body: any) {
+    return this.coursePurchaseService.verifyPayment(body);
   }
 
   @Post('mark-failed')
