@@ -1,62 +1,32 @@
-import path from "path";
-import dotenv from "dotenv";
-import mailjet from "node-mailjet";
+import { TransactionalEmailsApi, SendSmtpEmail } from "@getbrevo/brevo";
 
-// Load .env manually (useful on local but Render uses dashboard env vars)
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
+const emailAPI = new TransactionalEmailsApi();
+// set API key — this is how Brevo SDK expects it:
+(emailAPI as any).authentications.apiKey.apiKey = process.env.BREVO_API_KEY!;
 
-// Debug Render environment values
-console.log("🔍 DEBUG: Current NODE_ENV =", process.env.NODE_ENV);
-console.log("🔍 DEBUG: Render environment variables loaded:");
-console.log("  MJ_APIKEY_PUBLIC:", process.env.MJ_APIKEY_PUBLIC ? "✔ Loaded" : "❌ Missing");
-console.log("  MJ_PRIKEY_PRIVATE:", process.env.MJ_PRIKEY_PRIVATE ? "✔ Loaded" : "❌ Missing");
-console.log("  SENDER_EMAIL:", process.env.SENDER_EMAIL || "❌ Missing");
-
-// Create Mailjet client
-const client = mailjet.apiConnect(
-    process.env.MJ_APIKEY_PUBLIC as string,
-    process.env.MJ_PRIKEY_PRIVATE as string
-);
-
-// Type for function parameters
 interface SendEmailParams {
-    to: string;
-    name: string;
-    subject: string;
-    html: string;
+  to: string;
+  name: string;
+  subject: string;
+  html: string;
 }
 
-// Send email function with logs
-export const sendMail = async ({ to, name, subject, html }: SendEmailParams) => {
-    console.log("📧 DEBUG: Preparing to send email...");
-    console.log("  To:", to);
-    console.log("  Subject:", subject);
-    console.log("  Using Sender Email:", process.env.SENDER_EMAIL);
+export async function sendMail({ to, name, subject, html }: SendEmailParams) {
+  const msg = new SendSmtpEmail();
+  msg.sender = {
+    email: process.env.SENDER_EMAIL!,
+    name: "Mr English Academy",
+  };
+  msg.to = [{ email: to, name }];
+  msg.subject = subject;
+  msg.htmlContent = html;
 
-    try {
-        const res = await client.post("send", { version: "v3.1" }).request({
-            Messages: [
-                {
-                    From: {
-                        Email: process.env.SENDER_EMAIL,
-                        Name: "Mr English Academy",
-                    },
-                    To: [{ Email: to, Name: name }],
-                    Subject: subject,
-                    HTMLPart: html,
-                },
-            ],
-        });
-
-        console.log("✅ DEBUG: Raw Mailjet response object:", res);
-        console.log(
-            "✅ DEBUG: Mailjet response body:",
-            JSON.stringify(res.body, null, 2)
-        );
-        return res;
-    } catch (error: any) {
-        console.error("❌ ERROR sending email:", error?.statusCode, error?.message);
-        console.error("❌ Full error:", JSON.stringify(error, null, 2));
-        throw error;
-    }
-};
+  try {
+    const resp = await emailAPI.sendTransacEmail(msg);
+    console.log("✅ Brevo response:", resp);
+    return resp;
+  } catch (err: any) {
+    console.error("❌ Brevo send error:", err);
+    throw err;
+  }
+}
