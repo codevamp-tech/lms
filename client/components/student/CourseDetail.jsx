@@ -29,25 +29,29 @@ import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQueryClient } from '@tanstack/react-query';
+import LoginModal from "./loginModal";
 
 const CourseDetail = () => {
   const { courseId } = useParams();
   const router = useRouter();
   const userId = getUserIdFromToken();
 
-  useEffect(() => {
-    if (!userId) {
-      router.push('/login');
-    }
-  }, [userId, router]);
+  // useEffect(() => {
+  //   if (!userId) {
+  //     router.push('/login');
+  //   }
+  // }, [userId, router]);
 
+  const [pendingPayment, setPendingPayment] = useState(null);
+    const [loginPopup, setLoginPopup] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isInCart, setIsInCart] = useState(false);
-  const {
-    data: courseData,
-    isLoading,
-    error,
-  } = useCourseDetails(courseId, userId);
+const {
+  data: courseData,
+  isLoading,
+  error
+} = useCourseDetails(courseId, userId || "");
+
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -77,6 +81,7 @@ const CourseDetail = () => {
     }
   }, [courseId, userId, courseData]);
 
+ 
   const handleAddToCart = async () => {
     if (!userId) {
       router.push("/login");
@@ -106,115 +111,85 @@ const CourseDetail = () => {
       toast.error("Error adding course to cart.");
     }
   };
+  
+const handleBuyCourse = async () => {
+  try {
+    const { order } = await createRazorpayOrder(courseId);
 
-  const handleBuyCourse = async () => {
-    if (!userId) {
-      router.push("/login");
-      return;
-    }
-    try {
-      const { order } = await createRazorpayOrder(courseId, userId);
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      amount: order.amount,
+      currency: order.currency,
+      order_id: order.id,
+      name: "LMS Platform",
+      handler: async function (response) {
 
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
-        name: "LMS Platform",
-        description: "Course Purchase",
-        order_id: order.id,
-        handler: async function (response) {
-          const data = await verifyPayment({
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_signature: response.razorpay_signature,
-          });
+        // save payment data
+        const paymentData = {
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_signature: response.razorpay_signature,
+          courseId,
+        };
 
-          if (data?.success) {
-            toast.success("Payment successful!");
-            // Ensure UI reflects the updated purchase status by invalidating the query.
-            try {
-              queryClient.invalidateQueries(['courseDetails', courseId, userId]);
-            } catch (err) {
-              // ignore
-            }
-            router.push(`/course/course-progress/${courseId}`);
-          } else {
-            toast.error("Payment verification failed.");
-          }
-        },
-        prefill: {
-          name: "Your Name",
-          email: "your.email@example.com",
-          contact: "9999999999",
-        },
-        notes: {
-          address: "Your Address",
-        },
-        theme: {
-          color: "#3399cc",
-        },
-        // When the user closes the Razorpay modal without completing payment
-        // the `modal.ondismiss` callback is invoked. Use it to refresh course
-        // status so pending purchases are not treated as paid in the UI.
-        modal: {
-          ondismiss: async function () {
-            try {
-              // Try to notify backend to mark the purchase cancelled/finalized.
-              // NOTE: Server endpoint may not exist; this is a best-effort call.
-              await fetch(`${process.env.NEXT_PUBLIC_API_URL}/course-purchase/${userId}/${courseId}/cancel`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId: order.id }),
-              });
-            } catch (err) {
-              // ignore network errors
-            }
-            try {
-              queryClient.invalidateQueries(['courseDetails', courseId, userId]);
-            } catch (err) {}
-            toast('Payment cancelled');
-          }
+        if (!userId) {
+          // store for later verification
+          setPendingPayment(paymentData);
+          setLoginPopup(true);
+          toast.success("Login to unlock the course!");
+          return;
         }
-      };
 
-      const rzp = new window.Razorpay(options);
-      // handle payment failed event
-      try {
-        rzp.on('payment.failed', async function(response) {
-          try {
-            // Best-effort: inform backend that payment failed so pending record can be updated.
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/course-purchase/mark-failed`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                razorpay_order_id: response.error?.metadata?.order_id || order.id,
-                razorpay_payment_id: response.error?.metadata?.payment_id || null,
-                userId,
-                courseId,
-              }),
-            });
-          } catch (err) {}
-          try { queryClient.invalidateQueries(['courseDetails', courseId, userId]); } catch (err) {}
-          toast.error('Payment failed');
-        });
-      } catch (err) {
-        // Some environments may not support `.on`; ignore silently
-      }
-      rzp.open();
-    } catch (error) {
-      toast.error("Error during checkout");
-    }
-  };
+        verifyNow(paymentData);
+      },
+      theme: { color: "#3399cc" },
+    };
+
+    new window.Razorpay(options).open();
+  } catch {
+    toast.error("Checkout failed!");
+  }
+};
+
+// Separate function to call verification API
+const verifyNow = async (paymentData) => {
+  const verify = await verifyPayment({ ...paymentData, userId });
+
+  if (verify.success) {
+    toast.success("Course purchased successfully!");
+    queryClient.invalidateQueries({
+  queryKey: ['courseDetails', courseId, userId],
+});
+    router.push(`/course/course-progress/${courseId}`);
+  } else {
+    toast.error("Payment verification failed!");
+  }
+};
+
+
+ useEffect(() => {
+  if (userId && pendingPayment) {
+    verifyNow(pendingPayment);
+    setPendingPayment(null);
+  }
+}, [userId, pendingPayment]);
+
+
 
   if (isLoading) return <CourseDetailSkeleton />;
   if (error) return <div>Error: {error.message}</div>;
   if (!courseData) return <CourseDetailSkeleton />;
-
+    console.log("course date>>>",courseData);
   const course = courseData.course;
   const purchased = courseData.purchased;
 
   return (
-    <div className="bg-background dark:bg-gray-900">
+     <>
+   <LoginModal
+  open={loginPopup}
+  onClose={() => setLoginPopup(false)}
+/>
+      <div className="bg-background dark:bg-gray-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex flex-col lg:flex-row gap-10">
           <div className="w-full lg:w-2/3">
@@ -257,11 +232,8 @@ const CourseDetail = () => {
                 </CardHeader>
                 <CardContent>
                   <div
-                    className={`prose dark:prose-invert max-w-none transition-all duration-300 ${
-                      isExpanded ? "max-h-full" : "max-h-48 overflow-hidden"
-                    }`}
-                    dangerouslySetInnerHTML={{ __html: course.description || "" }}
-                  />
+                    className={`prose dark:prose-invert max-w-none transition-all duration-300 ${isExpanded ? "max-h-full" : "max-h-48 overflow-hidden"}`}
+                    dangerouslySetInnerHTML={{ __html: course.description || "" }} />
                   <Button
                     variant="link"
                     onClick={() => setIsExpanded(!isExpanded)}
@@ -312,8 +284,7 @@ const CourseDetail = () => {
                     height="100%"
                     url={course.lectures[0]?.videoUrl}
                     controls
-                    light={course.courseThumbnail}
-                  />
+                    light={course.courseThumbnail} />
                 </div>
                 <h2 className="text-3xl font-bold text-center mb-4">
                   ₹{course.coursePrice}
@@ -323,9 +294,7 @@ const CourseDetail = () => {
                 {purchased ? (
                   <Button
                     size="lg"
-                    onClick={() =>
-                      router.push(`/course/course-progress/${courseId}`)
-                    }
+                    onClick={() => router.push(`/course/course-progress/${courseId}`)}
                     className="w-full"
                   >
                     <PlayCircle className="mr-2 h-5 w-5" />
@@ -365,7 +334,7 @@ const CourseDetail = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div></>
   );
 };
 
