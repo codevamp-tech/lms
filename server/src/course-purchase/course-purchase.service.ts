@@ -123,7 +123,7 @@ export class CoursePurchaseService {
     return expectedSignature === razorpay_signature;
   }
 
-  async verifyPayment(dto) {
+  async verifyPayment(dto: { razorpay_order_id: any; razorpay_payment_id: any; razorpay_signature: any; userId?: any; courseId?: any; }) {
     const {
       razorpay_order_id,
       razorpay_payment_id,
