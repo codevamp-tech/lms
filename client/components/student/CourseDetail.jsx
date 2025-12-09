@@ -302,7 +302,7 @@ const verifyNow = async (paymentData) => {
                   </Button>
                 ) : (
                   <>
-                    <Button
+                    {/* <Button
                       size="lg"
                       onClick={handleAddToCart}
                       className="w-full"
@@ -318,7 +318,7 @@ const verifyNow = async (paymentData) => {
                           Add to Cart
                         </>
                       )}
-                    </Button>
+                    </Button> */}
                     <Button
                       size="lg"
                       variant="outline"
