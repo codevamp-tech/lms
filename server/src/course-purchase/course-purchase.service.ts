@@ -89,7 +89,7 @@ export class CoursePurchaseService {
         courseId,
         amount: course.coursePrice,
         status: 'pending',
-        paymentId: order.id,
+        orderId: order.id,
       });
 
       return {

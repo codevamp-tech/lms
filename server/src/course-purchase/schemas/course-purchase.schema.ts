@@ -13,6 +13,10 @@ export class CoursePurchase extends Document {
   @Prop({ required: true })
   amount: number;
 
+  @Prop()
+  orderId: string;
+
+
   @Prop({
     type: String,
     enum: ['pending', 'completed', 'failed'],
