@@ -25,7 +25,7 @@ import {
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import DarkMode from "./DarkMode";
+// import DarkMode from "./DarkMode";
 import {
   Sheet,
   SheetContent,
@@ -230,7 +230,7 @@ const Navbar = () => {
               <Button variant="outline" className="text-xs lg:text-sm whitespace-nowrap">Download App</Button>
             </Link>
           </div>
-          <DarkMode />
+          {/* <DarkMode /> */}
           {user && isLoggedIn ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
