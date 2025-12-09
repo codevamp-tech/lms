@@ -3,7 +3,8 @@ import React from "react";
 import useLiveSessions from "@/hooks/useLiveSessions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Video, Clock, CalendarDays, CheckCircle, Clock1, Clock10Icon, ClockAlert } from "lucide-react";
 import { LiveSessionData } from "@/features/api/live-session";
 import { useRazorpay } from "@/providers/RazorpayProvider";
 import LoginModal from "@/components/student/loginModal";
@@ -17,7 +18,6 @@ const EnrollLivePage = () => {
     const [now, setNow] = React.useState<Date>(new Date());
     const [pendingPayment, setPendingPayment] = React.useState<any>(null);
     const [loginPopup, setLoginPopup] = React.useState<boolean>(false);
-
 
     React.useEffect(() => {
         const id = localStorage.getItem("userId");
@@ -43,13 +43,13 @@ const EnrollLivePage = () => {
         const start = new Date(session.date).getTime();
         const diff = start - now.getTime();
 
-        if (diff <= 0) return "Class is starting...";
+        if (diff <= 0) return "Starting Soon...";
 
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff / (1000 * 60)) % 60);
-        const seconds = Math.floor((diff / 1000) % 60);
 
-        return `${hours}h : ${minutes}m : ${seconds}s`;
+
+        return `${hours}h : ${minutes}m `;
     };
 
     const handleJoin = (session: LiveSessionData) => {
@@ -59,8 +59,6 @@ const EnrollLivePage = () => {
         }
         window.open(session.link, "_blank");
     };
-
-
 
     function waitForStudentId() {
         return new Promise<string>((resolve) => {
@@ -110,14 +108,12 @@ const EnrollLivePage = () => {
                         sessionId: session._id,
                     };
 
-                    // 🔥 User NOT logged in
                     if (!studentId) {
                         setPendingPayment(paymentData);
                         setLoginPopup(true);
                         return;
                     }
 
-                    // User logged in → Enroll now
                     await finalizeEnrollment(paymentData, studentId);
                 },
             };
@@ -129,20 +125,16 @@ const EnrollLivePage = () => {
         }
     };
 
-    // 🔥 After Login completes → Auto enroll!
     async function finalizeEnrollment(paymentData: any, id: string) {
         try {
             await enrollLiveSession({ sessionId: paymentData.sessionId, studentId: id });
             toast.success("Enrollment successful!");
-            setTimeout(() => {
-                window.location.reload();
-            }, 500)
+            setTimeout(() => window.location.reload(), 500);
         } catch (err) {
             toast.error("Enrollment failed after payment!");
         }
     }
 
-    // 🔥 Watch for login + pending payment
     React.useEffect(() => {
         if (!pendingPayment) return;
 
@@ -154,18 +146,17 @@ const EnrollLivePage = () => {
         });
     }, [pendingPayment]);
 
-
     if (isLoading) return <Loader2 className="animate-spin" />;
     if (error) return <div>Error loading live sessions</div>;
 
     return (
         <>
-            <LoginModal
-                open={loginPopup}
-                onClose={() => setLoginPopup(false)} />
+            <LoginModal open={loginPopup} onClose={() => setLoginPopup(false)} />
 
-            <div className="container mx-auto px-4 py-12">
-                <h1 className="text-3xl font-bold mb-8">Available Live Sessions</h1>
+            <div className="container mx-auto px-4 py-10">
+                <h1 className="text-3xl font-bold mb-8 text-center">
+                    Live Learning Sessions
+                </h1>
 
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                     {sessions?.map((session: LiveSessionData) => {
@@ -173,79 +164,98 @@ const EnrollLivePage = () => {
                         const isEnrolled = session.enrolledUsers?.includes(studentId!);
 
                         return (
-                            <Card key={session._id} className="overflow-hidden">
+                            <Card
+                                key={session._id}
+                                className="shadow-lg rounded-xl hover:shadow-2xl transition p-0 overflow-hidden"
+                            >
+                                {/* Image */}
                                 {session.imageUrl && (
-                                    <div className="w-full h-48 overflow-hidden bg-gray-100">
+                                    <div className="relative h-48 bg-gray-100">
                                         <img
                                             src={session.imageUrl}
                                             alt={session.title}
-                                            className="w-full h-full object-cover" />
+                                            className="w-full h-full object-cover"
+                                        />
+
+                                        {/* Status Badge */}
+                                        <Badge
+                                            className={`absolute top-3 right-3 px-3 py-1 ${status === "live"
+                                                ? "bg-red-600"
+                                                : status === "upcoming"
+                                                    ? "bg-blue-600"
+                                                    : "bg-gray-500"
+                                                }`}
+                                        >
+                                            {status.toUpperCase()}
+                                        </Badge>
                                     </div>
                                 )}
 
                                 <CardHeader>
-                                    <CardTitle>{session.title}</CardTitle>
+                                    <CardTitle className="text-xl font-semibold flex justify-between">
+                                        {session.title}
+                                    </CardTitle>
                                 </CardHeader>
 
-                                <CardContent>
-                                    <p>{session.description}</p>
-                                    <p>
-                                        <strong>Date:</strong>{" "}
+                                <CardContent className="space-y-2 text-sm text-gray-700">
+                                    <p className="flex items-center gap-2">
+                                        <CalendarDays size={18} />{" "}
                                         {new Date(session.date).toLocaleString()}
                                     </p>
-                                    <p>
-                                        <strong>Duration:</strong> {session.duration} minutes
-                                    </p>
-                                    <p>
-                                        <strong>Price:</strong> INR {session.price}
+
+                                    <p className="flex items-center gap-2">
+                                        <Clock size={18} /> Duration: {session.duration} min
                                     </p>
 
-                                    {/* COUNTDOWN */}
+                                    <p className="text-lg font-bold text-green-600">
+                                        ₹ {session.price}
+                                    </p>
+
+                                    {/* Countdown Section */}
                                     {status === "upcoming" && (
-                                        <p className="text-blue-600 font-semibold mt-3">
+                                        <p className="text-blue-600 gap-3 flex font-semibold px-2 py-1 rounded w-fit">
                                             Starts in: {getCountdown(session)}
                                         </p>
                                     )}
 
-                                    {/* BUTTONS */}
-                                    {isEnrolled ? (
-                                        <div className="flex flex-row gap-3 mt-4">
-                                            {/* ENROLLED BUTTON */}
-                                            <Button
-                                                disabled
-                                                className="bg-gray-600 text-white cursor-default"
-                                            >
-                                                Enrolled
-                                            </Button>
+                                    {/* Action Buttons */}
+                                    <div className="pt-4">
+                                        {isEnrolled ? (
+                                            <div className="flex gap-3">
+                                                <Button disabled className="flex-1 bg-gray-600">
+                                                    <CheckCircle size={18} className="mr-2" />
+                                                    Enrolled
+                                                </Button>
 
-                                            {/* JOIN NOW BUTTON */}
+                                                <Button
+                                                    onClick={() => handleJoin(session)}
+                                                    className={`flex-1 ${status === "live"
+                                                        ? "bg-red-600 hover:bg-red-700"
+                                                        : "bg-gray-400 cursor-not-allowed"
+                                                        } text-white`}
+                                                    disabled={status !== "live"}
+                                                >
+                                                    <Video size={18} className="mr-2" />
+                                                    {status === "live" ? "Join Now" : "Join Soon"}
+                                                </Button>
+                                            </div>
+                                        ) : (
                                             <Button
-                                                onClick={() => handleJoin(session)}
-                                                disabled={status !== "live"}
-                                                className={status === "live"
-                                                    ? "bg-blue-600 text-white"
-                                                    : "bg-gray-400 text-white cursor-not-allowed"}
+                                                onClick={() => handleEnroll(session)}
+                                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                                disabled={!isRazorpayLoaded}
                                             >
-                                                {status === "live"
-                                                    ? "Join Now"
-                                                    : "Join (Available 30 min before)"}
+                                                {isRazorpayLoaded ? "Enroll Now" : "Loading..."}
                                             </Button>
-                                        </div>
-                                    ) : (
-                                        <Button
-                                            onClick={() => handleEnroll(session)}
-                                            className="mt-4"
-                                            disabled={!isRazorpayLoaded}
-                                        >
-                                            {isRazorpayLoaded ? "Enroll" : "Loading..."}
-                                        </Button>
-                                    )}
+                                        )}
+                                    </div>
                                 </CardContent>
                             </Card>
                         );
                     })}
                 </div>
-            </div></>
+            </div>
+        </>
     );
 };
 
