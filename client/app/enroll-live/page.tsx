@@ -87,7 +87,7 @@ const EnrollLivePage = () => {
                     body: JSON.stringify({
                         amount: session.price,
                         currency: "INR",
-                        receipt: `live_${session._id}_${Date.now()}`,
+                        receipt: `live_${session._id.slice(-6)}_${Date.now().toString().slice(-6)}`,
                     }),
                 }
             );
