@@ -134,7 +134,9 @@ const EnrollLivePage = () => {
         try {
             await enrollLiveSession({ sessionId: paymentData.sessionId, studentId: id });
             toast.success("Enrollment successful!");
-            window.location.reload();
+            setTimeout(() => {
+                window.location.reload();
+            }, 500)
         } catch (err) {
             toast.error("Enrollment failed after payment!");
         }
@@ -161,6 +163,7 @@ const EnrollLivePage = () => {
             <LoginModal
                 open={loginPopup}
                 onClose={() => setLoginPopup(false)} />
+
             <div className="container mx-auto px-4 py-12">
                 <h1 className="text-3xl font-bold mb-8">Available Live Sessions</h1>
 
