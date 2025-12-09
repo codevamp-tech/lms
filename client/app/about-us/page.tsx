@@ -57,7 +57,7 @@ export default function AboutUs() {
             rating: 4.8
         },
         {
-            name: "Aman Gowhar",
+            name: "Aaman Bin Gowhar",
             title: "Conversation & Fluency Coach",
             img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Aman-Gowhar.png",
             experience: "1+ years",
