@@ -74,7 +74,9 @@ export default function LoginModal({
         localStorage.setItem("userId", user._id);
 
         onClose(); // ⭐ close modal after login
-        router.refresh();
+        setTimeout(() => {
+          router.refresh();
+        }, 1000)
       } catch {
         toast.error("Invalid credentials");
       }
