@@ -148,7 +148,7 @@ export default function AboutUs() {
 
                 <aside className="space-y-4 sm:space-y-6">
                     <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow text-center">
-                        <h4 className="text-lg sm:text-xl font-semibold mb-2">Quick Contact</h4>
+                        <h4 className="text-lg sm:text-xl font-semibold mb-2">Support</h4>
                         <p className="text-gray-700">Email: <a href="mailto:info@themrenglisgacademy.com" className="text-blue-600 hover:underline">info@themrenglisgacademy.com</a></p>
                         <p className="text-gray-700">Phone: <a href="tel:+917006138299" className="text-blue-600 hover:underline">+91 70061 38299</a></p>
                         <p className="text-gray-700">+91 99069 33270</p>

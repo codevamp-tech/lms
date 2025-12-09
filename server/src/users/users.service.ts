@@ -38,6 +38,35 @@ export class UsersService {
       ...data,
       password: hashedPassword,
     });
+
+      const mailOptions = {
+      to: `${ data.email}`,
+      name:  data.name,
+      subject: 'Welcome to Mr English Training Academy',
+      html: `
+      <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+        <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+          <h2 style="color: #007BFF; text-align: center;">Welcome, ${data.name}</h2>
+          <p>Dear ${data.name},</p>
+          <p>We are excited to inform you that you have been successfully signed up to our platform.</p>
+          <p>Email : ${data.email}</p>
+          <p>password : ${data.password}</p>
+          <p>Best Regards,</p>
+          <p>Mr English Training Academy</p>
+        </div>
+      </div> 
+    `,
+    };
+    try {
+      // await this.transporter.sendMail(mailOptions);
+
+      await sendMail(mailOptions);
+
+      console.log(`Enquiry email sent to ${data.email}`);
+    } catch (error) {
+      console.error(`Failed to send enquiry email to ${data.email}`, error);
+      throw new Error('Could not send enquiry email');
+    }
     return newUser.save();
   }
 
