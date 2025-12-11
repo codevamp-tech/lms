@@ -10,6 +10,8 @@ import { Model, Types } from 'mongoose';
 import { Course } from 'src/courses/schemas/course.schema';
 import { CoursePurchase } from './schemas/course-purchase.schema';
 import { User } from 'src/users/schemas/user.schema';
+import { sendMail } from '../../utils/mail';
+
 import { Lecture } from 'src/lectures/schemas/lecture.schema';
 import {
   RAZORPAY_KEY_SECRET,
@@ -123,7 +125,13 @@ export class CoursePurchaseService {
     return expectedSignature === razorpay_signature;
   }
 
-  async verifyPayment(dto: { razorpay_order_id: any; razorpay_payment_id: any; razorpay_signature: any; userId?: any; courseId?: any; }) {
+  async verifyPayment(dto: {
+    razorpay_order_id: any;
+    razorpay_payment_id: any;
+    razorpay_signature: any;
+    userId?: any;
+    courseId?: any;
+  }) {
     const {
       razorpay_order_id,
       razorpay_payment_id,
@@ -136,7 +144,7 @@ export class CoursePurchaseService {
     if (!valid) throw new BadRequestException("Invalid payment");
 
     const updatedPurchase = await this.coursePurchaseModel.findOneAndUpdate(
-      { orderId: razorpay_order_id }, // FIXED 🔥
+      { orderId: razorpay_order_id },
       {
         userId,
         courseId,
@@ -150,18 +158,58 @@ export class CoursePurchaseService {
       throw new BadRequestException("Order not found or already processed");
     }
 
-    await this.userModel.findByIdAndUpdate(
-      userId,
-      { $addToSet: { enrolledCourses: updatedPurchase.courseId } }
-    );
+    await this.userModel.findByIdAndUpdate(userId, {
+      $addToSet: { enrolledCourses: updatedPurchase.courseId },
+    });
 
-    await this.courseModel.findByIdAndUpdate(
-      updatedPurchase.courseId,
-      { $addToSet: { enrolledStudents: userId } }
-    );
+    await this.courseModel.findByIdAndUpdate(updatedPurchase.courseId, {
+      $addToSet: { enrolledStudents: userId },
+    });
+
+    // 🔥 GET USER DETAILS
+    const user = await this.userModel.findById(userId);
+    if (!user) throw new BadRequestException("User not found");
+
+    // 🔥 GET COURSE DETAILS
+    const course = await this.courseModel.findById(courseId);
+    if (!course) throw new BadRequestException("Course not found");
+
+    try {
+      // ================================
+      // 🔥 EMAIL SEND LOGIC (CLEAN + SAFE)
+      // ================================
+      await sendMail({
+        to: user.email,
+        name: user.name,
+        subject: `Course Purchased: ${course.subTitle}`,
+        html: `
+        <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+          <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+            <h2 style="color: #28a745; text-align: center;">Payment Successful 🎉</h2>
+
+            <p>Hi <strong>${user.name}</strong>,</p>
+            <p>Thank you for purchasing the course <strong>${course.subTitle}</strong>.</p>
+
+            <p>Your payment ID is <strong>${razorpay_payment_id}</strong>.</p>
+
+            <p>You now have full access to the course in your dashboard.</p>
+
+            <br />
+            <p>Best Regards,<br>Mr English Training Academy</p>
+          </div>
+        </div>
+      `,
+      });
+
+      console.log("📩 Purchase email sent to:", user.email);
+    } catch (emailError) {
+      console.error("❌ Email sending failed:", emailError);
+      // BUT we don't stop the success response — course purchase is still valid
+    }
 
     return { success: true };
   }
+
 
 
   async cancelPurchase(userId: string, courseId: string, orderId?: string) {
