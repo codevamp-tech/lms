@@ -23,6 +23,11 @@ const SIDEBAR_LINKS = {
       label: "Add Instructor",
       icon: UserPlus,
     },
+    {
+      href: "/admin/chat-buddy",
+      label: "Chat Buddy",
+      icon: UserPlus,
+    },
      {
       href: "/admin/enquiries",
       label: "Enquiries",

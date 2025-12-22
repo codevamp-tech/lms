@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -205,43 +206,49 @@ const HeroSection = () => {
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto mt-10"
             >
               {[
-                {
-                  title: "English Course",
-                  sub: "course",
-                  price: "1499",
-                  icon: BookOpen,
-                  className:
-                    "bg-gradient-to-r from-blue-500 to-cyan-500",
-                },
-                {
-                  title: "Counselling Session by Founder",
-                  sub: "course",
-                  price: "499",
-                  icon: MessageCircle,
-                  className:
-                    "bg-gradient-to-r from-green-500 to-lime-400",
-                },
-                {
-                  title: "Chat Buddy",
-                  sub: "chat",
-                  price: "2000/m",
-                  icon: Award,
-                  className:
-                    "bg-gradient-to-r from-yellow-400 to-orange-400",
-                },
-              ].map((offer) => (
+  {
+    title: "English Course",
+    sub: "course",
+    price: "1499",
+    icon: BookOpen,
+    route: "course/course-detail/68e39b7bc3c6876a13d052dd",
+    className: "bg-gradient-to-r from-blue-500 to-cyan-500",
+  },
+  {
+    title: "Counselling Session by Amaan Gowhar",
+    sub: "course",
+    price: "499",
+    icon: MessageCircle,
+    route: "/session-with-founder",
+    className: "bg-gradient-to-r from-green-500 to-lime-400",
+  },
+  {
+    title: "Chat Buddy",
+    sub: "chat",
+    price: "2000/m",
+    icon: Award,
+    route: "/chat-buddy",
+    className: "bg-gradient-to-r from-yellow-400 to-orange-400",
+  },
+]
+.map((offer) => (
                 <>
+                   <Link href={offer.route}>
                   <div
                     className={`${offer.className} p-6 rounded-xl cursor-pointer shadow-lg hover:shadow-xl`}
-                    onClick={() => handleEnquiryAndPayment(offer)}
+                    // onClick={() => handleEnquiryAndPayment(offer)}
                   >
                     <offer.icon className="w-10 h-10 mb-4 mx-auto" />
                     <h3 className="text-lg font-bold">{offer.title}</h3>
                     <p className="text-2xl font-bold">₹{offer.price}</p>
                   </div>
+                  </Link>
                 </>
               ))}
-              <Dialog open={!!selectedEnquiry} onOpenChange={() => setSelectedEnquiry(null)}>
+
+
+
+              {/* <Dialog open={!!selectedEnquiry} onOpenChange={() => setSelectedEnquiry(null)}>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>{selectedEnquiry?.title}</DialogTitle>
@@ -282,13 +289,13 @@ const HeroSection = () => {
                       <Button type="submit">Submit</Button>
                     </DialogFooter>
 
-                    {/* 🔥 Hidden auto-close button */}
+                 
                     <DialogClose asChild>
                       <button ref={closeRef} style={{ display: "none" }} />
                     </DialogClose>
                   </form>
                 </DialogContent>
-              </Dialog>
+              </Dialog> */}
             </motion.div>
           </motion.div>
         </div>
