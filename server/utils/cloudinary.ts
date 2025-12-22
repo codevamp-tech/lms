@@ -111,3 +111,18 @@ export async function uploadImageToCloudinary(filePath: string) {
     );
   });
 }
+
+
+export async function uploadChatbuddyImageToCloudinary(
+  file: Express.Multer.File,
+) {
+  return new Promise<{ secure_url: string }>((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream({ folder: "chat-buddies" }, (error, result) => {
+        if (error) return reject(error);
+        resolve(result as { secure_url: string });
+      })
+      .end(file.buffer);
+  });
+}
+
