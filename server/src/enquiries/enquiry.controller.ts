@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch } from '@nestjs/common';
 import { EnquiryService } from './enquiry.service';
 import { CreateEnquiryDto } from './dto/create-enquiry.dto';
 
 @Controller('enquiry')
 export class EnquiryController {
-  constructor(private readonly enquiryService: EnquiryService) {}
+  constructor(private readonly enquiryService: EnquiryService) { }
 
   @Post()
   create(@Body() createEnquiryDto: CreateEnquiryDto) {
@@ -14,6 +14,14 @@ export class EnquiryController {
   @Get()
   findAll() {
     return this.enquiryService.findAll();
+  }
+
+  @Patch(':id/status')
+  updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: 'pending' | 'inprocess' | 'done',
+  ) {
+    return this.enquiryService.updateStatus(id, status);
   }
 
   @Get(':id')

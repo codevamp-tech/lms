@@ -68,6 +68,24 @@ export class CoursesController {
     }
   }
 
+  @Get('alladmin')
+  async findAll(
+    @Query('userRole') userRole: string,
+    @Query('userId') userId?: string,
+    @Query('page') page = 1,
+  ) {
+    const courses =
+      userRole === 'admin'
+        ? await this.coursesService.findAll()
+        : await this.coursesService.findByCreator(userId);
+
+    return {
+      courses,
+      totalPages: 1, // or calculate later
+    };
+  }
+
+
   @Get('summary')
   async getCourseAnalytics() {
     try {
@@ -175,12 +193,6 @@ export class CoursesController {
       throw new NotFoundException(error.message);
     }
   }
-
-  @Get()
-  async findAll(): Promise<Course[]> {
-    return this.coursesService.findAll();
-  }
-
 
 
 

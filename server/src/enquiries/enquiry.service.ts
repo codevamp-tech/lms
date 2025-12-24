@@ -41,7 +41,10 @@ export class EnquiryService {
 
 
   async findAll(): Promise<Enquiry[]> {
-    return this.enquiryModel.find().exec();
+    return this.enquiryModel
+      .find()
+      .sort({ createdAt: -1 }) // 🔥 Latest first
+      .exec();
   }
 
   async findOne(id: string): Promise<Enquiry> {
@@ -50,6 +53,18 @@ export class EnquiryService {
       throw new NotFoundException(`Enquiry with id ${id} not found`);
     }
     return doc.toObject() as Enquiry;
+  }
+
+  async updateStatus(id: string, status: string): Promise<Enquiry> {
+    const enquiry = await this.enquiryModel.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true },
+    );
+    if (!enquiry) {
+      throw new NotFoundException(`Enquiry with id ${id} not found`);
+    }
+    return enquiry;
   }
 
   private async sendEnquiryEmail(

@@ -557,4 +557,64 @@ export class UsersService {
   async getUsersByCompany(companyId: string): Promise<User[]> {
     return this.userModel.find().exec();
   }
+
+  // ================= STUDENTS =================
+
+  async getStudents(page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+
+    const students = await this.userModel
+      .find({ role: 'student' })
+      .select('-password')
+      .sort({ createdAt: -1 }) // latest first
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const totalStudents = await this.userModel.countDocuments({
+      role: 'student',
+    });
+
+    return {
+      success: true,
+      students,
+      totalStudents,
+      totalPages: Math.ceil(totalStudents / limit) || 1,
+      currentPage: page,
+    };
+  }
+
+  async getStudentById(id: string) {
+    const student = await this.userModel
+      .findOne({ _id: id, role: 'student' })
+      .select('-password');
+
+    if (!student) {
+      throw new NotFoundException('Student not found');
+    }
+
+    return {
+      success: true,
+      student,
+    };
+  }
+
+  async updateStudent(id: string, updateStudentDto: any) {
+    const student = await this.userModel.findOneAndUpdate(
+      { _id: id, role: 'student' },
+      updateStudentDto,
+      { new: true },
+    ).select('-password');
+
+    if (!student) {
+      throw new NotFoundException('Student not found');
+    }
+
+    return {
+      success: true,
+      message: 'Student updated successfully',
+      student,
+    };
+  }
+
 }

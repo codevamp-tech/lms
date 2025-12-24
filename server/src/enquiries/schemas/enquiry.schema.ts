@@ -18,27 +18,32 @@ export class Enquiry {
   @Prop()
   type?: string;
 
-  @Prop()
-  status?: string;
+  @Prop({
+    type: String,
+    enum: ['pending', 'inprocess', 'done'],
+    default: 'pending',
+  })
+  status: 'pending' | 'inprocess' | 'done';
+
 
   @Prop()
   price?: string;
 
   @Prop()
-  razorpay_payment_id: string;
+  razorpay_payment_id?: string;
 
   @Prop()
-  razorpay_order_id: string;
+  razorpay_order_id?: string;
 
   @Prop()
 
-  razorpay_signature: string;
+  razorpay_signature?: string;
 
   @Prop()
-  amount: string;
+  amount?: string;
 
   @Prop()
-  currency: string;
+  currency?: string;
 }
 
 export const EnquirySchema = SchemaFactory.createForClass(Enquiry);

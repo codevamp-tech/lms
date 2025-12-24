@@ -28,10 +28,11 @@ import { ResetPasswordDto } from './dto/reset-password';
 import { ForgotPasswordDto } from './dto/forgot-password';
 import { CreateAdminDto } from './dto/create-admin';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateStudentDto } from './dto/update-student';
 
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(private usersService: UsersService) { }
 
   @Post('signup')
   async signup(
@@ -97,6 +98,17 @@ export class UsersController {
     }
   }
 
+
+
+  @Get('students')
+  async getStudents(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.usersService.getStudents(Number(page), Number(limit));
+  }
+
+
   // @UseGuards(AuthGuard)
   @Get(':userId/profile')
   async getUserProfile(@Param('userId') userId: string) {
@@ -134,6 +146,14 @@ export class UsersController {
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  @Patch('students/:id')
+  async updateStudent(
+    @Param('id') id: string,
+    @Body() updateStudentDto: UpdateStudentDto,
+  ) {
+    return this.usersService.updateStudent(id, updateStudentDto);
   }
 
   @Put('toggle-status/:id')
@@ -214,4 +234,5 @@ export class UsersController {
   ) {
     return this.usersService.updateProfile(userId, name, profilePhoto);
   }
+
 }
