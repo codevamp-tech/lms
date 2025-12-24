@@ -12,6 +12,7 @@ import {
   deleteCourse,
   togglePrivateCourse,
   getAnalyticsSummary,
+  getCourses,
 } from "../features/api/courses/route";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
@@ -111,16 +112,26 @@ const useCourses = () => {
     return query;
   };
 
- const useAnalyticsSummary = () => {
-  const query = useQuery({
-    queryKey: ["courseAnalyticsSummary"],
-    queryFn: getAnalyticsSummary,
-    staleTime: 5000,
-    refetchOnWindowFocus: false
-  });
+  const getAdminCoursesQuery = (userRole: string, page: any, userId?: string) => {
+    return useQuery({
+      queryKey: ['courses', userRole, userId, page],
+      queryFn: () => getCourses(userRole, userId, page),
+      enabled: !!userRole,
+    });
+  };
 
-  return query;
-};
+
+
+  const useAnalyticsSummary = () => {
+    const query = useQuery({
+      queryKey: ["courseAnalyticsSummary"],
+      queryFn: getAnalyticsSummary,
+      staleTime: 5000,
+      refetchOnWindowFocus: false
+    });
+
+    return query;
+  };
 
   // Query for fetching a course by ID
   const getCourseByIdQuery = (courseId: string) => {
@@ -212,6 +223,7 @@ const useCourses = () => {
     deleteCourse: deleteCourseMutation.mutate,
     privateCourse: privateCourseMutation.mutate,
     getCreatorCoursesQuery,
+    getAdminCoursesQuery,
     useAnalyticsSummary,
     getCourseByIdQuery,
     getCourseLecturesQuery,

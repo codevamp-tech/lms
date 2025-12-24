@@ -28,9 +28,25 @@ const SIDEBAR_LINKS = {
       label: "Chat Buddy",
       icon: UserPlus,
     },
+    
+     {
+      href: "/admin/courses",
+      label: "Courses",
+      icon: SquareLibrary,
+    },
+    {
+      href: "/admin/live-session",
+      label: "Live Session",
+      icon: Video,
+    },
+     {
+      href: "/admin/student-list",
+      label: "Students",
+      icon: UserPlus,
+    },
      {
       href: "/admin/enquiries",
-      label: "Enquiries",
+      label: "Sales",
       icon: UserPlus,
     },
   ],
@@ -45,6 +61,7 @@ const SIDEBAR_LINKS = {
       label: "Create Admin",
       icon: UserPlus,
     },
+    
   ],
   instructor: [
     

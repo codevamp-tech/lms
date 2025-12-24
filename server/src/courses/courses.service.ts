@@ -16,7 +16,7 @@ export class CoursesService {
   constructor(
     @InjectModel(Course.name) private courseModel: Model<Course>,
     @InjectModel(Lecture.name) private lectureModel: Model<Lecture>,
-  ) {}
+  ) { }
 
   async createCourse(createCourseDto: CreateCourseDto) {
     try {
@@ -129,9 +129,9 @@ export class CoursesService {
 
       const query = companyId
         ? {
-            isPublished: true,
-            $or: [{ companyId }, { isPrivate: false }],
-          }
+          isPublished: true,
+          $or: [{ companyId }, { isPrivate: false }],
+        }
         : { isPublished: true, isPrivate: false };
 
       const courses = await this.courseModel
@@ -223,9 +223,14 @@ export class CoursesService {
   }
 
   async findAll(): Promise<Course[]> {
+    return this.courseModel.find().sort({ createdAt: -1 }).exec();
+  }
+
+  async findByCreator(userId: string): Promise<Course[]> {
     return this.courseModel
-      .find()
+      .find({ creatorId: userId })
       .populate('creator enrolledStudents lectures')
+      .sort({ createdAt: -1 })
       .exec();
   }
 
@@ -251,35 +256,35 @@ export class CoursesService {
       throw new InternalServerErrorException('Failed to delete course.');
     }
   }
-  
+
   async getCourseAnalytics() {
-  try {
-    // Fetch all courses with only needed fields
-    const courses = await this.courseModel.find({}, 'coursePrice enrolledStudents');
+    try {
+      // Fetch all courses with only needed fields
+      const courses = await this.courseModel.find({}, 'coursePrice enrolledStudents');
 
-    const totalCourses = courses.length;
+      const totalCourses = courses.length;
 
-    let totalSales = 0;
-    let totalRevenue = 0;
+      let totalSales = 0;
+      let totalRevenue = 0;
 
-    courses.forEach((course) => {
-      const enrolledCount = course.enrolledStudents?.length || 0;
-      totalSales += enrolledCount;
+      courses.forEach((course) => {
+        const enrolledCount = course.enrolledStudents?.length || 0;
+        totalSales += enrolledCount;
 
-      const price = Number(course.coursePrice) || 0;
-      totalRevenue += price * enrolledCount;
-    });
+        const price = Number(course.coursePrice) || 0;
+        totalRevenue += price * enrolledCount;
+      });
 
-    return {
-      totalCourses,
-      totalSales,
-      totalRevenue,
-    };
-  } catch (error) {
-    console.error(error);
-    throw new InternalServerErrorException('Error generating course analytics');
+      return {
+        totalCourses,
+        totalSales,
+        totalRevenue,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException('Error generating course analytics');
+    }
   }
-}
 
 }
 

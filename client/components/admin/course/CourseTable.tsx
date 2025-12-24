@@ -16,16 +16,35 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { getUserIdFromToken } from "@/utils/helpers";
 import { getInstructor } from "@/features/api/users/route";
+import { useUserProfile } from "@/hooks/useUsers";
 
 const ITEMS_PER_PAGE = 7; // Define items per page
 
 const CourseTable = () => {
-  const { getCreatorCoursesQuery } = useCourses();
   const router = useRouter();
   const userId = getUserIdFromToken();
 
+  const { data: user, isLoading: userLoading } = useUserProfile(userId);
+  const [userRole, setUserRole] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const { data, isLoading, error } = getCreatorCoursesQuery(userId, currentPage);
+
+  useEffect(() => {
+    if (user?.role) {
+      setUserRole(user.role);
+      setCurrentPage(1);
+    }
+  }, [user]);
+  const { getAdminCoursesQuery } = useCourses();
+
+  const { data, isLoading, error } = getAdminCoursesQuery(
+    userRole,
+    userRole === "instructor" ? userId : undefined,
+    currentPage.toString()
+  );
+
+  console.log("data couses", data);
+
+
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [instructorStatus, setInstructorStatus] = useState(false);
@@ -53,8 +72,9 @@ const CourseTable = () => {
     fetchInstructorStatus();
   }, [userId]);
 
-  const courses = data?.courses || [];
-  const totalPages = data?.totalPages || 1;
+  const courses = Array.isArray(data) ? data : data?.courses ?? [];
+  const totalPages = data?.totalPages ?? 1;
+
 
   const filteredCourses = courses.filter((course: { courseTitle: string }) =>
     course.courseTitle.toLowerCase().includes(searchTerm.toLowerCase())
@@ -102,14 +122,18 @@ const CourseTable = () => {
   return (
     <div>
       <div className="flex items-center gap-4 mb-4">
-        <Button onClick={handleNavigateToCreate} disabled={statusLoading || !instructorStatus}>
-          {statusLoading ? "Checking Status..." : "Create New Course"}
+        <Button
+          onClick={handleNavigateToCreate}
+        // disabled={statusLoading || !instructorStatus}
+        >
+          {/* {statusLoading ? "Checking Status..." : "Create New Course"} */}
+          Create New Course
         </Button>
-        {!instructorStatus && !statusLoading && (
+        {/* {!instructorStatus && !statusLoading && (
           <span className="text-sm text-red-500">
             Your account is inactive. Please contact admin to activate your account.
           </span>
-        )}
+        )} */}
         <div className="flex-1 flex items-center gap-2">
           <div className="relative flex-1">
             <input
