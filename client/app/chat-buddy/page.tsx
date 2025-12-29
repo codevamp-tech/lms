@@ -27,7 +27,7 @@ const ChatBuddyPage = () => {
   });
 
   const [selectedEnquiry, setSelectedEnquiry] = useState<any>(null);
-   const [selectedBuddyId, setSelectedBuddyId] = useState("");
+  const [selectedBuddyId, setSelectedBuddyId] = useState("");
 
   function waitForFormData(): Promise<any> {
     return new Promise((resolve) => {
@@ -228,10 +228,10 @@ const ChatBuddyPage = () => {
                         <h3 className="font-semibold text-lg">{buddy.name}</h3>
                         <span
                           className={`text-xs px-2 py-1 rounded-full ${buddy.status === "online"
-                              ? "bg-green-100 text-green-700"
-                              : buddy.status === "busy"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-gray-100 text-gray-700"
+                            ? "bg-green-100 text-green-700"
+                            : buddy.status === "busy"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-gray-100 text-gray-700"
                             }`}
                         >
                           {buddy.status}
@@ -278,26 +278,26 @@ const ChatBuddyPage = () => {
                     />
 
 
-                     <div className="grid gap-2">
-                    <Label htmlFor="buddy" className="text-sm font-medium text-gray-700">
-                      Select Chat Buddy
-                    </Label>
-                    <select
-                      id="buddy"
-                      name="buddy"
-                      required
-                      value={selectedBuddyId}
-                      onChange={(e) => setSelectedBuddyId(e.target.value)}
-                      className="h-12 text-lg rounded-md border border-input bg-background px-3"
-                    >
-                      <option value="">Choose your buddy</option>
-                      {buddies.map((buddy) => (
-                        <option key={buddy._id} value={buddy._id}>
-                          {buddy.name} ({buddy.status})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="buddy" className="text-sm font-medium text-gray-700">
+                        Select Chat Buddy
+                      </Label>
+                      <select
+                        id="buddy"
+                        name="buddy"
+                        required
+                        value={selectedBuddyId}
+                        onChange={(e) => setSelectedBuddyId(e.target.value)}
+                        className="h-12 text-lg rounded-md border border-input bg-background px-3"
+                      >
+                        <option value="">Choose your buddy</option>
+                        {buddies.map((buddy) => (
+                          <option key={buddy._id} value={buddy._id}>
+                            {buddy.name} ({buddy.status})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
                   </div>
                   {/* <div className="grid gap-2">
@@ -326,6 +326,36 @@ const ChatBuddyPage = () => {
                       className="h-12 text-lg"
                       placeholder="10-digit number (Primary chat)"
                     />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label
+                      htmlFor="preferredTimeToChat"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Preferred Time to Chat
+                    </Label>
+
+                    <select
+                      id="preferredTimeToChat"
+                      name="preferredTimeToChat"
+                      required
+                      value={formData.preferredTimeToChat}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          preferredTimeToChat: e.target.value,
+                        })
+                      }
+                      className="h-12 text-lg rounded-md border border-input bg-background px-3"
+                    >
+                      <option value="">Select preferred time</option>
+                      <option value="morning">Morning (6 AM – 12 PM)</option>
+                      <option value="afternoon">Afternoon (12 PM – 5 PM)</option>
+                      <option value="evening">Evening (5 PM – 9 PM)</option>
+                      <option value="night">Night (9 PM – 12 AM)</option>
+                      <option value="anytime">Anytime</option>
+                    </select>
                   </div>
                 </div>
 
