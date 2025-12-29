@@ -3,6 +3,7 @@ import { motion } from "framer-motion"
 import { BookOpen, Users, Target, CheckCircle } from "lucide-react"
 import Link from "next/link"
 
+
 const steps = [
   {
     step: "01",

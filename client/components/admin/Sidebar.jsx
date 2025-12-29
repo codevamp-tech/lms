@@ -49,6 +49,11 @@ const SIDEBAR_LINKS = {
       label: "Sales",
       icon: UserPlus,
     },
+      {
+      href: "/admin/student-enrolled",
+      label: "Student Enrolled",
+      icon: UserPlus,
+    },
   ],
   superadmin: [
     {
