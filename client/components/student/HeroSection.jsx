@@ -215,7 +215,7 @@ const HeroSection = () => {
     className: "bg-gradient-to-r from-blue-500 to-cyan-500",
   },
   {
-    title: "Counselling Session by Amaan Gowhar",
+    title: "Counselling Session by Gowhar Amaan",
     sub: "course",
     price: "499",
     icon: MessageCircle,

@@ -93,6 +93,23 @@ export default function ChatBuddyPage() {
     setShowForm(true);
   };
 
+  /* ---------------- DELETE ---------------- */
+  const handleDelete = async (id: string) => {
+    const confirmed = confirm("Are you sure you want to delete this chat buddy?");
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`${API_URL}/chat-buddy/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete");
+
+      // Update the UI without refetching
+      setBuddies((prev) => prev.filter((buddy) => buddy._id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete buddy");
+    }
+  };
+
   /* ---------------- UI ---------------- */
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8">
@@ -193,14 +210,22 @@ export default function ChatBuddyPage() {
                   </p>
                 )}
 
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="mt-3"
-                  onClick={() => handleEdit(buddy)}
-                >
-                  Edit
-                </Button>
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEdit(buddy)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDelete(buddy._id)}
+                  >
+                    Delete
+                  </Button>
+                </div>
               </div>
             </div>
           ))

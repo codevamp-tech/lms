@@ -54,7 +54,7 @@ const SessionWithFounderPage = () => {
   }
 
   const courseData = {
-    title: "Counselling Session by Amaan Gowhar",
+    title: "Counselling Session by Gowhar Amaan",
     sub: "course",
     price: "499",
     icon: MessageCircle,
@@ -173,7 +173,7 @@ const SessionWithFounderPage = () => {
             Personal <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-lime-500">Counselling</span>
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Get 1-on-1 guidance from Amaan Gowhar, our founder, to unlock your full potential and get personalized career advice.
+            Get 1-on-1 guidance from Gowhar Amaan, our founder, to unlock your full potential and get personalized career advice.
           </p>
           <p className="text-3xl font-bold text-green-600 mt-4">₹{courseData.price}</p>
         </div>
@@ -187,7 +187,7 @@ const SessionWithFounderPage = () => {
               <ul className="space-y-4 text-lg">
                 <li className="flex items-start">
                   <span className="text-green-500 mr-3 mt-0.5">✓</span>
-                  <span>60-minute live 1-on-1 video call with Amaan Gowhar</span>
+                  <span>30-minute live 1-on-1 video call with  Gowhar Amaan</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-green-500 mr-3 mt-0.5">✓</span>
@@ -209,7 +209,7 @@ const SessionWithFounderPage = () => {
             </div>
 
             <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Who is Amaan Gowhar?</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Who is Gowhar Amaan?</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <div className="flex items-center mb-4">
@@ -264,7 +264,7 @@ const SessionWithFounderPage = () => {
                   Book Session
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Book Your Session</h2>
-                <p className="text-gray-600">Secure your 1-on-1 session with Amaan Gowhar</p>
+                <p className="text-gray-600">Secure your 1-on-1 session with Gowhar Amaan</p>
                 <p className="text-3xl font-bold text-green-600 mt-2">₹{courseData.price}</p>
               </div>
 

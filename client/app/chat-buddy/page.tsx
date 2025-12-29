@@ -27,6 +27,7 @@ const ChatBuddyPage = () => {
   });
 
   const [selectedEnquiry, setSelectedEnquiry] = useState<any>(null);
+   const [selectedBuddyId, setSelectedBuddyId] = useState("");
 
   function waitForFormData(): Promise<any> {
     return new Promise((resolve) => {
@@ -121,7 +122,7 @@ const ChatBuddyPage = () => {
             const formPayload = await waitForFormData();
             formPayload.type = "chat";
 
-            payload = { ...payload, ...formPayload };
+            formPayload.buddyId = selectedBuddyId;
 
             const res = await fetch(`${API_URL}/enquiry`, {
               method: "POST",
@@ -275,8 +276,31 @@ const ChatBuddyPage = () => {
                       className="h-12 text-lg"
                       placeholder="Enter your full name"
                     />
+
+
+                     <div className="grid gap-2">
+                    <Label htmlFor="buddy" className="text-sm font-medium text-gray-700">
+                      Select Chat Buddy
+                    </Label>
+                    <select
+                      id="buddy"
+                      name="buddy"
+                      required
+                      value={selectedBuddyId}
+                      onChange={(e) => setSelectedBuddyId(e.target.value)}
+                      className="h-12 text-lg rounded-md border border-input bg-background px-3"
+                    >
+                      <option value="">Choose your buddy</option>
+                      {buddies.map((buddy) => (
+                        <option key={buddy._id} value={buddy._id}>
+                          {buddy.name} ({buddy.status})
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <div className="grid gap-2">
+
+                  </div>
+                  {/* <div className="grid gap-2">
                     <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address</Label>
                     <Input
                       id="email"
@@ -288,7 +312,7 @@ const ChatBuddyPage = () => {
                       className="h-12 text-lg"
                       placeholder="your@email.com"
                     />
-                  </div>
+                  </div> */}
                   <div className="grid gap-2">
                     <Label htmlFor="whatsappNo" className="text-sm font-medium text-gray-700">WhatsApp Number</Label>
                     <Input
