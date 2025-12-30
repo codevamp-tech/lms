@@ -148,7 +148,7 @@ export default function Cart() {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: order.currency,
-        name: "LMS Platform",
+        name: "Mr English",
         description: "Course Purchase",
         order_id: order.id,
         handler: async function (response: { razorpay_payment_id: any; razorpay_order_id: any; razorpay_signature: any; }) {
@@ -267,7 +267,7 @@ export default function Cart() {
                               key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
                               amount: order.amount,
                               currency: order.currency,
-                              name: "LMS Platform",
+                              name: "Mr English",
                               description: "Course Purchase",
                               order_id: order.id,
                               handler: async function (response: { razorpay_payment_id: any; razorpay_order_id: any; razorpay_signature: any; }) {
