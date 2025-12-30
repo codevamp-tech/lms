@@ -71,7 +71,7 @@ export class CoursesController {
   @Get('alladmin')
   async findAll(
     @Query('userRole') userRole: string,
-    @Query('userId') userId?: string,
+    @Query('userId') userId?: string | undefined,
     @Query('page') page = 1,
   ) {
     const courses =
