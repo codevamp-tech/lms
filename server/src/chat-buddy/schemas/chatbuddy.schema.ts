@@ -12,10 +12,10 @@ export class ChatBuddy extends Document {
   @Prop({ default: '' })
   bio: string;
 
-  @Prop({
-    enum: ['online', 'offline', 'busy'],
-    default: 'offline',
-  })
+  // @Prop({
+  //   enum: ['online', 'offline', 'busy'],
+  //   default: 'offline',
+  // })
   status: string;
 }
 

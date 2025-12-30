@@ -131,6 +131,23 @@ export class CoursesController {
     }
   }
 
+   @Get(':courseId/sales')
+  async getCourseSales(@Param('courseId') courseId: string) {
+    try {
+      const salesData = await this.coursesService.getCourseSales(courseId);
+      return {
+        success: true,
+        data: salesData,
+      };
+    } catch (error) {
+      // Handle not found separately if needed
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw error;
+    }
+  }
+  
   @Get(':courseId/lectures')
   async getCourseLectures(@Param('courseId') courseId: string) {
     try {
