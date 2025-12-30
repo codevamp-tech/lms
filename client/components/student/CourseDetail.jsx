@@ -121,7 +121,7 @@ const handleBuyCourse = async () => {
       amount: order.amount,
       currency: order.currency,
       order_id: order.id,
-      name: "LMS Platform",
+      name: "Mr English",
       handler: async function (response) {
 
         // save payment data
@@ -283,6 +283,14 @@ const verifyNow = async (paymentData) => {
                     width="100%"
                     height="100%"
                     url={course.lectures[0]?.videoUrl}
+                    controls
+                    light={course.courseThumbnail} />
+                </div>
+                <div className="w-full aspect-video mb-4 rounded-lg overflow-hidden">
+                  <ReactPlayer
+                    width="100%"
+                    height="100%"
+                    url={course.lectures[1]?.videoUrl}
                     controls
                     light={course.courseThumbnail} />
                 </div>
