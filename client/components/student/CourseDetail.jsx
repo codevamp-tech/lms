@@ -1,4 +1,3 @@
-// course/course-detail/[courseId]/page.tsx
 "use client";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +17,8 @@ import {
   ChevronUp,
   ShoppingCart,
   CheckCircle,
+  Eye,
+  Video,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player";
@@ -36,21 +37,17 @@ const CourseDetail = () => {
   const router = useRouter();
   const userId = getUserIdFromToken();
 
-  // useEffect(() => {
-  //   if (!userId) {
-  //     router.push('/login');
-  //   }
-  // }, [userId, router]);
-
   const [pendingPayment, setPendingPayment] = useState(null);
-    const [loginPopup, setLoginPopup] = useState(false);
+  const [loginPopup, setLoginPopup] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isInCart, setIsInCart] = useState(false);
-const {
-  data: courseData,
-  isLoading,
-  error
-} = useCourseDetails(courseId, userId || "");
+  const [activePreviewVideo, setActivePreviewVideo] = useState(0);
+
+  const {
+    data: courseData,
+    isLoading,
+    error
+  } = useCourseDetails(courseId, userId || "");
 
   const queryClient = useQueryClient();
 
@@ -81,7 +78,6 @@ const {
     }
   }, [courseId, userId, courseData]);
 
- 
   const handleAddToCart = async () => {
     if (!userId) {
       router.push("/login");
@@ -112,237 +108,260 @@ const {
     }
   };
   
-const handleBuyCourse = async () => {
-  try {
-    const { order } = await createRazorpayOrder(courseId);
+  const handleBuyCourse = async () => {
+    try {
+      const { order } = await createRazorpayOrder(courseId);
 
-    const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      amount: order.amount,
-      currency: order.currency,
-      order_id: order.id,
-      name: "Mr English",
-      handler: async function (response) {
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.id,
+        name: "Mr English",
+        handler: async function (response) {
+          const paymentData = {
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+            courseId,
+          };
 
-        // save payment data
-        const paymentData = {
-          razorpay_payment_id: response.razorpay_payment_id,
-          razorpay_order_id: response.razorpay_order_id,
-          razorpay_signature: response.razorpay_signature,
-          courseId,
-        };
+          if (!userId) {
+            setPendingPayment(paymentData);
+            setLoginPopup(true);
+            toast.success("Login to unlock the course!");
+            return;
+          }
 
-        if (!userId) {
-          // store for later verification
-          setPendingPayment(paymentData);
-          setLoginPopup(true);
-          toast.success("Login to unlock the course!");
-          return;
-        }
+          verifyNow(paymentData);
+        },
+        theme: { color: "#3399cc" },
+      };
 
-        verifyNow(paymentData);
-      },
-      theme: { color: "#3399cc" },
-    };
+      new window.Razorpay(options).open();
+    } catch {
+      toast.error("Checkout failed!");
+    }
+  };
 
-    new window.Razorpay(options).open();
-  } catch {
-    toast.error("Checkout failed!");
-  }
-};
+  const verifyNow = async (paymentData) => {
+    const verify = await verifyPayment({ ...paymentData, userId });
 
-// Separate function to call verification API
-const verifyNow = async (paymentData) => {
-  const verify = await verifyPayment({ ...paymentData, userId });
+    if (verify.success) {
+      toast.success("Course purchased successfully!");
+      queryClient.invalidateQueries({
+        queryKey: ['courseDetails', courseId, userId],
+      });
+      router.push(`/course/course-progress/${courseId}`);
+    } else {
+      toast.error("Payment verification failed!");
+    }
+  };
 
-  if (verify.success) {
-    toast.success("Course purchased successfully!");
-    queryClient.invalidateQueries({
-  queryKey: ['courseDetails', courseId, userId],
-});
-    router.push(`/course/course-progress/${courseId}`);
-  } else {
-    toast.error("Payment verification failed!");
-  }
-};
-
-
- useEffect(() => {
-  if (userId && pendingPayment) {
-    verifyNow(pendingPayment);
-    setPendingPayment(null);
-  }
-}, [userId, pendingPayment]);
-
-
+  useEffect(() => {
+    if (userId && pendingPayment) {
+      verifyNow(pendingPayment);
+      setPendingPayment(null);
+    }
+  }, [userId, pendingPayment]);
 
   if (isLoading) return <CourseDetailSkeleton />;
   if (error) return <div>Error: {error.message}</div>;
   if (!courseData) return <CourseDetailSkeleton />;
-    console.log("course date>>>",courseData);
+
   const course = courseData.course;
   const purchased = courseData.purchased;
 
+  // Get first two lectures for preview
+  const previewLectures = course.lectures.slice(0, 2);
+
   return (
-     <>
-   <LoginModal
-  open={loginPopup}
-  onClose={() => setLoginPopup(false)}
-/>
+    <>
+      <LoginModal
+        open={loginPopup}
+        onClose={() => setLoginPopup(false)}
+      />
       <div className="bg-background dark:bg-gray-900">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex flex-col lg:flex-row gap-10">
-          <div className="w-full lg:w-2/3">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Card className="bg-card dark:bg-gray-800/50 p-6 mb-8">
-                <h1 className="font-bold text-3xl md:text-4xl text-primary">
-                  {course.courseTitle}
-                </h1>
-                <p className="text-lg md:text-xl text-muted-foreground mt-2">
-                  {course.subTitle}
-                </p>
-                <p className="py-2 text-sm">
-                  Created By{" "}
-                  <span className="text-primary/80 underline italic">
-                    {course.creator?.name}
-                  </span>
-                </p>
-                <div className="flex flex-wrap gap-x-6 gap-y-2 py-2 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <CalendarDays size={16} />
-                    <span>
-                      Last updated{" "}
-                      {new Date(course.createdAt).toLocaleDateString()}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex flex-col lg:flex-row gap-10">
+            <div className="w-full lg:w-2/3">
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <Card className="bg-card dark:bg-gray-800/50 p-6 mb-8">
+                  <h1 className="font-bold text-3xl md:text-4xl text-primary">
+                    {course.courseTitle}
+                  </h1>
+                  <p className="text-lg md:text-xl text-muted-foreground mt-2">
+                    {course.subTitle}
+                  </p>
+                  <p className="py-2 text-sm">
+                    Created By{" "}
+                    <span className="text-primary/80 underline italic">
+                      {course.creator?.name}
                     </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users size={16} />
-                    <span>{course.enrolledStudents.length} Students enrolled</span>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="mb-8">
-                <CardHeader>
-                  <CardTitle>Description</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div
-                    className={`prose dark:prose-invert max-w-none transition-all duration-300 ${isExpanded ? "max-h-full" : "max-h-48 overflow-hidden"}`}
-                    dangerouslySetInnerHTML={{ __html: course.description || "" }} />
-                  <Button
-                    variant="link"
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="px-0 mt-2"
-                  >
-                    {isExpanded ? "Show Less" : "Show More"}
-                    {isExpanded ? (
-                      <ChevronUp className="ml-1 h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="ml-1 h-4 w-4" />
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Course Content</CardTitle>
-                  <CardDescription>
-                    {course.lectures.length} lectures
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {course.lectures.map((lecture, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-3 text-sm p-2 rounded-md bg-secondary/50"
-                    >
-                      {purchased ? (
-                        <PlayCircle size={16} className="text-primary" />
-                      ) : (
-                        <Lock size={16} className="text-muted-foreground" />
-                      )}
-                      <p>{lecture.lectureTitle}</p>
+                  </p>
+                  <div className="flex flex-wrap gap-x-6 gap-y-2 py-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays size={16} />
+                      <span>
+                        Last updated{" "}
+                        {new Date(course.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
+                    <div className="flex items-center gap-2">
+                      <Users size={16} />
+                      <span>{course.enrolledStudents.length} Students enrolled</span>
+                    </div>
+                  </div>
+                </Card>
 
-          <div className="w-full lg:w-1/3 lg:sticky top-24 self-start">
-            <Card>
-              <CardContent className="p-4">
-                <div className="w-full aspect-video mb-4 rounded-lg overflow-hidden">
-                  <ReactPlayer
-                    width="100%"
-                    height="100%"
-                    url={course.lectures[0]?.videoUrl}
-                    controls
-                    light={course.courseThumbnail} />
-                </div>
-                <div className="w-full aspect-video mb-4 rounded-lg overflow-hidden">
-                  <ReactPlayer
-                    width="100%"
-                    height="100%"
-                    url={course.lectures[1]?.videoUrl}
-                    controls
-                    light={course.courseThumbnail} />
-                </div>
-                <h2 className="text-3xl font-bold text-center mb-4">
-                  ₹{course.coursePrice}
-                </h2>
-              </CardContent>
-              <CardFooter className="flex-col gap-3">
-                {purchased ? (
-                  <Button
-                    size="lg"
-                    onClick={() => router.push(`/course/course-progress/${courseId}`)}
-                    className="w-full"
-                  >
-                    <PlayCircle className="mr-2 h-5 w-5" />
-                    Continue Learning
-                  </Button>
-                ) : (
-                  <>
-                    {/* <Button
-                      size="lg"
-                      onClick={handleAddToCart}
-                      className="w-full"
+                <Card className="mb-8">
+                  <CardHeader>
+                    <CardTitle>Description</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div
+                      className={`prose dark:prose-invert max-w-none transition-all duration-300 ${isExpanded ? "max-h-full" : "max-h-48 overflow-hidden"}`}
+                      dangerouslySetInnerHTML={{ __html: course.description || "" }}
+                    />
+                    <Button
+                      variant="link"
+                      onClick={() => setIsExpanded(!isExpanded)}
+                      className="px-0 mt-2"
                     >
-                      {isInCart ? (
-                        <>
-                          <CheckCircle className="mr-2 h-5 w-5" />
-                          Go to Cart
-                        </>
+                      {isExpanded ? "Show Less" : "Show More"}
+                      {isExpanded ? (
+                        <ChevronUp className="ml-1 h-4 w-4" />
                       ) : (
-                        <>
-                          <ShoppingCart className="mr-2 h-5 w-5" />
-                          Add to Cart
-                        </>
+                        <ChevronDown className="ml-1 h-4 w-4" />
                       )}
-                    </Button> */}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Course Content</CardTitle>
+                    <CardDescription>
+                      {course.lectures.length} lectures
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {course.lectures.map((lecture, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-3 text-sm p-2 rounded-md bg-secondary/50"
+                      >
+                        {purchased ? (
+                          <PlayCircle size={16} className="text-primary" />
+                        ) : (
+                          <Lock size={16} className="text-muted-foreground" />
+                        )}
+                        <p>{lecture.lectureTitle}</p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+
+            <div className="w-full lg:w-1/3 lg:sticky top-24 self-start">
+              <Card className="overflow-hidden">
+                <CardContent className="p-0">
+                  {/* Preview Videos Section */}
+                  <div className="bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 p-4 border-b">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="bg-primary/20 p-2 rounded-lg">
+                        <Eye className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm">Free Preview</h3>
+                        <p className="text-xs text-muted-foreground">Watch before you buy</p>
+                      </div>
+                    </div>
+
+                    {/* Main Video Player */}
+                    <div className="w-full aspect-video rounded-lg overflow-hidden shadow-lg mb-3">
+                      <ReactPlayer
+                        width="100%"
+                        height="100%"
+                        url={previewLectures[activePreviewVideo]?.videoUrl}
+                        controls
+                        light={course.courseThumbnail}
+                      />
+                    </div>
+
+                    {/* Video Selector */}
+                    <div className="grid grid-cols-2 gap-2">
+                      {previewLectures.map((lecture, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setActivePreviewVideo(idx)}
+                          className={`
+                            relative group rounded-lg overflow-hidden border-2 transition-all duration-200
+                            ${activePreviewVideo === idx 
+                              ? 'border-primary shadow-md scale-[1.02]' 
+                              : 'border-border hover:border-primary/50'
+                            }
+                          `}
+                        >
+                          <div className="aspect-video bg-secondary/50 flex flex-col items-center justify-center p-2">
+                            <Video className={`h-5 w-5 mb-1 ${activePreviewVideo === idx ? 'text-primary' : 'text-muted-foreground'}`} />
+                            <p className="text-xs font-medium line-clamp-2 text-center">
+                              {lecture.lectureTitle || `Lecture ${idx + 1}`}
+                            </p>
+                          </div>
+                          {activePreviewVideo === idx && (
+                            <div className="absolute inset-0 bg-primary/10 pointer-events-none" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Price Section */}
+                  <div className="p-6">
+                    <div className="text-center mb-4">
+                      <p className="text-sm text-muted-foreground mb-1">Course Price</p>
+                      <h2 className="text-4xl font-bold text-primary">
+                        ₹{course.coursePrice}
+                      </h2>
+                    </div>
+                  </div>
+                </CardContent>
+
+                <CardFooter className="flex-col gap-3 pt-0">
+                  {purchased ? (
                     <Button
                       size="lg"
-                      variant="outline"
-                      onClick={handleBuyCourse}
+                      onClick={() => router.push(`/course/course-progress/${courseId}`)}
                       className="w-full"
                     >
-                      Buy Now
+                      <PlayCircle className="mr-2 h-5 w-5" />
+                      Continue Learning
                     </Button>
-                  </>
-                )}
-              </CardFooter>
-            </Card>
+                  ) : (
+                    <>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        onClick={handleBuyCourse}
+                        className="w-full"
+                      >
+                        Buy Now
+                      </Button>
+                    </>
+                  )}
+                </CardFooter>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
-    </div></>
+    </>
   );
 };
 

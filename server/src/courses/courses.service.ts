@@ -226,7 +226,7 @@ export class CoursesService {
     return this.courseModel.find().sort({ createdAt: -1 }).exec();
   }
 
-  async findByCreator(userId: string): Promise<Course[]> {
+  async findByCreator(userId: any): Promise<Course[]> {
     return this.courseModel
       .find({ creatorId: userId })
       .populate('creator enrolledStudents lectures')
@@ -285,6 +285,37 @@ export class CoursesService {
       throw new InternalServerErrorException('Error generating course analytics');
     }
   }
+
+  async getCourseSales(courseId: string) {
+  try {
+    // Find the course and populate enrolled students
+    const course = await this.courseModel
+      .findById(courseId)
+      .populate({
+        path: 'enrolledStudents',
+        select: 'name email photoUrl', // select only the fields you need
+      });
+
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${courseId} not found.`);
+    }
+
+    const enrolledUsers = course.enrolledStudents || [];
+
+    return {
+      courseId: course._id,
+      courseTitle: course.courseTitle,
+      totalEnrolled: enrolledUsers.length,
+      enrolledUsers, // populated user details
+    };
+  } catch (error) {
+    console.error('Error fetching course sales:', error);
+    throw new InternalServerErrorException(
+      'Failed to fetch enrolled users for the course',
+    );
+  }
+}
+
 
 }
 

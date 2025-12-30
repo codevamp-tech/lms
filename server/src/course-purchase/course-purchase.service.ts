@@ -176,7 +176,7 @@ export class CoursePurchaseService {
 
     try {
       // ================================
-      // 🔥 EMAIL SEND LOGIC (CLEAN + SAFE)
+     
       // ================================
       await sendMail({
         to: user.email,
