@@ -101,9 +101,14 @@ export default function EnquiryPage() {
     const matchesSearch = (item.name || item.nmae || "")
       .toLowerCase()
       .includes(search.toLowerCase());
-    const matchesType = filterType ? item.type === filterType : true;
+
+    const matchesType = filterType
+      ? item.type.toLowerCase() === filterType
+      : true;
+
     return matchesSearch && matchesType;
   });
+
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -127,6 +132,15 @@ export default function EnquiryPage() {
     }
   };
 
+  const TABS = [
+    { label: "All", value: "" },
+    { label: "Chat", value: "chat" },
+    { label: "Contact", value: "contact" },
+    { label: "Courses", value: "courses" },
+  ];
+
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 p-6">
       <div className="max-w-7xl mx-auto">
@@ -142,8 +156,10 @@ export default function EnquiryPage() {
           </div>
 
           {/* Filters Section */}
+          {/* Filters Section */}
           <div className="p-6 bg-slate-50/50 border-b border-slate-200">
-            <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex flex-col gap-4">
+              {/* Search Bar */}
               <div className="flex-1 min-w-[300px] relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input
@@ -158,26 +174,41 @@ export default function EnquiryPage() {
                 />
               </div>
 
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="px-5 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white font-medium text-slate-700"
-              >
-                <option value="">All Types</option>
-                {uniqueTypes.map((t, i) => (
-                  <option key={i}>{t}</option>
+              {/* Tabs */}
+              {/* Tabs */}
+              <div className="flex gap-3 flex-wrap">
+                {["All", "Chat", "Contact", "Courses"].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => {
+                      setFilterType(tab === "All" ? "" : tab.toLowerCase());
+                      setCurrentPage(1);
+                    }}
+                    className={`px-6 py-2 rounded-xl font-semibold transition-all ${filterType === tab.toLowerCase() || (tab === "All" && filterType === "")
+                      ? "bg-blue-600 text-white shadow-lg"
+                      : "bg-white text-slate-700 border border-slate-300 hover:bg-blue-50"
+                      }`}
+                  >
+                    {tab}
+                  </button>
                 ))}
-              </select>
 
-              <button
-                onClick={() => setOpenForm(true)}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/30 transition-all hover:shadow-xl hover:shadow-blue-500/40"
-              >
-                <Plus className="w-5 h-5" />
-                Add Enquiry
-              </button>
+              </div>
+
+
+              {/* Add Enquiry Button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setOpenForm(true)}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/30 transition-all hover:shadow-xl hover:shadow-blue-500/40"
+                >
+                  <Plus className="w-5 h-5" />
+                  Add Enquiry
+                </button>
+              </div>
             </div>
           </div>
+
 
           {/* Table Section */}
           <div className="overflow-x-auto">

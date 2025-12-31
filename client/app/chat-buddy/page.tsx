@@ -333,18 +333,18 @@ const ChatBuddyPage = () => {
                       htmlFor="preferredTimeToChat"
                       className="text-sm font-medium text-gray-700"
                     >
-                      Preferred Time to Chat
+                      Preferred Time to Call
                     </Label>
 
                     <select
-                      id="preferredTimeToChat"
-                      name="preferredTimeToChat"
+                      id="preferredTimeToCall"
+                      name="preferredTimeToCall"
                       required
-                      value={formData.preferredTimeToChat}
+                      value={formData.preferredTimeToCall}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          preferredTimeToChat: e.target.value,
+                          preferredTimeToCall: e.target.value,
                         })
                       }
                       className="h-12 text-lg rounded-md border border-input bg-background px-3"
