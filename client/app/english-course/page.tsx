@@ -120,7 +120,7 @@ const EnglishCoursePage = () => {
             setSelectedEnquiry(offer);
 
             const formPayload = await waitForFormData();
-            formPayload.type = "course";
+            formPayload.type = "Course";
 
             payload = { ...payload, ...formPayload };
 

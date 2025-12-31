@@ -120,7 +120,7 @@ const SessionWithFounderPage = () => {
             setSelectedEnquiry(offer);
 
             const formPayload = await waitForFormData();
-            formPayload.type = "course";
+            formPayload.type = "Counselling";
 
             payload = { ...payload, ...formPayload };
 
