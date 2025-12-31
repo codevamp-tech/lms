@@ -6,11 +6,13 @@ import { CreateEnquiryDto } from './dto/create-enquiry.dto';
 import { Enquiry, EnquiryDocument } from './schemas/enquiry.schema';
 import { sendMail } from '../../utils/mail';
 import axios from 'axios';
+import { NotificationsService } from 'src/notification/notifications.service';
 
 @Injectable()
 export class EnquiryService {
   constructor(
     @InjectModel(Enquiry.name) private readonly enquiryModel: Model<EnquiryDocument>,
+    private readonly notificationsService: NotificationsService,
   ) { }
 
   async create(createEnquiryDto: CreateEnquiryDto): Promise<Enquiry> {
@@ -29,6 +31,17 @@ export class EnquiryService {
       const savedEnquiry = await created.save();
 
       await this.sendEnquiryEmail(createEnquiryDto.email, createEnquiryDto.name);
+
+      console.log("Creating notification for new enquiry");
+
+        await this.notificationsService.createNotification({
+              name: createEnquiryDto.name,
+              title: `New Enquiry from ${createEnquiryDto.name}`,
+              body: `${createEnquiryDto.name} (${createEnquiryDto.email}) submitted an enquiry of type ${createEnquiryDto.type || 'General'}`,
+              payload: { enquiryId: savedEnquiry._id, email: createEnquiryDto.email },
+            });
+
+            console.log("Notification created successfully");
 
       return savedEnquiry;
 
