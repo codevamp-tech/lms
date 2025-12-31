@@ -54,6 +54,12 @@ const SIDEBAR_LINKS = {
       label: "Student Enrolled",
       icon: UserPlus,
     },
+
+      {
+      href: "/admin/notifications",
+      label: "notifications",
+      icon: UserPlus,
+    },
   ],
   superadmin: [
     {

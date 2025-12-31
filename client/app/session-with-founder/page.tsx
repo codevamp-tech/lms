@@ -309,6 +309,37 @@ const SessionWithFounderPage = () => {
                       placeholder="10-digit number"
                     />
                   </div>
+
+                  <div className="grid gap-2">
+                    <Label
+                      htmlFor="preferredTimeToChat"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Preferred Time to Timing
+                    </Label>
+
+                    <select
+                      id="preferredTimeToCall"
+                      name="preferredTimeToCall"
+                      required
+                      value={formData.preferredTimeToCall}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          preferredTimeToCall: e.target.value,
+                        })
+                      }
+                      className="h-12 text-lg rounded-md border border-input bg-background px-3"
+                    >
+                      <option value="">Select preferred time</option>
+                      <option value="morning">Morning (6 AM – 12 PM)</option>
+                      <option value="afternoon">Afternoon (12 PM – 5 PM)</option>
+                      <option value="evening">Evening (5 PM – 9 PM)</option>
+                      <option value="night">Night (9 PM – 12 AM)</option>
+                      <option value="anytime">Anytime</option>
+                    </select>
+                  </div>
+
                 </div>
 
                 <div className="pt-4 space-y-3">
