@@ -5,6 +5,7 @@ import { LiveSession } from './schemas/live-session.schema';
 import { CreateLiveSessionDto } from './dto/create-live-session.dto';
 import { EditLiveSessionDto } from './dto/edit-live-session.dto';
 import { UsersService } from '../users/users.service';
+import { NotificationsService } from 'src/notification/notifications.service';
 import * as nodemailer from 'nodemailer';
 import { google } from 'googleapis';
 import { sendMail } from '../../utils/mail';
@@ -15,7 +16,8 @@ export class LiveSessionService {
 
     constructor(
         @InjectModel(LiveSession.name) private liveSessionModel: Model<LiveSession>,
-        private readonly usersService: UsersService
+        private readonly usersService: UsersService,
+        private readonly notificationsService: NotificationsService,
     ) {
         console.log('🔧 ========== CONSTRUCTOR START ==========');
         console.log('🔧 Initializing LiveSessionService...');
@@ -301,6 +303,21 @@ export class LiveSessionService {
                 console.log(`📤 Sending email to ${student.email}...`);
                 await sendMail(mailOptions);
                 console.log(`✅ Email sent successfully to ${student.email}`);
+                try {
+                    const sid = (student as any)?._id || (student as any)?.id;
+                    if (sid) {
+                        await this.notificationsService.createNotification({
+                            userId: new Types.ObjectId(String(sid)),
+                            title: `Live Session Invitation`,
+                            body: `You have been invited to join a live session. Join here: ${meetLink}`,
+                            payload: { meetLink, companyId },
+                        });
+                    } else {
+                        console.warn('⚠ Skipping notification creation - no student id:', student);
+                    }
+                } catch (nErr) {
+                    console.error('❌ Notification creation failed for invitation:', (student as any)?._id || (student as any)?.id, nErr);
+                }
             } catch (error) {
                 console.error(`❌ Failed to send email to ${student.email}:`, error.message);
                 console.error('Full error:', error);
@@ -350,7 +367,30 @@ export class LiveSessionService {
 
     async create(createLiveSessionDto: CreateLiveSessionDto): Promise<LiveSession> {
         const createdLiveSession = new this.liveSessionModel(createLiveSessionDto);
-        return createdLiveSession.save();
+        const saved = await createdLiveSession.save();
+
+        // Notify explicitly enrolled users (if any)
+        try {
+            const enrolled = (saved.enrolledUsers || []).filter(Boolean);
+            if (enrolled.length) {
+                await Promise.all(enrolled.map(async (uid: any) => {
+                    try {
+                        await this.notificationsService.createNotification({
+                            userId: new Types.ObjectId(uid),
+                            title: `New Live Session: ${saved.title}`,
+                            body: `A live session is scheduled on ${new Date(saved.date).toLocaleString()}`,
+                            payload: { sessionId: saved._id },
+                        });
+                    } catch (nErr) {
+                        console.error('❌ Failed to create notification for enrolled user', uid, nErr);
+                    }
+                }));
+            }
+        } catch (err) {
+            console.error('❌ Error creating live session notifications:', err);
+        }
+
+        return saved;
     }
 
     async findAll(): Promise<LiveSession[]> {
@@ -447,6 +487,24 @@ export class LiveSessionService {
             try {
                 await sendMail(mailOptions);
                 console.log(`✔ Email sent: ${student.email}`);
+                try {
+                    const sid = (student as any)?._id || (student as any)?.id;
+                    if (sid) {
+                        console.log(`✔ Creating notification for reminder: ${sid}`);
+                        await this.notificationsService.createNotification({
+                            userId: new Types.ObjectId(String(sid)),
+                            title: `Reminder: ${session.title}`,
+                            body: `Your live session starts at ${new Date(session.date).toLocaleString()}. Join: ${session.link}`,
+                            payload: { sessionId: session._id },
+                        });
+
+                        console.log(`✔ Notification created for reminder: ${sid}`);
+                    } else {
+                        console.warn('⚠ Skipping reminder notification - no student id:', student);
+                    }
+                } catch (nErr) {
+                    console.error('❌ Notification creation failed for reminder:', (student as any)?._id || (student as any)?.id, nErr);
+                }
             } catch (err) {
                 console.error(`❌ Error sending email to ${student.email}:`, err);
             }

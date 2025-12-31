@@ -32,6 +32,9 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ChatBuddyModule } from './chat-buddy/chat-buddy.module';
+import { NotificationsModule } from './notification/notifications.module';
+
+
 
 // Ensure uploads directory exists
 const uploadDir = './uploads';
@@ -99,6 +102,7 @@ if (!fs.existsSync(uploadDir)) {
     RazorpayModule,
     EnquiryModule,
     ChatBuddyModule,
+    NotificationsModule,
     ThrottlerModule.forRoot([{
       ttl: 60, // time window in seconds
       limit: 5, // max requests per IP within ttl

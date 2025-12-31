@@ -4,6 +4,7 @@ import { ChatBuddyService } from './chat-buddy.service';
 import { ChatBuddyController } from './chat-buddy.controller';
 import { ChatBuddy, ChatBuddySchema } from './schemas/chatbuddy.schema';
 
+
 @Module({
   imports: [
     MongooseModule.forFeature([

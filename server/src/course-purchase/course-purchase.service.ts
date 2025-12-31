@@ -11,6 +11,7 @@ import { Course } from 'src/courses/schemas/course.schema';
 import { CoursePurchase } from './schemas/course-purchase.schema';
 import { User } from 'src/users/schemas/user.schema';
 import { sendMail } from '../../utils/mail';
+import { NotificationsService } from 'src/notification/notifications.service';
 
 import { Lecture } from 'src/lectures/schemas/lecture.schema';
 import {
@@ -29,6 +30,7 @@ export class CoursePurchaseService {
     @InjectModel(CoursePurchase.name)
     private coursePurchaseModel: Model<CoursePurchase>,
     private readonly razorpayService: RazorpayService,
+    private readonly notificationsService: NotificationsService,
   ) { }
 
   async getCourseDetailWithPurchaseStatus(
@@ -202,6 +204,16 @@ export class CoursePurchaseService {
       });
 
       console.log("📩 Purchase email sent to:", user.email);
+      try {
+        await this.notificationsService.createNotification({
+          userId: new Types.ObjectId(userId),
+          title: `Course Purchased: ${course.subTitle}`,
+          body: `You have successfully purchased ${course.subTitle}. Payment ID: ${razorpay_payment_id}`,
+          payload: { courseId: updatedPurchase.courseId, purchaseId: updatedPurchase._id },
+        });
+      } catch (nErr) {
+        console.error('❌ Notification creation failed:', nErr);
+      }
     } catch (emailError) {
       console.error("❌ Email sending failed:", emailError);
       // BUT we don't stop the success response — course purchase is still valid

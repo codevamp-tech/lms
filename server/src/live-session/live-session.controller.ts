@@ -34,12 +34,12 @@ export class LiveSessionController {
   findOne(@Param('id') id: string) {
     return this.liveSessionService.findOne(id);
   }
-   @Get('enrolled/:userId')
+  @Get('enrolled/:userId')
   getEnrolledSessions(@Param('userId') userId: string) {
     return this.liveSessionService.getEnrolledSessions(userId);
   }
 
-  
+
 
   @Put(':id')
   update(@Param('id') id: string, @Body() editLiveSessionDto: EditLiveSessionDto) {
@@ -80,5 +80,29 @@ GOOGLE_REFRESH_TOKEN=${tokens.refresh_token}
   async startLiveSession(@Body('companyId') companyId: string) {
     const result = await this.liveSessionService.startSession(companyId);
     return result;
+  }
+
+  @Post('test-email')
+  async sendTestEmail(@Body('to') to: string) {
+    const session = {
+      _id: '692edac1e1c3865af5285d5f',
+      title: 'BEST SPOKEN ENGLISH COURSE',
+      link: 'https://meet.google.com/pbu-gamt-wvk',
+      date: new Date('2026-01-05T08:30:00.000Z'),
+      enrolledUsers: [
+        {
+          _id: '6937d037e05126e317bc2356',
+          name: 'Rahul Sharma',
+          email: 'rahul@test.com',
+        },
+        {
+          _id: '694a8e85405b1b8ce298f907',
+          name: 'Anjali Verma',
+          email: 'anjali@test.com',
+        },
+      ],
+    };
+    console.log(`📌 Sending test reminder for session: ${session._id}`);
+    return this.liveSessionService.sendReminderEmails(session);
   }
 }
