@@ -18,7 +18,7 @@ export default function NotificationsDropdown() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-  // Fetch notifications
+  // Fetch notifications again
   const fetchNotifications = async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/all`);
