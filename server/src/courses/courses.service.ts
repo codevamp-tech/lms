@@ -10,12 +10,16 @@ import { CreateCourseDto } from './dto/create-course.dto';
 import { EditCourseDto } from './dto/edit-course.dto';
 import { Lecture } from 'src/lectures/schemas/lecture.schema';
 import { deleteMediaFromCloudinary, uploadMedia } from 'utils/cloudinary';
+import { Enquiry } from 'src/enquiries/schemas/enquiry.schema';
+import { LiveSession } from 'src/live-session/schemas/live-session.schema';
 
 @Injectable()
 export class CoursesService {
   constructor(
     @InjectModel(Course.name) private courseModel: Model<Course>,
     @InjectModel(Lecture.name) private lectureModel: Model<Lecture>,
+    @InjectModel(Enquiry.name) private enquiryModel: Model<Enquiry>,
+    @InjectModel(LiveSession.name) private liveSessionModel: Model<LiveSession>,
   ) { }
 
   async createCourse(createCourseDto: CreateCourseDto) {
@@ -257,6 +261,47 @@ export class CoursesService {
     }
   }
 
+  async getLiveSessionsRevenue() {
+    const liveSessions = await this.liveSessionModel.find({}, '_id price enrolledUsers');
+
+    let totalRevenue = 0;
+    let totalSales = 0;
+
+    liveSessions.forEach((session) => {
+      const enrolledCount = session.enrolledUsers?.length || 0;
+      totalSales += enrolledCount; // count number of enrolled users
+
+      const price = Number(session.price) || 0;
+      totalRevenue += enrolledCount * price;
+    });
+
+    return { totalRevenue, totalSales };
+  }
+
+  async getenquiryRevenue() {
+    try {
+      // Fetch all enquiries
+      const enquiries = await this.enquiryModel.find({}, 'amount type');
+
+      let totalRevenue = 0;
+      let totalSales = 0;
+
+      enquiries.forEach((enquiry) => {
+        // Skip enquiries of type "Contact"
+        if (enquiry.type?.toLowerCase() === "contact") return;
+        const amount = Number(enquiry.amount) || 0;
+        totalRevenue += amount;
+        totalSales += 1; // count each enquiry as 1 sale
+      });
+
+      return { totalRevenue, totalSales };
+    } catch (err) {
+      console.error("Error calculating enquiry revenue:", err);
+      return { totalRevenue: 0, totalSales: 0 };
+    }
+  }
+
+
   async getCourseAnalytics() {
     try {
       // Fetch all courses with only needed fields
@@ -265,19 +310,26 @@ export class CoursesService {
       const totalCourses = courses.length;
 
       let totalSales = 0;
-      let totalRevenue = 0;
+      let totalCourseRevenue = 0;
 
       courses.forEach((course) => {
         const enrolledCount = course.enrolledStudents?.length || 0;
         totalSales += enrolledCount;
 
         const price = Number(course.coursePrice) || 0;
-        totalRevenue += price * enrolledCount;
+        totalCourseRevenue += price * enrolledCount;
       });
+
+      const { totalRevenue: enquiryRevenue, totalSales: enquirySales } = await this.getenquiryRevenue();
+      const { totalRevenue: liveRevenue, totalSales: liveSales } = await this.getLiveSessionsRevenue();
+
+      const totalRevenue = totalCourseRevenue + enquiryRevenue + liveRevenue;
+      console.log('totalAllSales', totalSales, enquirySales, liveSales);
+      const totalAllSales = totalSales + enquirySales + liveSales;
 
       return {
         totalCourses,
-        totalSales,
+        totalAllSales,
         totalRevenue,
       };
     } catch (error) {
@@ -287,34 +339,34 @@ export class CoursesService {
   }
 
   async getCourseSales(courseId: string) {
-  try {
-    // Find the course and populate enrolled students
-    const course = await this.courseModel
-      .findById(courseId)
-      .populate({
-        path: 'enrolledStudents',
-        select: 'name email photoUrl', // select only the fields you need
-      });
+    try {
+      // Find the course and populate enrolled students
+      const course = await this.courseModel
+        .findById(courseId)
+        .populate({
+          path: 'enrolledStudents',
+          select: 'name email photoUrl', // select only the fields you need
+        });
 
-    if (!course) {
-      throw new NotFoundException(`Course with ID ${courseId} not found.`);
+      if (!course) {
+        throw new NotFoundException(`Course with ID ${courseId} not found.`);
+      }
+
+      const enrolledUsers = course.enrolledStudents || [];
+
+      return {
+        courseId: course._id,
+        courseTitle: course.courseTitle,
+        totalEnrolled: enrolledUsers.length,
+        enrolledUsers, // populated user details
+      };
+    } catch (error) {
+      console.error('Error fetching course sales:', error);
+      throw new InternalServerErrorException(
+        'Failed to fetch enrolled users for the course',
+      );
     }
-
-    const enrolledUsers = course.enrolledStudents || [];
-
-    return {
-      courseId: course._id,
-      courseTitle: course.courseTitle,
-      totalEnrolled: enrolledUsers.length,
-      enrolledUsers, // populated user details
-    };
-  } catch (error) {
-    console.error('Error fetching course sales:', error);
-    throw new InternalServerErrorException(
-      'Failed to fetch enrolled users for the course',
-    );
   }
-}
 
 
 }

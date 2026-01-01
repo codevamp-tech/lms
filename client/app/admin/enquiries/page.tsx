@@ -53,9 +53,11 @@ export default function EnquiryPage() {
 
   useEffect(() => {
     setIsClient(true);
-    setActiveTab("all"); // initialize only on client
+    setActiveTab("chat"); // default tab
+    setFilterType("chat"); // show only chat enquiries
     fetchEnquiry();
   }, []);
+
 
   const fetchEnquiry = async () => {
     try {
@@ -105,22 +107,6 @@ export default function EnquiryPage() {
     setEnquiries((prev) => prev.map((e) => (e._id === id ? { ...e, status: status as any } : e)));
   };
 
-  const handleSubmit = async () => {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/enquiry`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: formData.name,
-        email: formData.email,
-        whatsapp: formData.whatsappNo,
-        type: formData.type,
-      }),
-    });
-    setOpenForm(false);
-    setFormData({ name: "", email: "", whatsappNo: "", type: "" });
-    fetchEnquiry();
-  };
-
   const filtered = enquiries.filter((item) => {
     const matchesSearch = (item.name || item.nmae || "").toLowerCase().includes(search.toLowerCase());
     const matchesType = filterType ? item.type.toLowerCase() === filterType : true;
@@ -146,17 +132,22 @@ export default function EnquiryPage() {
 
   const totalSales = useMemo(() => {
     if (!isClient) return 0;
+
+    let total = 0;
+
     if (activeTab === "live") {
-      let total = 0;
       liveSessions.forEach((session) => {
         const students = enrolledStudents[session._id] || [];
         const price = Number(session.price ?? 0);
         total += students.length * price;
       });
-      return total;
     } else {
-      return filtered.reduce((acc, e) => acc + Number(e.amount ?? 0), 0);
+      filtered.forEach((e) => {
+        total += Number(e.amount ?? 0);
+      });
     }
+
+    return total;
   }, [activeTab, filtered, liveSessions, enrolledStudents, isClient]);
 
   const formatAmount = (amount?: string) => {
@@ -202,7 +193,6 @@ export default function EnquiryPage() {
             {/* Tabs */}
             <div className="flex gap-3 flex-wrap">
               {[
-                { label: "All", value: "all" },
                 { label: "Chat", value: "chat" },
                 { label: "Counselling", value: "counselling" },
                 { label: "Courses", value: "courses" },
@@ -235,6 +225,14 @@ export default function EnquiryPage() {
                 <Plus className="w-5 h-5" /> Add Enquiry
               </button>
             </div>
+          </div>
+
+          {/* Total Revenue */}
+          <div className="p-6 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center rounded-b-xl">
+            <h2 className="text-lg font-semibold text-slate-700">Total Revenue</h2>
+            <span className="text-xl font-bold text-green-600">
+              {formatAmount(totalSales.toString())}
+            </span>
           </div>
 
           {/* Enquiry Table */}
@@ -336,6 +334,41 @@ export default function EnquiryPage() {
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-end items-center gap-2 mt-4">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 rounded-lg border bg-white text-slate-700 disabled:opacity-50"
+            >
+              Prev
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 rounded-lg border ${currentPage === page
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-slate-700 border-slate-300 hover:bg-blue-50"
+                  }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 rounded-lg border bg-white text-slate-700 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
+
       </div>
     </div>
   );
