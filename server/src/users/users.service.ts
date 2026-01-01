@@ -23,52 +23,60 @@ export class UsersService {
   instructorModel: any;
   constructor(@InjectModel(User.name) private userModel: Model<User>) { }
 
-  async signup(data: { name: string; email: string; password: string }) {
-    const existingUser = await this.userModel
-      .findOne({ email: data.email })
-      .exec();
-    if (existingUser) {
-      throw new Error('Email is already registered');
-    }
-    console.log('data.password', data.password);
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-    console.log('hashedPassword', hashedPassword);
+  async signup(data: {
+   name: string; email: string; password: string; number?: string; role?: string 
+}) {
+  // 1. Check if user already exists
+  const existingUser = await this.userModel.findOne({ email: data.email }).exec();
+  if (existingUser) {
+    throw new Error('Email is already registered');
+  }
 
-    const newUser = new this.userModel({
-      ...data,
-      password: hashedPassword,
-    });
+  // 2. Hash password
+  const hashedPassword = await bcrypt.hash(data.password, 10);
 
-      const mailOptions = {
-      to: `${ data.email}`,
-      name:  data.name,
-      subject: 'Welcome to Mr English Training Academy',
-      html: `
+  // 3. Create new user explicitly including all fields
+  const newUser = new this.userModel({
+    name: data.name,
+    email: data.email,
+    password: hashedPassword,
+    number: data.number, // ✅ make sure number is included
+    role: data.role || 'student',
+  });
+
+  // 4. Send welcome email
+  const mailOptions = {
+    to: data.email,
+    name: data.name,
+    subject: 'Welcome to Mr English Training Academy',
+    html: `
       <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
         <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
           <h2 style="color: #007BFF; text-align: center;">Welcome, ${data.name}</h2>
           <p>Dear ${data.name},</p>
-          <p>We are excited to inform you that you have been successfully signed up to our platform.</p>
-          <p>Email : ${data.email}</p>
-          <p>password : ${data.password}</p>
+          <p>You have successfully signed up to our platform.</p>
+          <p>Email: ${data.email}</p>
+          <p>Password: ${data.password}</p>
+          <p>Mobile: ${data.number || 'N/A'}</p>
           <p>Best Regards,</p>
           <p>Mr English Training Academy</p>
         </div>
-      </div> 
+      </div>
     `,
-    };
-    try {
-      // await this.transporter.sendMail(mailOptions);
+  };
 
-      await sendMail(mailOptions);
-
-      console.log(`Enquiry email sent to ${data.email}`);
-    } catch (error) {
-      console.error(`Failed to send enquiry email to ${data.email}`, error);
-      throw new Error('Could not send enquiry email');
-    }
-    return newUser.save();
+  try {
+    await sendMail(mailOptions);
+    console.log(`Welcome email sent to ${data.email}`);
+  } catch (error) {
+    console.error(`Failed to send email to ${data.email}`, error);
+    // Do not block signup if email fails
   }
+
+  // 5. Save user in DB
+  return newUser.save();
+}
+
 
   async login(email: string, password: string) {
     const user = await this.userModel.findOne({ email });
