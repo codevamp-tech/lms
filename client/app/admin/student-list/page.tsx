@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { Search, X } from "lucide-react";
 import toast from "react-hot-toast";
+import { number } from "framer-motion";
 
 interface Student {
   _id: string;
   name: string;
   email: string;
-  phone?: string;
+  number?: string;
   createdAt?: string;
 }
 
@@ -21,7 +22,7 @@ export default function StudentsPage() {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    phone: "",
+    number: "",
   });
   const [saving, setSaving] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -69,7 +70,7 @@ export default function StudentsPage() {
     setForm({
       name: student.name,
       email: student.email,
-      phone: student.phone || "",
+      number: student.number || "",
     });
   };
 
@@ -222,7 +223,7 @@ export default function StudentsPage() {
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
                   <thead>
                     <tr>
-                      {["Name", "Email", "Phone", "Date", "Action"].map(
+                      {["Name", "Email", "number", "Date", "Action"].map(
                         (head) => (
                           <th
                             key={head}
@@ -244,7 +245,7 @@ export default function StudentsPage() {
                           {student.email}
                         </td>
                         <td className="px-4 md:px-6 py-4 text-[12px] md:text-sm text-gray-600 dark:text-gray-200">
-                          {student.phone || "-"}
+                          {student.number || "-"}
                         </td>
                         <td className="px-4 md:px-6 py-4 text-[12px] md:text-sm text-gray-600 dark:text-gray-200">
                           {student.createdAt
@@ -333,9 +334,9 @@ export default function StudentsPage() {
                 </label>
                 <input
                   type="text"
-                  name="phone"
+                  name="number"
                   placeholder="Phone Number"
-                  value={form.phone}
+                  value={form.number}
                   onChange={handleChange}
                   className="w-full border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />

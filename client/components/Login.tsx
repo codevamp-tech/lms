@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
+import { number } from "framer-motion";
 
 const Login = () => {
   const [signupInput, setSignupInput] = useState({
@@ -27,6 +28,7 @@ const Login = () => {
     email: "",
     password: "",
     role: "student",
+    number: "",
   });
   const [loginInput, setLoginInput] = useState({ email: "", password: "" });
   const router = useRouter()
@@ -47,7 +49,7 @@ const Login = () => {
     if (type === "signup") {
       try {
         await signupUser(signupInput);
-        setSignupInput({ name: "", email: "", password: "", role: "student" });
+        setSignupInput({ name: "", email: "", password: "", role: "student", number: "" });
 
         toast.success("Signup successful! You can now log in.");
       } catch (error: any) {
@@ -237,7 +239,7 @@ const Login = () => {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="login-password" className="text-sm font-medium">Password</Label>
-                      
+
                       <Link
                         href="/forget-password"
                         className="text-xs font-medium text-accent hover:underline"
@@ -336,6 +338,24 @@ const Login = () => {
                         required
                       />
                     </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-mobile" className="text-sm font-medium">Mobile Number</Label>
+                      <div className="relative">
+                        <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          id="signup-mobile"
+                          name="number"
+                          type="tel"
+                          value={signupInput.number} // make sure this exists in your state
+                          onChange={(e) => changeInputHandler(e, "signup")}
+                          placeholder="+91 9876543210"
+                          className="h-11 pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+
                     <p className="text-xs text-muted-foreground">
                       At least 8 characters, with letters and numbers.
                     </p>

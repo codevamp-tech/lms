@@ -56,7 +56,7 @@ const SIDEBAR_LINKS = {
     },
 
       {
-      href: "/admin/Notifications",
+      href: "/admin/notifications",
       label: "Notifications",
       icon: UserPlus,
     },

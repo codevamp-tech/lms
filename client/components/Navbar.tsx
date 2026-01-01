@@ -291,10 +291,10 @@ const DropdownMenuItems = ({ user }) => {
       )}
       {user.role === "admin" && (
         <>
-          <Link href="/admin/add-instructor">
+          <Link href="/admin/dashboard">
             <DropdownMenuItem className="cursor-pointer">
               <User className="mr-2 h-4 w-4" />
-              <span>Add Instructor</span>
+              <span>Dashboard</span>
             </DropdownMenuItem>
           </Link>
           <Link href="/admin/configuration">

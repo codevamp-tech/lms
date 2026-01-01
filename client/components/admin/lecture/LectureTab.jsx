@@ -10,12 +10,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Switch } from "@/components/ui/switch";
-// import { useEditLectureMutation, useGetLectureByIdQuery, useRemoveLectureMutation } from "@/features/api/courseApi";
-import axios from "axios";
 import { Loader2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation"; // Using next/navigation instead of React Router
+import { useParams, useRouter } from "next/navigation";
 
 import useLectures from "@/hooks/useLectures";
 import { videoUpload } from "@/features/api/video-upload/route";
@@ -23,68 +20,70 @@ import toast from "react-hot-toast";
 
 const LectureTab = () => {
   const [lectureTitle, setLectureTitle] = useState("");
-  const [uploadVideoInfo, setUploadVideoInfo] = useState(null);
-  const [isFree, setIsFree] = useState(false);
+  const [videoUrl, setVideoUrl] = useState(""); // single source for video or link
   const [mediaProgress, setMediaProgress] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [btnDisable, setBtnDisable] = useState(true);
+  const [isFree, setIsFree] = useState(false);
+
   const { lectureId, courseId } = useParams();
   const { getLectureByIdQuery, deleteLecture, editLecture } = useLectures();
+  const router = useRouter();
 
-  const {
-    data: lecture,
-    isLoading,
-    error,
-    refetch,
-  } = getLectureByIdQuery(lectureId);
+  const { data: lecture, isLoading, error, refetch } = getLectureByIdQuery(lectureId);
 
   useEffect(() => {
     if (lecture) {
       setLectureTitle(lecture.lectureTitle);
       setIsFree(lecture.isPreviewFree);
-      setUploadVideoInfo(lecture.videoInfo);
+      setVideoUrl(lecture.videoInfo?.videoUrl || lecture.link || "");
       refetch();
     }
-  }, [refetch, lecture]);
+  }, [lecture, refetch]);
 
-  // Commenting out the API hooks
-  // const [edtiLecture, { data, isLoading, error, isSuccess }] =
-  //   useEditLectureMutation();
-  // const [removeLecture, { data: removeData, isLoading: removeLoading, isSuccess: removeSuccess }] = useRemoveLectureMutation();
-
-  const router = useRouter();
-
+  // Handle video upload
   const fileChangeHandler = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      try {
-        setMediaProgress(true);
+    if (!file) return;
 
-        const video = await videoUpload(file);
-        if (video.success) {
-          setUploadVideoInfo({
-            videoUrl: video.data.url,
-            publicId: video.data.public_id,
-          });
-        }
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setMediaProgress(false);
+    try {
+      setMediaProgress(true);
+
+      const video = await videoUpload(file);
+      if (video.success) {
+        setVideoUrl(video.data.url); // save uploaded video url in videoUrl
       }
+    } catch (error) {
+      console.error(error);
+      toast.error("Video upload failed");
+    } finally {
+      setMediaProgress(false);
     }
   };
 
+  // Handle link input
+  const linkChangeHandler = (e) => {
+    setVideoUrl(e.target.value); // save link url in videoUrl
+  };
+
   const editLectureHandler = async () => {
+    if (!lectureTitle) {
+      toast.error("Please provide a title");
+      return;
+    }
+
+    if (!videoUrl) {
+      toast.error("Please provide a video or a link");
+      return;
+    }
+
     const lectureData = {
-      lectureTitle: lectureTitle,
+      lectureTitle,
       videoInfo: {
-        videoUrl: uploadVideoInfo.videoUrl,
-        publicId: uploadVideoInfo.publicId,
+        videoUrl: videoUrl,
       },
       isPreviewFree: isFree,
     };
-    // Commenting out the actual mutation
+
     await editLecture({ courseId, lectureId, lectureData });
     toast.success("Lecture updated successfully");
     router.push(`/admin/courses/${courseId}/lecture`);
@@ -92,8 +91,8 @@ const LectureTab = () => {
 
   const removeLectureHandler = async () => {
     await deleteLecture(lectureId);
-    router.push(`/admin/courses/${courseId}/lecture`);
     toast.success("Lecture removed successfully (mock)");
+    router.push(`/admin/courses/${courseId}/lecture`);
   };
 
   if (isLoading) {
@@ -114,52 +113,43 @@ const LectureTab = () => {
       <CardHeader className="flex flex-row justify-between">
         <div>
           <CardTitle>Edit Lecture</CardTitle>
-          <CardDescription>
-            Make changes and click save when done.
-          </CardDescription>
+          <CardDescription>Provide basic details and upload a video or add a link for the lectures.</CardDescription>
         </div>
         <div className="flex items-center gap-2">
-          <Button disabled={false} onClick={removeLectureHandler}>
-            {false ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Please wait
-              </>
-            ) : (
-              "Remove Lecture"
-            )}
-          </Button>
+          <Button onClick={removeLectureHandler}>Remove Lecture</Button>
         </div>
       </CardHeader>
+
       <CardContent>
         <div>
           <Label>Title</Label>
           <Input
-            value={lectureTitle}
-            onChange={(e) => setLectureTitle(e.target.value)}
             type="text"
             placeholder="Ex. Introduction to Javascript"
+            value={lectureTitle}
+            onChange={(e) => setLectureTitle(e.target.value)}
           />
         </div>
+
         <div className="my-5">
-          <Label>
-            Video <span className="text-red-500">*</span>
-          </Label>
+          <Label>Video Upload</Label>
           <Input
             type="file"
             accept="video/*"
             onChange={fileChangeHandler}
-            placeholder="Ex. Introduction to Javascript"
             className="w-fit"
           />
         </div>
-        <div className="flex items-center space-x-2 my-5">
-          <Switch
-            checked={isFree}
-            onCheckedChange={setIsFree}
-            id="airplane-mode"
+
+        <div className="my-5">
+          <Label>Or Link</Label>
+          <Input
+            type="url"
+            placeholder="Paste a video URL here"
+            value={videoUrl}
+            onChange={linkChangeHandler}
+            className="w-fit"
           />
-          <Label htmlFor="airplane-mode">Is this video FREE</Label>
         </div>
 
         {mediaProgress && (
@@ -169,17 +159,9 @@ const LectureTab = () => {
           </div>
         )}
 
+
         <div className="mt-4">
-          <Button disabled={false} onClick={editLectureHandler}>
-            {false ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Please wait
-              </>
-            ) : (
-              "Update Lecture"
-            )}
-          </Button>
+          <Button onClick={editLectureHandler}>Update Lecture</Button>
         </div>
       </CardContent>
     </Card>
