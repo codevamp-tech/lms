@@ -56,12 +56,12 @@ export class LiveSessionController {
     return this.liveSessionService.enroll(sessionId, studentId);
   }
 
-      @Get(':sessionId/enrolled-students')
-    async getEnrolledStudents(
-        @Param('sessionId') sessionId: string
-    ) {
-        return this.liveSessionService.getEnrolledStudentsBySession(sessionId);
-    }
+  @Get(':sessionId/enrolled-students')
+  async getEnrolledStudents(
+    @Param('sessionId') sessionId: string
+  ) {
+    return this.liveSessionService.getEnrolledStudentsBySession(sessionId);
+  }
 
 
 
