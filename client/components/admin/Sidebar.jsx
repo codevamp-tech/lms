@@ -60,6 +60,13 @@ const SIDEBAR_LINKS = {
       label: "Notifications",
       icon: UserPlus,
     },
+
+        {
+      href: "/admin/contact",
+      label: "Contact",
+      icon: UserPlus,
+    },
+
   ],
   superadmin: [
     {

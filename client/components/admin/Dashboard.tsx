@@ -78,7 +78,7 @@ const Dashboard: React.FC = () => {
   console.log("Dashboard API Response ===>", response)
 
   const totalCourses = response?.totalCourses ?? 0
-  const totalSales = response?.totalSales ?? 0
+  const totalSales = response?.totalAllSales ?? 0
   const totalRevenue = response?.totalRevenue ?? 0
 
   // Example chart data (replace with backend chart data if available)
