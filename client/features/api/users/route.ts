@@ -42,6 +42,7 @@ export const signupUser = async (signupInput: {
   name: string;
   email: string;
   password: string;
+  number: string;
 }) => {
   try {
     const { data } = await axios.post(`${API_BASE_URL}/signup`, signupInput, {
