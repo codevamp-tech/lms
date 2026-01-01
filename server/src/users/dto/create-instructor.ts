@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, IsOptional } from 'class-validator';
 
 export class CreateInstructorDto {
   @IsString()
@@ -7,6 +7,10 @@ export class CreateInstructorDto {
 
   @IsEmail()
   email: string;
+
+  @IsOptional()
+  @IsString()
+  number?: string;
 
   @IsString()
   @IsNotEmpty()
