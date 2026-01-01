@@ -517,4 +517,31 @@ export class LiveSessionService {
         });
 
     }
+
+    async getEnrolledStudentsBySession(sessionId: string) {
+    if (!Types.ObjectId.isValid(sessionId)) {
+        throw new Error('Invalid sessionId');
+    }
+
+    const session = await this.liveSessionModel
+        .findById(sessionId)
+        .populate({
+            path: 'enrolledUsers',
+            select: 'name email',
+            model: 'User',
+        })
+        .select('title enrolledUsers')
+        .exec();
+
+    if (!session) {
+        throw new Error('Session not found');
+    }
+
+    return {
+        sessionId: session._id,
+        title: session.title,
+        students: session.enrolledUsers,
+    };
+}
+
 }
