@@ -114,6 +114,19 @@ const Navbar = () => {
     }
   }, []);
 
+  const getInitials = (name?: string) => {
+    if (!name) return "U";
+
+    const words = name.trim().split(" ");
+    if (words.length === 1) return words[0][0].toUpperCase();
+
+    return (
+      words[0][0].toUpperCase() +
+      words[words.length - 1][0].toUpperCase()
+    );
+  };
+
+
   useEffect(() => {
     fetchLogo();
   }, [fetchLogo]);
@@ -235,12 +248,8 @@ const Navbar = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar className="cursor-pointer">
-                  <AvatarImage
-                    src={user?.photoUrl || "https://github.com/shadcn.png"}
-                    alt={user?.name || "User"}
-                  />
-                  <AvatarFallback>
-                    {user?.name?.[0]?.toUpperCase()}
+                  <AvatarFallback className="bg-primary text-white font-semibold">
+                    {getInitials(user?.name)}
                   </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>

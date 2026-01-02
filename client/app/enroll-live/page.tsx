@@ -114,7 +114,7 @@ const EnrollLivePage = () => {
                         return;
                     }
 
-                    await finalizeEnrollment(paymentData, studentId);
+                    await createPaymentRecord(paymentData, studentId, session);
                 },
             };
 
@@ -135,16 +135,54 @@ const EnrollLivePage = () => {
         }
     }
 
+    async function createPaymentRecord(paymentData: any, id: string, session: LiveSessionData) {
+        try {
+            const createPaymentDto = {
+                userId: id,
+                liveSessionId: paymentData.sessionId,
+                amount: session.price,
+                currency: "INR",
+                paymentFor: "LIVE_SESSION",
+                razorpayOrderId: paymentData.razorpay_order_id,
+                razorpayPaymentId: paymentData.razorpay_payment_id,
+                razorpaySignature: paymentData.razorpay_signature,
+                status: "COMPLETED",
+            };
+
+            const paymentResp = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/payments`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(createPaymentDto),
+                }
+            );
+
+            if (!paymentResp.ok) {
+                throw new Error("Failed to create payment record");
+            }
+
+            await finalizeEnrollment(paymentData, id);
+        } catch (err) {
+            console.error("Payment record creation error:", err);
+            toast.error("Failed to save payment record!");
+        }
+    }
+
     React.useEffect(() => {
         if (!pendingPayment) return;
 
         waitForStudentId().then((id) => {
             setStudentId(id);
-            finalizeEnrollment(pendingPayment, id);
+            const sessionId = pendingPayment.sessionId;
+            const sessionData = sessions?.find((s: LiveSessionData) => s._id === sessionId);
+            if (sessionData) {
+                createPaymentRecord(pendingPayment, id, sessionData);
+            }
             setPendingPayment(null);
             setLoginPopup(false);
         });
-    }, [pendingPayment]);
+    }, [pendingPayment, sessions]);
 
     if (isLoading) return <Loader2 className="animate-spin" />;
     if (error) return <div>Error loading live sessions</div>;
