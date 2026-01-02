@@ -153,11 +153,11 @@ const HeroCarousel = () => {
                           {/* Instructor + Students */}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <img
+                              {/* <img
                                 src={course.creator?.photoUrl || "https://github.com/shadcn.png"}
                                 alt="profile"
                                 className="w-7 h-7 rounded-full object-cover border"
-                              />
+                              /> */}
                               <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                                 {course.creator?.name}
                               </span>
