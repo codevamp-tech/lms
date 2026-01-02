@@ -2,70 +2,75 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  ChartNoAxesColumn,
-  SquareLibrary,
-  Store,
+   ChartNoAxesColumn,
   UserPlus,
-  Video
+  MessageCircle,
+  BookOpen,
+  Video,
+  Users,
+  IndianRupee,
+  GraduationCap,
+  Bell,
+  Phone,
+   SquareLibrary,
+  Store,
+  
 } from "lucide-react";
 import { getUserIdFromToken } from "@/utils/helpers";
 import { useUserProfile } from "@/hooks/useUsers";
 
 const SIDEBAR_LINKS = {
   admin: [
-    {
-      href: "/admin/dashboard",
-      label: "Dashboard",
-      icon: ChartNoAxesColumn,
-    },
-    {
-      href: "/admin/add-instructor",
-      label: "Add Instructor",
-      icon: UserPlus,
-    },
-    {
-      href: "/admin/chat-buddy",
-      label: "Chat Buddy",
-      icon: UserPlus,
-    },
-    
-     {
-      href: "/admin/courses",
-      label: "Courses",
-      icon: SquareLibrary,
-    },
-    {
-      href: "/admin/live-session",
-      label: "Live Session",
-      icon: Video,
-    },
-     {
-      href: "/admin/student-list",
-      label: "Students",
-      icon: UserPlus,
-    },
-     {
-      href: "/admin/enquiries",
-      label: "Sales",
-      icon: UserPlus,
-    },
-      {
-      href: "/admin/student-enrolled",
-      label: "Student Enrolled",
-      icon: UserPlus,
-    },
-
-      {
-      href: "/admin/notifications",
-      label: "Notifications",
-      icon: UserPlus,
-    },
-
-        {
-      href: "/admin/contact",
-      label: "Contact",
-      icon: UserPlus,
-    },
+   {
+    href: "/admin/dashboard",
+    label: "Dashboard",
+    icon: ChartNoAxesColumn,
+  },
+  {
+    href: "/admin/add-instructor",
+    label: "Add Instructor",
+    icon: UserPlus,
+  },
+  {
+    href: "/admin/chat-buddy",
+    label: "Chat Buddy",
+    icon: MessageCircle,
+  },
+  {
+    href: "/admin/courses",
+    label: "Courses",
+    icon: BookOpen,
+  },
+  {
+    href: "/admin/live-session",
+    label: "Live Session",
+    icon: Video,
+  },
+  {
+    href: "/admin/student-list",
+    label: "Students",
+    icon: Users,
+  },
+  {
+    href: "/admin/enquiries",
+    label: "Sales",
+    icon: IndianRupee,
+  },
+  {
+    href: "/admin/student-enrolled",
+    label: "Student Enrolled",
+    icon: GraduationCap,
+  },
+  {
+    href: "/admin/notifications",
+    label: "Notifications",
+    icon: Bell,
+  },
+  {
+    href: "/admin/contact",
+    label: "Contact",
+    icon: Phone,
+  },
 
   ],
   superadmin: [
