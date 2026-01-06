@@ -19,6 +19,8 @@ import {
   RAZORPAY_WEBHOOK_SECRET,
 } from 'src/razorpay/razorpay.constants';
 import { RazorpayService } from 'src/razorpay/razorpay.service';
+import { PaymentsService } from 'src/payments/payments.service';
+import { PaymentFor, PaymentStatus } from 'src/payments/schemas/payment.schema';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -31,6 +33,7 @@ export class CoursePurchaseService {
     private coursePurchaseModel: Model<CoursePurchase>,
     private readonly razorpayService: RazorpayService,
     private readonly notificationsService: NotificationsService,
+    private readonly paymentsService: PaymentsService,
   ) { }
 
   async getCourseDetailWithPurchaseStatus(
@@ -176,6 +179,22 @@ export class CoursePurchaseService {
     const course = await this.courseModel.findById(courseId);
     if (!course) throw new BadRequestException("Course not found");
 
+    // create a Payment record for this successful course purchase
+    try {
+      await this.paymentsService.create({
+        userId: new Types.ObjectId(userId),
+        paymentFor: PaymentFor.COURSE,
+        courseId: new Types.ObjectId(courseId),
+        amount: parseInt(course.coursePrice as any, 10) || 0,
+        currency: 'INR',
+        razorpayOrderId: razorpay_order_id,
+        razorpayPaymentId: razorpay_payment_id,
+        razorpaySignature: razorpay_signature,
+        status: PaymentStatus.SUCCESS,
+      });
+    } catch (pErr) {
+      console.error('Failed creating payment record:', pErr);
+    }
     try {
       // ================================
      
@@ -305,6 +324,23 @@ export class CoursePurchaseService {
           { $addToSet: { enrolledStudents: purchase.userId } },
           { new: true },
         );
+
+        // ensure a Payment record exists for webhook-captured payments
+        try {
+          await this.paymentsService.create({
+            userId: purchase.userId ? new Types.ObjectId(purchase.userId) : undefined,
+            paymentFor: PaymentFor.COURSE,
+            courseId: purchase.courseId ? new Types.ObjectId(purchase.courseId) : undefined,
+            amount: parseInt((purchase as any).amount as any, 10) || 0,
+            currency: 'INR',
+            razorpayOrderId: order_id,
+            razorpayPaymentId: payload.payment.entity.id,
+            razorpaySignature: payload.payment.entity.signature,
+            status: PaymentStatus.SUCCESS,
+          });
+        } catch (pErr) {
+          console.error('Failed creating payment record from webhook:', pErr);
+        }
       }
     }
 
