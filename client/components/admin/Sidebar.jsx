@@ -72,6 +72,12 @@ const SIDEBAR_LINKS = {
     icon: Phone,
   },
 
+    {
+    href: "/admin/payments",
+    label: "Payments",
+    icon: IndianRupee,
+  },
+
   ],
   superadmin: [
     {

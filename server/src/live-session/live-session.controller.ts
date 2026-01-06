@@ -90,6 +90,11 @@ GOOGLE_REFRESH_TOKEN=${tokens.refresh_token}
     return result;
   }
 
+  @Post('verify-payment')
+  async verifyPayment(@Body() body: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string; userId: string; sessionId: string }) {
+    return this.liveSessionService.verifyPayment(body as any);
+  }
+
   @Post('test-email')
   async sendTestEmail(@Body('to') to: string) {
     const session = {

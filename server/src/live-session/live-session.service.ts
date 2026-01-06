@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { LiveSession } from './schemas/live-session.schema';
@@ -6,6 +6,10 @@ import { CreateLiveSessionDto } from './dto/create-live-session.dto';
 import { EditLiveSessionDto } from './dto/edit-live-session.dto';
 import { UsersService } from '../users/users.service';
 import { NotificationsService } from 'src/notification/notifications.service';
+import { PaymentsService } from 'src/payments/payments.service';
+import { PaymentFor, PaymentStatus } from 'src/payments/schemas/payment.schema';
+import { RAZORPAY_KEY_SECRET } from 'src/razorpay/razorpay.constants';
+import * as crypto from 'crypto';
 import * as nodemailer from 'nodemailer';
 import { google } from 'googleapis';
 import { sendMail } from '../../utils/mail';
@@ -18,6 +22,7 @@ export class LiveSessionService {
         @InjectModel(LiveSession.name) private liveSessionModel: Model<LiveSession>,
         private readonly usersService: UsersService,
         private readonly notificationsService: NotificationsService,
+        private readonly paymentsService: PaymentsService,
     ) {
         console.log('🔧 ========== CONSTRUCTOR START ==========');
         console.log('🔧 Initializing LiveSessionService...');
@@ -54,6 +59,59 @@ export class LiveSessionService {
         }
 
         console.log('✅ ========== CONSTRUCTOR END ==========\n');
+    }
+
+    async verifyPayment(dto: {
+        razorpay_order_id: string;
+        razorpay_payment_id: string;
+        razorpay_signature: string;
+        userId: string;
+        sessionId: string;
+    }) {
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, sessionId } = dto;
+
+        const body = razorpay_order_id + '|' + razorpay_payment_id;
+        if (!RAZORPAY_KEY_SECRET) {
+            throw new BadRequestException('Razorpay key secret not configured');
+        }
+
+        const expectedSignature = crypto
+            .createHmac('sha256', RAZORPAY_KEY_SECRET)
+            .update(body.toString())
+            .digest('hex');
+
+        if (expectedSignature !== razorpay_signature) {
+            throw new BadRequestException('Invalid payment signature');
+        }
+
+        // enroll user in session
+        await this.liveSessionModel.findByIdAndUpdate(
+            sessionId,
+            { $addToSet: { enrolledUsers: new Types.ObjectId(userId) } },
+            { new: true },
+        );
+
+        // create payment record
+        try {
+            const session = await this.liveSessionModel.findById(sessionId).select('price').lean();
+            const amount = session?.price || 0;
+
+            await this.paymentsService.create({
+                userId: new Types.ObjectId(userId),
+                paymentFor: PaymentFor.LIVE_SESSION,
+                liveSessionId: new Types.ObjectId(sessionId),
+                amount: amount,
+                currency: 'INR',
+                razorpayOrderId: razorpay_order_id,
+                razorpayPaymentId: razorpay_payment_id,
+                razorpaySignature: razorpay_signature,
+                status: PaymentStatus.SUCCESS,
+            });
+        } catch (err) {
+            console.error('Failed to create payment record for live session:', err);
+        }
+
+        return { success: true };
     }
 
     getAuthUrl(): { authUrl: string } {

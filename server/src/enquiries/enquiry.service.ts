@@ -1,9 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as nodemailer from 'nodemailer';
 import { CreateEnquiryDto } from './dto/create-enquiry.dto';
 import { Enquiry, EnquiryDocument } from './schemas/enquiry.schema';
+import { PaymentsService } from 'src/payments/payments.service';
+import { PaymentFor, PaymentStatus } from 'src/payments/schemas/payment.schema';
 import { sendMail } from '../../utils/mail';
 import axios from 'axios';
 import { NotificationsService } from 'src/notification/notifications.service';
@@ -13,6 +15,7 @@ export class EnquiryService {
   constructor(
     @InjectModel(Enquiry.name) private readonly enquiryModel: Model<EnquiryDocument>,
     private readonly notificationsService: NotificationsService,
+    private readonly paymentsService: PaymentsService,
   ) { }
 
   async create(createEnquiryDto: CreateEnquiryDto): Promise<Enquiry> {
@@ -34,7 +37,7 @@ export class EnquiryService {
 
       console.log("Creating notification for new enquiry");
 
-        await this.notificationsService.createNotification({
+            await this.notificationsService.createNotification({
               name: createEnquiryDto.name,
               title: `New Enquiry from ${createEnquiryDto.name}`,
               body: `${createEnquiryDto.name} (${createEnquiryDto.email}) submitted an enquiry of type ${createEnquiryDto.type || 'General'}`,
@@ -42,6 +45,25 @@ export class EnquiryService {
             });
 
             console.log("Notification created successfully");
+
+      // if enquiry contains razorpay/order/payment fields, create a Payment record
+      if (savedEnquiry.razorpay_order_id || savedEnquiry.razorpay_payment_id) {
+        try {
+          await this.paymentsService.create({
+            phone: savedEnquiry.whatsapp,
+            paymentFor: PaymentFor.ENQUIRY,
+            enquiryId: savedEnquiry._id as any,
+            amount: parseFloat(savedEnquiry.amount as any) || parseFloat(savedEnquiry.price as any) || 0,
+            currency: savedEnquiry.currency || 'INR',
+            razorpayOrderId: savedEnquiry.razorpay_order_id,
+            razorpayPaymentId: savedEnquiry.razorpay_payment_id,
+            razorpaySignature: savedEnquiry.razorpay_signature,
+            status: PaymentStatus.SUCCESS,
+          });
+        } catch (pErr) {
+          console.error('Failed creating payment record for enquiry:', pErr);
+        }
+      }
 
       return savedEnquiry;
 

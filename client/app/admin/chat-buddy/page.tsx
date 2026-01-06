@@ -24,6 +24,10 @@ export default function ChatBuddyPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
+  const [totalBuddies, setTotalBuddies] = useState(0);
+
   const [form, setForm] = useState({
     name: "",
     bio: "",
@@ -33,9 +37,13 @@ export default function ChatBuddyPage() {
   /* ---------------- FETCH LIST ---------------- */
   const fetchChatBuddies = async () => {
     try {
-      const res = await fetch(`${API_URL}/chat-buddy`);
+      const skip = (currentPage - 1) * itemsPerPage;
+      const res = await fetch(
+        `${API_URL}/chat-buddy?skip=${skip}&limit=${itemsPerPage}`
+      );
       const data = await res.json();
-      setBuddies(data);
+      setBuddies(data.buddies || data);
+      setTotalBuddies(data.total || data.length);
     } catch (err) {
       console.error(err);
     } finally {
@@ -45,7 +53,7 @@ export default function ChatBuddyPage() {
 
   useEffect(() => {
     fetchChatBuddies();
-  }, []);
+  }, [currentPage]);
 
   /* ---------------- RESET FORM ---------------- */
   const resetForm = () => {
@@ -80,6 +88,7 @@ export default function ChatBuddyPage() {
 
     resetForm();
     fetchChatBuddies();
+    setCurrentPage(1);
   };
 
   /* ---------------- EDIT ---------------- */
@@ -104,6 +113,7 @@ export default function ChatBuddyPage() {
 
       // Update the UI without refetching
       setBuddies((prev) => prev.filter((buddy) => buddy._id !== id));
+      setTotalBuddies((prev) => prev - 1);
     } catch (err) {
       console.error(err);
       alert("Failed to delete buddy");
@@ -231,6 +241,56 @@ export default function ChatBuddyPage() {
           ))
         )}
       </div>
+
+      {/* ================= PAGINATION ================= */}
+      {buddies.length > 0 && (
+        <div className="flex justify-center items-center gap-3">
+          <Button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            variant="outline"
+          >
+            Previous
+          </Button>
+
+          <div className="flex gap-1">
+            {Array.from({
+              length: Math.ceil(totalBuddies / itemsPerPage),
+            }).map((_, index) => (
+              <Button
+                key={index + 1}
+                onClick={() => setCurrentPage(index + 1)}
+                variant={currentPage === index + 1 ? "default" : "outline"}
+                size="sm"
+              >
+                {index + 1}
+              </Button>
+            ))}
+          </div>
+
+          <Button
+            onClick={() =>
+              setCurrentPage((prev) =>
+                Math.min(
+                  prev + 1,
+                  Math.ceil(totalBuddies / itemsPerPage)
+                )
+              )
+            }
+            disabled={
+              currentPage === Math.ceil(totalBuddies / itemsPerPage)
+            }
+            variant="outline"
+          >
+            Next
+          </Button>
+
+          <span className="text-sm text-gray-600 ml-2">
+            Page {currentPage} of {Math.ceil(totalBuddies / itemsPerPage)} |
+            Total: {totalBuddies}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

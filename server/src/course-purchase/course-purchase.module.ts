@@ -11,6 +11,7 @@ import { User, UserSchema } from 'src/users/schemas/user.schema';
 import { Lecture, LectureSchema } from 'src/lectures/schemas/lecture.schema';
 import { RazorpayModule } from 'src/razorpay/razorpay.module';
 import { NotificationsModule } from 'src/notification/notifications.module';
+import { PaymentsModule } from 'src/payments/payments.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { NotificationsModule } from 'src/notification/notifications.module';
     ]),
     RazorpayModule,
     NotificationsModule,
+    PaymentsModule,
   ],
   providers: [CoursePurchaseService],
   controllers: [CoursePurchaseController],
