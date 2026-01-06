@@ -18,6 +18,9 @@ export default function ContactEnquiryPage() {
     const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+
+      const itemsPerPage = 10;
 
     useEffect(() => {
         fetchContactEnquiries();
@@ -105,6 +108,10 @@ export default function ContactEnquiryPage() {
             </div>
         );
     }
+
+    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const currentData = filtered.slice(startIndex, startIndex + itemsPerPage);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 md:p-8">
@@ -288,6 +295,39 @@ export default function ContactEnquiryPage() {
                             <span className="font-medium text-slate-700">{enquiries.length}</span> enquiries
                         </p>
                     </div>
+
+                    {totalPages > 1 && (
+                        <div className="flex justify-end items-center gap-2 mt-4">
+                            <button
+                                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="px-3 py-1 rounded-lg border bg-white text-slate-700 disabled:opacity-50"
+                            >
+                                Prev
+                            </button>
+
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                <button
+                                    key={page}
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`px-3 py-1 rounded-lg border ${currentPage === page
+                                        ? "bg-blue-600 text-white border-blue-600"
+                                        : "bg-white text-slate-700 border-slate-300 hover:bg-blue-50"
+                                        }`}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+
+                            <button
+                                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="px-3 py-1 rounded-lg border bg-white text-slate-700 disabled:opacity-50"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
                 </div>
 
             </div>
