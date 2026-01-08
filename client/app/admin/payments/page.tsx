@@ -50,7 +50,7 @@ export default function PaymentPage() {
     const [isFetchAll, setIsFetchAll] = useState(true);
     const [hasNextPage, setHasNextPage] = useState(false);
 
-    const itemsPerPage = 5;
+    const itemsPerPage = 20;
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
     useEffect(() => {

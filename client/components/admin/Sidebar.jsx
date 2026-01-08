@@ -38,7 +38,7 @@ const SIDEBAR_LINKS = {
   },
   {
     href: "/admin/courses",
-    label: "Courses",
+    label: "Record Courses",
     icon: BookOpen,
   },
   {
