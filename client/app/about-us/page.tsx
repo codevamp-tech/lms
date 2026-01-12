@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Award, Star, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+
 
 export default function AboutUs() {
     const router = useRouter();
