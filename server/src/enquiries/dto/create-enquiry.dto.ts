@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsEmail, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsEmail, IsOptional, IsIn } from 'class-validator';
 
 export class CreateEnquiryDto {
 
@@ -46,6 +46,16 @@ export class CreateEnquiryDto {
   @IsOptional()
   @IsString()
   currency: string;
+
+  @IsOptional()
+  @IsIn(['morning', 'afternoon', 'evening', 'night', 'anytime'])
+  preferredTimeToCall?: string;
+
+  // ✅ NEW
+  @IsOptional()
+  @IsString()
+  chatBuddyId?: string;
+
 
   @IsOptional()
   @IsString()

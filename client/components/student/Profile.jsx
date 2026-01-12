@@ -25,6 +25,8 @@ const Profile = () => {
   const [name, setName] = useState("");
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [email, setEmail] = useState("");
+
 
   // useEffect(() => {
   //   const fetchUserProfile = async() => {
@@ -59,8 +61,10 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       setName(user.name);
+      setEmail(user.email);
     }
   }, [user]);
+
 
   const onChangeHandler = (e) => {
     const file = e.target.files?.[0];
@@ -68,11 +72,18 @@ const Profile = () => {
   };
 
   const updateUserHandler = async () => {
-    await updateUserProfile(userId, name, profilePhoto);
-    toast.success("Profile updated successfully");
-    setIsDialogOpen(false); // Close the dialog box
-    refetch();
+    try {
+      await updateUserProfile(userId, name, email, profilePhoto);
+      toast.success("Profile updated successfully");
+      setIsDialogOpen(false);
+      refetch();
+    } catch (error) {
+      toast.error(
+        error.message || "Use another email, this email already registered"
+      );
+    }
   };
+
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error fetching user profile</p>;
@@ -83,12 +94,17 @@ const Profile = () => {
       <div className="flex flex-col md:flex-row items-center md:items-start gap-8 my-5">
         <div className="flex flex-col items-center">
           <Avatar className="h-24 w-24 md:h-32 md:w-32 mb-4">
-            <AvatarImage
-              src={user?.photoUrl || "https://github.com/shadcn.png"}
-              alt="@shadcn"
-            />
-            <AvatarFallback>CN</AvatarFallback>
+            <AvatarImage src={user?.photoUrl || ""} alt={user?.name} />
+            <AvatarFallback className="text-2xl bg-black text-white font-semibold">
+              {user?.name
+                ?.split(" ")
+                .slice(0, 2)
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()}
+            </AvatarFallback>
           </Avatar>
+
         </div>
         <div>
           <div className="mb-2">
@@ -109,12 +125,20 @@ const Profile = () => {
           </div>
           <div className="mb-2">
             <h1 className="font-semibold text-gray-900 dark:text-gray-100 ">
+              Phone No:
+              <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
+                {user?.number}
+              </span>
+            </h1>
+          </div>
+          {/* <div className="mb-2">
+            <h1 className="font-semibold text-gray-900 dark:text-gray-100 ">
               Role:
               <span className="font-normal text-gray-700 dark:text-gray-300 ml-2">
                 {user?.role?.toUpperCase()}
               </span>
             </h1>
-          </div>
+          </div> */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="mt-2">
@@ -140,6 +164,17 @@ const Profile = () => {
                     className="col-span-3"
                   />
                 </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email"
+                    className="col-span-3"
+                  />
+                </div>
+
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label>Profile Photo</Label>
                   <Input

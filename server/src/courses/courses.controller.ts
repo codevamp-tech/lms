@@ -68,6 +68,16 @@ export class CoursesController {
     }
   }
 
+  @Post('enroll-student')
+  async enrollCourse(
+    @Body() body: { courseId: string; userId: string },
+  ) {
+    return this.coursesService.enrollUserInCourse(
+      body.courseId,
+      body.userId,
+    );
+  }
+
   @Get('alladmin')
   async findAll(
     @Query('userRole') userRole: string,
@@ -131,7 +141,7 @@ export class CoursesController {
     }
   }
 
-   @Get(':courseId/sales')
+  @Get(':courseId/sales')
   async getCourseSales(@Param('courseId') courseId: string) {
     try {
       const salesData = await this.coursesService.getCourseSales(courseId);
@@ -147,7 +157,7 @@ export class CoursesController {
       throw error;
     }
   }
-  
+
   @Get(':courseId/lectures')
   async getCourseLectures(@Param('courseId') courseId: string) {
     try {
@@ -210,6 +220,7 @@ export class CoursesController {
       throw new NotFoundException(error.message);
     }
   }
+
 
 
 

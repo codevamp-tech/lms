@@ -35,12 +35,23 @@ export const createRazorpayOrder = async (courseId: string) => {
   }
 };
 
-export const verifyPayment = async (paymentDetails: { razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string }) => {
+export const verifyPayment = async (paymentDetails: {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+  userId: string;        // ✅ ADD THIS
+  courseId: string;      // ✅ ADD THIS
+}) => {
   try {
+    console.log("🔍 Verifying payment with details:", paymentDetails);
+
     const { data } = await axios.post(`${API_BASE_URL}/verify-payment`, paymentDetails);
+
+    console.log("✅ Payment verification response:", data);
     return data;
   } catch (error) {
-    console.error("Error verifying payment:", error);
+    console.error("❌ Error verifying payment:", error);
+    throw error; // ✅ Throw error instead of just logging
   }
 }
 
@@ -56,3 +67,17 @@ export const fetchPurchasedCourses = async (userId: string) => {
     );
   }
 };
+
+export const enrollIdCourse = async ({ courseId, userId }) => {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/courses/enroll-student`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ courseId, userId }),
+    }
+  );
+
+  return res.json();
+};
+

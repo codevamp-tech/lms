@@ -1,5 +1,6 @@
 // rating.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
 import { Document } from 'mongoose';
 
 export type EnquiryDocument = Enquiry & Document;
@@ -44,6 +45,18 @@ export class Enquiry {
 
   @Prop()
   currency?: string;
+
+
+  @Prop({
+    type: String,
+    enum: ['morning', 'afternoon', 'evening', 'night', 'anytime'],
+  })
+  preferredTimeToCall?: string;
+
+  // ✅ NEW (Chat Buddy reference)
+  @Prop({ type: Types.ObjectId, ref: 'ChatBuddy' })
+  chatBuddyId?: Types.ObjectId;
 }
+
 
 export const EnquirySchema = SchemaFactory.createForClass(Enquiry);

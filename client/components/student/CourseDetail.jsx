@@ -25,7 +25,7 @@ import ReactPlayer from "react-player";
 import { useParams, useRouter } from "next/navigation";
 import { getUserIdFromToken } from "@/utils/helpers";
 import { useCourseDetails } from "@/hooks/useCourseDetails";
-import { createRazorpayOrder, verifyPayment } from "@/features/api/course-purchase/route";
+import { createRazorpayOrder, enrollIdCourse, verifyPayment } from "@/features/api/course-purchase/route";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,6 +42,7 @@ const CourseDetail = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isInCart, setIsInCart] = useState(false);
   const [activePreviewVideo, setActivePreviewVideo] = useState(0);
+const [razorpayPhone, setRazorpayPhone] = useState(null); 
 
   const {
     data: courseData,
@@ -78,35 +79,65 @@ const CourseDetail = () => {
     }
   }, [courseId, userId, courseData]);
 
-  const handleAddToCart = async () => {
-    if (!userId) {
-      router.push("/login");
-      return;
-    }
-    if (isInCart) {
-      router.push("/cart");
-      return;
-    }
+ // Create account using phone number from Razorpay
+  const createAccountWithPhone = async (phoneNumber, paymentData) => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/cart/${courseId}/add-to-cart`,
+        `${process.env.NEXT_PUBLIC_API_URL}/users/register-with-phone`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId }),
+          body: JSON.stringify({
+            phone: phoneNumber,
+            name: `User ${phoneNumber.slice(-4)}`,
+          }),
         }
       );
-      const data = await response.json();
-      if (response.ok) {
-        toast.success("Course added to cart!");
-        setIsInCart(true);
-      } else {
-        toast.error(data.message || "Failed to add to cart.");
+
+      if (!response.ok) {
+        throw new Error("Failed to create account");
       }
-    } catch (error) {
-      toast.error("Error adding course to cart.");
+
+      const userData = await response.json();
+    console.log("useerData??",userData);
+      // Store user data
+      localStorage.setItem("userId", userData.userId || userData._id);
+      localStorage.setItem("token", userData.token);
+
+      toast.success("Account created automatically!");
+
+const newUserId = userData.userId || userData.user?._id || userData._id;
+
+      // Now verify payment with the new userId
+      await verifyNow({
+  ...paymentData,
+  userId: newUserId, // ✅ THIS IS THE KEY
+});
+
+
+      return userData.userId || userData.user._id;
+    } catch (err) {
+      console.error("Account creation error:", err);
+      toast.error("Failed to create account automatically.");
+      return null;
     }
   };
+
+    const handleLoginModalClose = async () => {
+    setLoginPopup(false);
+
+    // If user closes modal and has pending payment, create account automatically
+    if (pendingPayment && razorpayPhone) {
+      toast.loading("Creating your account automatically...");
+      await createAccountWithPhone(razorpayPhone, pendingPayment);
+      setPendingPayment(null);
+      setRazorpayPhone(null);
+    } else if (pendingPayment && !razorpayPhone) {
+      // If somehow we don't have phone, show error
+      toast.error("Unable to create account. Please contact support.");
+    }
+  };
+
   
   const handleBuyCourse = async () => {
     try {
@@ -126,14 +157,46 @@ const CourseDetail = () => {
             courseId,
           };
 
-          if (!userId) {
-            setPendingPayment(paymentData);
-            setLoginPopup(true);
-            toast.success("Login to unlock the course!");
+           if (!userId) {
+            try {
+              // Fetch payment details to get phone number
+              const paymentDetails = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/razorpay/payment-details/${response.razorpay_payment_id}`,
+                {
+                  method: "GET",
+                  headers: { "Content-Type": "application/json" },
+                }
+              );
+
+              const details = await paymentDetails.json();
+              const phoneNumber = details.contact || details.phone;
+
+              if (phoneNumber) {
+                setRazorpayPhone(phoneNumber); // Store phone for later use
+                setPendingPayment(paymentData);
+                setLoginPopup(true); // Show login popup
+                toast.success("Payment successful! Login to unlock the course!");
+              } else {
+                toast.error("Unable to retrieve phone number from payment");
+                setPendingPayment(paymentData);
+                setLoginPopup(true);
+              }
+            } catch (err) {
+              console.error("Error fetching payment details:", err);
+              toast.error("Payment successful but unable to complete enrollment");
+            }
             return;
           }
 
+          // If user is already logged in, verify payment directly
           verifyNow(paymentData);
+        },
+        modal: {
+          ondismiss: function () {
+            if (!userId) {
+              toast.error("Payment cancelled. Please try again.");
+            }
+          }
         },
         theme: { color: "#3399cc" },
       };
@@ -144,26 +207,72 @@ const CourseDetail = () => {
     }
   };
 
+  
   const verifyNow = async (paymentData) => {
-    const verify = await verifyPayment({ ...paymentData, userId });
+  try {
+    const userIdToUse = paymentData.userId || userId;
+    console.log("🔍 Starting payment verification...");
+    console.log("📦 Payment Data:", paymentData);
+    console.log("👤 User ID:", userIdToUse);
 
-    if (verify.success) {
-      toast.success("Course purchased successfully!");
-      queryClient.invalidateQueries({
-        queryKey: ['courseDetails', courseId, userId],
-      });
-      router.push(`/course/course-progress/${courseId}`);
-    } else {
+    const verify = await verifyPayment({
+      ...paymentData,
+      userId: userIdToUse,
+      courseId,
+    });
+
+    if (!verify?.success) {
       toast.error("Payment verification failed!");
+      return;
     }
-  };
 
+    console.log("📝 Enrolling user...");
+    await enrollIdCourse({ courseId, userId: userIdToUse });
+
+    toast.success("Course purchased successfully!");
+
+    queryClient.invalidateQueries({
+      queryKey: ["courseDetails", courseId, userIdToUse],
+    });
+
+    router.push(`/course/course-progress/${courseId}`);
+  } catch (error) {
+    console.error("❌ Verification error:", error);
+    toast.error("Payment verification failed!");
+  }
+};
+
+
+
+// Handle manual login success from LoginModal
   useEffect(() => {
-    if (userId && pendingPayment) {
-      verifyNow(pendingPayment);
-      setPendingPayment(null);
-    }
-  }, [userId, pendingPayment]);
+    if (!pendingPayment) return;
+
+    const checkLogin = setInterval(() => {
+      const id = getUserIdFromToken();
+      if (id) {
+        clearInterval(checkLogin);
+        // User logged in manually, verify payment
+        verifyNow({ ...pendingPayment, userId: id });
+        setPendingPayment(null);
+        setRazorpayPhone(null);
+        setLoginPopup(false);
+      }
+    }, 500);
+
+    // Cleanup after 30 seconds
+    const timeout = setTimeout(() => {
+      clearInterval(checkLogin);
+    }, 30000);
+
+    return () => {
+      clearInterval(checkLogin);
+      clearTimeout(timeout);
+    };
+  }, [pendingPayment]);
+
+
+  
 
   if (isLoading) return <CourseDetailSkeleton />;
   if (error) return <div>Error: {error.message}</div>;
@@ -177,9 +286,9 @@ const CourseDetail = () => {
 
   return (
     <>
-      <LoginModal
-        open={loginPopup}
-        onClose={() => setLoginPopup(false)}
+       <LoginModal
+        isOpen={loginPopup}
+        onClose={handleLoginModalClose}
       />
       <div className="bg-background dark:bg-gray-900">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">

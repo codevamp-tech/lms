@@ -18,11 +18,11 @@ import { loginUser, signupUser } from "@/features/api/users/route";
 import { useRouter } from "next/navigation";
 
 export default function LoginModal({
-  open,
+  isOpen,
   onClose,
   defaultTab = "login",
 }: {
-  open: boolean;
+  isOpen: boolean;
   onClose: () => void;
   defaultTab?: "login" | "signup";
 }) {
@@ -84,7 +84,7 @@ export default function LoginModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex justify-center">

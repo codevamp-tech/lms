@@ -6,16 +6,16 @@ import { Company } from 'src/company/schemas/company.schema';
 
 @Schema({ timestamps: true })
 export class User extends Document {
-  @Prop({ required: true })
+  @Prop({ required: false })
   name: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   email: string;
 
   @Prop({ default: '' })
   number?: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   password: string;
 
   @Prop({

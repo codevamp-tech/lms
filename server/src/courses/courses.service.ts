@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Course } from './schemas/course.schema';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { EditCourseDto } from './dto/edit-course.dto';
@@ -12,6 +12,7 @@ import { Lecture } from 'src/lectures/schemas/lecture.schema';
 import { deleteMediaFromCloudinary, uploadMedia } from 'utils/cloudinary';
 import { Enquiry } from 'src/enquiries/schemas/enquiry.schema';
 import { LiveSession } from 'src/live-session/schemas/live-session.schema';
+import { User } from 'src/users/schemas/user.schema';
 
 @Injectable()
 export class CoursesService {
@@ -20,6 +21,7 @@ export class CoursesService {
     @InjectModel(Lecture.name) private lectureModel: Model<Lecture>,
     @InjectModel(Enquiry.name) private enquiryModel: Model<Enquiry>,
     @InjectModel(LiveSession.name) private liveSessionModel: Model<LiveSession>,
+    @InjectModel(User.name) private userModel: Model<User>,
   ) { }
 
   async createCourse(createCourseDto: CreateCourseDto) {
@@ -368,7 +370,33 @@ export class CoursesService {
     }
   }
 
+  async enrollUserInCourse(courseId: string, userId: string) {
+    const courseObjectId = new Types.ObjectId(courseId);
+    const userObjectId = new Types.ObjectId(userId);
 
+    const course = await this.courseModel.findById(courseObjectId);
+    if (!course) throw new NotFoundException('Course not found');
+
+    const user = await this.userModel.findById(userObjectId);
+    if (!user) throw new NotFoundException('User not found');
+
+    // Add student to course
+    await this.courseModel.findByIdAndUpdate(courseObjectId, {
+      $addToSet: { enrolledStudents: userObjectId },
+    });
+
+    // Add course to user
+    await this.userModel.findByIdAndUpdate(userObjectId, {
+      $addToSet: { enrolledCourses: courseObjectId },
+    });
+
+    return {
+      success: true,
+      message: 'User enrolled successfully',
+    };
+  }
 }
+
+
 
 // Add methods for updating, deleting, or finding a single course

@@ -33,7 +33,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ChatBuddyModule } from './chat-buddy/chat-buddy.module';
 import { NotificationsModule } from './notification/notifications.module';
-import { PaymentsModule } from './payments/payments.module';    
+import { PaymentsModule } from './payments/payments.module';
 
 
 
@@ -50,6 +50,7 @@ if (!fs.existsSync(uploadDir)) {
       isGlobal: true,
     }),
     MongooseModule.forRoot('mongodb+srv://root:GXkg9RvCMEYOw7nY@arogyaa.l0qed.mongodb.net/lms'),
+    // MongooseModule.forRoot('mongodb://127.0.0.1:27017/lms'),
     MulterModule.register({
       storage: multer.diskStorage({
         destination: (req, file, cb) => {

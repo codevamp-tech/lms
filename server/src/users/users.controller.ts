@@ -29,6 +29,7 @@ import { ForgotPasswordDto } from './dto/forgot-password';
 import { CreateAdminDto } from './dto/create-admin';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateStudentDto } from './dto/update-student';
+import { RegisterWithPhoneDto } from './dto/register-with-phone.dto';
 
 @Controller('users')
 export class UsersController {
@@ -55,6 +56,19 @@ export class UsersController {
       );
     }
   }
+
+  @Post('register-with-phone')
+  async registerWithPhone(@Body() dto: RegisterWithPhoneDto) {
+    try {
+      return await this.usersService.registerWithPhone(dto.phone, dto.name);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Phone authentication failed',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
 
   @Post('addinstructor')
   async addInstructor(@Body() createInstructorDto: CreateInstructorDto) {
@@ -230,9 +244,11 @@ export class UsersController {
   async updateProfile(
     @Param('userId') userId: string,
     @Body('name') name: string,
-    @UploadedFile() profilePhoto: Express.Multer.File,
+    @Body('email') email: string,
+    @UploadedFile() profilePhoto?: Express.Multer.File,
   ) {
-    return this.usersService.updateProfile(userId, name, profilePhoto);
+    return this.usersService.updateProfile(userId, name, email, profilePhoto);
   }
+
 
 }

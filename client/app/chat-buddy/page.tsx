@@ -5,7 +5,7 @@ import { Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 declare global {
@@ -24,6 +24,7 @@ const ChatBuddyPage = () => {
     name: "",
     email: "",
     whatsappNo: "",
+    preferredTimeToCall: "",
   });
 
   const [selectedEnquiry, setSelectedEnquiry] = useState<any>(null);
@@ -45,8 +46,8 @@ const ChatBuddyPage = () => {
             resolve({
               name: data.get("name"),
               email: data.get("email"),
-              whatsappNo: data.get("whatsappNo"),
-              status: "open",
+              whatsapp: data.get("whatsappNo"),
+              status: "pending",
             });
           };
         }
@@ -67,21 +68,18 @@ const ChatBuddyPage = () => {
   const handleEnquiryAndPayment = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const offer = courseData;
-
     try {
+      // 1️⃣ Load Razorpay
       if (!window.Razorpay) {
         const script = document.createElement("script");
         script.src = "https://checkout.razorpay.com/v1/checkout.js";
         script.async = true;
         document.body.appendChild(script);
-        await new Promise((resolve) => {
-          script.onload = resolve;
-          script.onerror = resolve;
-        });
+        await new Promise((res) => (script.onload = res));
       }
 
-      const priceDigits = String(offer.price).match(/\d+/);
+      // 2️⃣ Create Order
+      const priceDigits = courseData.price.match(/\d+/);
       const amountINR = priceDigits ? parseInt(priceDigits[0], 10) : 0;
 
       const orderResp = await fetch(`${API_URL}/razorpay/create-order`, {
@@ -90,24 +88,35 @@ const ChatBuddyPage = () => {
         body: JSON.stringify({
           amount: amountINR,
           currency: "INR",
-          receipt: `enquiry_receipt_${Date.now()}`,
+          receipt: `chatbuddy_${Date.now()}`,
         }),
       });
 
-      if (!orderResp.ok) throw new Error("Failed to create payment order");
+      if (!orderResp.ok) throw new Error("Order creation failed");
       const order = await orderResp.json();
 
+      // 3️⃣ Razorpay Checkout
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: order.currency,
         name: "Mr English Training Academy",
-        description: offer.title,
+        description: "Chat Buddy Subscription",
         order_id: order.id,
 
         handler: async (response: any) => {
           try {
-            let payload: any = {
+            // 4️⃣ AUTO CREATE ENQUIRY (NO EXTRA CLICK)
+            const enquiryPayload = {
+              name: formData.name,
+              email: formData.email,
+              whatsapp: formData.whatsappNo,
+              type: "chat",
+              status: "pending",
+              price: courseData.price,
+              chatBuddyId: selectedBuddyId,
+              preferredTimeToCall: formData.preferredTimeToCall,
+
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
@@ -115,41 +124,30 @@ const ChatBuddyPage = () => {
               currency: order.currency,
             };
 
-            toast.success("Payment successful");
-
-            setSelectedEnquiry(offer);
-
-            const formPayload = await waitForFormData();
-            formPayload.type = "chat";
-
-            formPayload.buddyId = selectedBuddyId;
-
             const res = await fetch(`${API_URL}/enquiry`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
+              body: JSON.stringify(enquiryPayload),
             });
 
             if (!res.ok) {
-              toast.error("Failed to save enquiry");
+              toast.error("Payment success but enquiry failed");
               return;
             }
 
-            toast.success("Enquiry saved successfully");
-            closeRef.current?.click();
+            toast.success("Payment & Enquiry completed 🎉");
           } catch (err) {
             console.error(err);
-            toast.error("Error saving enquiry");
+            toast.error("Enquiry creation failed");
           }
         },
 
         theme: { color: "#b28704" },
       };
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (error) {
-      console.error(error);
+      new window.Razorpay(options).open();
+    } catch (err) {
+      console.error(err);
       toast.error("Payment failed");
     }
   };
@@ -176,7 +174,7 @@ const ChatBuddyPage = () => {
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     fetchChatBuddies();
   }, []);
 
@@ -277,6 +275,18 @@ const ChatBuddyPage = () => {
                       placeholder="Enter your full name"
                     />
 
+                    <div className="grid gap-2">
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="your@email.com"
+                      />
+                    </div>
 
                     <div className="grid gap-2">
                       <Label htmlFor="buddy" className="text-sm font-medium text-gray-700">
@@ -293,26 +303,13 @@ const ChatBuddyPage = () => {
                         <option value="">Choose your buddy</option>
                         {buddies.map((buddy) => (
                           <option key={buddy._id} value={buddy._id}>
-                            {buddy.name} ({buddy.status})
+                            {buddy.name}
                           </option>
                         ))}
                       </select>
                     </div>
 
                   </div>
-                  {/* <div className="grid gap-2">
-                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="h-12 text-lg"
-                      placeholder="your@email.com"
-                    />
-                  </div> */}
                   <div className="grid gap-2">
                     <Label htmlFor="whatsappNo" className="text-sm font-medium text-gray-700">WhatsApp Number</Label>
                     <Input

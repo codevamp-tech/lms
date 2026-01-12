@@ -126,25 +126,28 @@ export const getInstructor = async (page = 1, limit = 7): Promise<any> => {
 export const updateUserProfile = async (
   userId: string,
   name: string,
-  profilePhoto: File
+  email: string,
+  profilePhoto?: File
 ) => {
   try {
-    // Create a FormData object
     const formData = new FormData();
     formData.append("name", name);
-    formData.append("profilePhoto", profilePhoto);
+    formData.append("email", email);
+    if (profilePhoto) {
+      formData.append("profilePhoto", profilePhoto);
+    }
+
     const { data } = await axios.patch(
       `${API_BASE_URL}/${userId}/update`,
       formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      }
+      { headers: { "Content-Type": "multipart/form-data" } }
     );
 
     return data;
   } catch (error: any) {
     throw new Error(
-      error.response?.data?.message || "Failed to fetch user profile"
+      error.response?.data?.message || "Failed to update profile"
     );
   }
 };
+

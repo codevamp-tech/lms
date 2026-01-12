@@ -1,9 +1,9 @@
-import { Controller, Post, Body, Get, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Param } from '@nestjs/common';
 import { RazorpayService } from './razorpay.service';
 
 @Controller('razorpay')
 export class RazorpayController {
-  constructor(private readonly razorpayService: RazorpayService) {}
+  constructor(private readonly razorpayService: RazorpayService) { }
 
   @Post('create-order')
   async createOrder(
@@ -12,6 +12,15 @@ export class RazorpayController {
     const { amount, currency, receipt } = body;
     return this.razorpayService.createOrder(amount, currency, receipt);
   }
+
+  @Get('payment-details/:paymentId')
+  async getPaymentDetails(
+    @Param('paymentId') paymentId: string,
+  ) {
+    return this.razorpayService.getPaymentById(paymentId);
+  }
+
+
 
   // ✅ GET PAYMENTS
   @Get('payments')

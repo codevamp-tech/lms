@@ -30,6 +30,33 @@ export class RazorpayService {
     }
   }
 
+
+  async getPaymentById(paymentId: string) {
+    try {
+      const payment = await this.razorpay.payments.fetch(paymentId);
+
+      return {
+        id: payment.id,
+        amount: payment.amount,
+        currency: payment.currency,
+        status: payment.status,
+        method: payment.method,
+        email: payment.email,
+        contact: payment.contact, // 📞 phone number
+        phone: payment.contact,
+        order_id: payment.order_id,
+        createdAt: payment.created_at,
+      };
+    } catch (error) {
+      console.error('Error fetching payment:', error);
+      throw new HttpException(
+        'Failed to fetch payment details',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+
   // ✅ GET ALL PAYMENTS
   // If `fetchAll` is true or requested `count` > 100, this will page through
   // Razorpay results (100 per request) and return a combined result.
