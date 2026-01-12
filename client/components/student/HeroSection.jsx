@@ -66,7 +66,7 @@ const HeroSection = () => {
 
   // Function to handle form submission
   const handleEnquiryAndPayment = async (offer) => {
-   const title = offer.sub;
+    const title = offer.sub;
     try {
       // Ensure Razorpay script is loaded
       if (!window.Razorpay) {
@@ -206,45 +206,45 @@ const HeroSection = () => {
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto mt-10"
             >
               {[
-  {
-    title: "English Course",
-    sub: "course",
-    price: "1499",
-    icon: BookOpen,
-    route: "/english-course",
-    className: "bg-gradient-to-r from-blue-500 to-cyan-500",
-  },
-  {
-    title: "Counselling Session by Gowhar Amaan",
-    sub: "course",
-    price: "499",
-    icon: MessageCircle,
-    route: "/session-with-founder",
-    className: "bg-gradient-to-r from-green-500 to-lime-400",
-  },
-  {
-    title: "Chat Buddy",
-    sub: "chat",
-    price: "2000/m",
-    icon: Award,
-    route: "/chat-buddy",
-    className: "bg-gradient-to-r from-yellow-400 to-orange-400",
-  },
-]
-.map((offer) => (
-                <>
-                   <Link href={offer.route}>
-                  <div
-                    className={`${offer.className} p-6 rounded-xl cursor-pointer shadow-lg hover:shadow-xl`}
-                    // onClick={() => handleEnquiryAndPayment(offer)}
-                  >
-                    <offer.icon className="w-10 h-10 mb-4 mx-auto" />
-                    <h3 className="text-lg font-bold">{offer.title}</h3>
-                    <p className="text-2xl font-bold">₹{offer.price}</p>
-                  </div>
-                  </Link>
-                </>
-              ))}
+                {
+                  title: "English Course",
+                  sub: "course",
+                  price: "1499",
+                  icon: BookOpen,
+                  route: "course/course-detail/68e39b7bc3c6876a13d052dd",
+                  className: "bg-gradient-to-r from-blue-500 to-cyan-500",
+                },
+                {
+                  title: "Counselling Session by Gowhar Amaan",
+                  sub: "course",
+                  price: "499",
+                  icon: MessageCircle,
+                  route: "/session-with-founder",
+                  className: "bg-gradient-to-r from-green-500 to-lime-400",
+                },
+                {
+                  title: "Chat Buddy",
+                  sub: "chat",
+                  price: "2000/m",
+                  icon: Award,
+                  route: "/chat-buddy",
+                  className: "bg-gradient-to-r from-yellow-400 to-orange-400",
+                },
+              ]
+                .map((offer) => (
+                  <>
+                    <Link href={offer.route}>
+                      <div
+                        className={`${offer.className} p-6 rounded-xl cursor-pointer shadow-lg hover:shadow-xl`}
+                      // onClick={() => handleEnquiryAndPayment(offer)}
+                      >
+                        <offer.icon className="w-10 h-10 mb-4 mx-auto" />
+                        <h3 className="text-lg font-bold">{offer.title}</h3>
+                        <p className="text-2xl font-bold">₹{offer.price}</p>
+                      </div>
+                    </Link>
+                  </>
+                ))}
 
 
 
