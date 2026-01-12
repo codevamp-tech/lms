@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -24,32 +25,32 @@ export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) { }
 
   async signup(data: {
-   name: string; email: string; password: string; number?: string; role?: string 
-}) {
-  // 1. Check if user already exists
-  const existingUser = await this.userModel.findOne({ email: data.email }).exec();
-  if (existingUser) {
-    throw new Error('Email is already registered');
-  }
+    name: string; email: string; password: string; number?: string; role?: string
+  }) {
+    // 1. Check if user already exists
+    const existingUser = await this.userModel.findOne({ email: data.email }).exec();
+    if (existingUser) {
+      throw new Error('Email is already registered');
+    }
 
-  // 2. Hash password
-  const hashedPassword = await bcrypt.hash(data.password, 10);
+    // 2. Hash password
+    const hashedPassword = await bcrypt.hash(data.password, 10);
 
-  // 3. Create new user explicitly including all fields
-  const newUser = new this.userModel({
-    name: data.name,
-    email: data.email,
-    password: hashedPassword,
-    number: data.number, // ✅ make sure number is included
-    role: data.role || 'student',
-  });
+    // 3. Create new user explicitly including all fields
+    const newUser = new this.userModel({
+      name: data.name,
+      email: data.email,
+      password: hashedPassword,
+      number: data.number, // ✅ make sure number is included
+      role: data.role || 'student',
+    });
 
-  // 4. Send welcome email
-  const mailOptions = {
-    to: data.email,
-    name: data.name,
-    subject: 'Welcome to Mr English Training Academy',
-    html: `
+    // 4. Send welcome email
+    const mailOptions = {
+      to: data.email,
+      name: data.name,
+      subject: 'Welcome to Mr English Training Academy',
+      html: `
       <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
         <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
           <h2 style="color: #007BFF; text-align: center;">Welcome, ${data.name}</h2>
@@ -63,19 +64,49 @@ export class UsersService {
         </div>
       </div>
     `,
-  };
+    };
 
-  try {
-    await sendMail(mailOptions);
-    console.log(`Welcome email sent to ${data.email}`);
-  } catch (error) {
-    console.error(`Failed to send email to ${data.email}`, error);
-    // Do not block signup if email fails
+    try {
+      await sendMail(mailOptions);
+      console.log(`Welcome email sent to ${data.email}`);
+    } catch (error) {
+      console.error(`Failed to send email to ${data.email}`, error);
+      // Do not block signup if email fails
+    }
+
+    // 5. Save user in DB
+    return newUser.save();
   }
 
-  // 5. Save user in DB
-  return newUser.save();
-}
+  // users.service.ts
+  async registerWithPhone(phone: string, name?: string) {
+    // 1. Check if user exists
+    let user = await this.userModel.findOne({ number: phone });
+
+    // 2. If not exists → create user
+    if (!user) {
+      user = new this.userModel({
+        name: name || `User ${phone.slice(-4)}`,
+        number: phone,
+        role: 'student',
+      });
+
+      await user.save();
+    }
+
+
+    return {
+      success: true,
+      message: 'User authenticated successfully',
+      userId: user._id,
+      user: {
+        id: user._id,
+        name: user.name,
+        phone: user.number,
+        role: user.role,
+      },
+    };
+  }
 
 
   async login(email: string, password: string) {
@@ -315,46 +346,52 @@ export class UsersService {
   async updateProfile(
     userId: string,
     name: string,
+    email: string,
     profilePhoto?: Express.Multer.File,
   ) {
-    try {
-      const user = await this.userModel.findById(userId);
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      let updatedData: { name: string; photoUrl?: string } = { name };
-
-      // If a new profile photo is provided
-      if (profilePhoto) {
-        // Delete old photo if it exists
-        if (user.photoUrl) {
-          const publicId = user.photoUrl.split('/').pop()?.split('.')[0]; // Extract public ID
-          if (publicId) {
-            await deleteMediaFromCloudinary(publicId);
-          }
-        }
-
-        // Upload new photo
-        const cloudResponse = await uploadMedia(profilePhoto?.buffer);
-        updatedData.photoUrl = cloudResponse.secure_url; // Update with new photo URL
-      }
-
-      // Update user in the database
-      const updatedUser = await this.userModel
-        .findByIdAndUpdate(userId, updatedData, { new: true })
-        .select('-password');
-
-      return {
-        success: true,
-        user: updatedUser,
-        message: 'Profile updated successfully.',
-      };
-    } catch (error) {
-      console.error(error);
-      throw new Error('Failed to update profile');
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+
+    // ✅ Email uniqueness check
+    if (email && email !== user.email) {
+      const emailExists = await this.userModel.findOne({ email });
+      if (emailExists) {
+        throw new BadRequestException('Email already registered');
+      }
+    }
+
+    let updatedData: {
+      name: string;
+      email: string;
+      photoUrl?: string;
+    } = { name, email };
+
+    if (profilePhoto) {
+      if (user.photoUrl) {
+        const publicId = user.photoUrl.split('/').pop()?.split('.')[0];
+        if (publicId) {
+          await deleteMediaFromCloudinary(publicId);
+        }
+      }
+
+      const cloudResponse = await uploadMedia(profilePhoto.buffer);
+      updatedData.photoUrl = cloudResponse.secure_url;
+    }
+
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(userId, updatedData, { new: true })
+      .select('-password');
+
+    return {
+      success: true,
+      user: updatedUser,
+      message: 'Profile updated successfully.',
+    };
   }
+
+
 
   async deleteAdmin(Id: string) {
     try {

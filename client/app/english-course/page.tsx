@@ -44,8 +44,8 @@ const EnglishCoursePage = () => {
             resolve({
               name: data.get("name"),
               email: data.get("email"),
-              whatsappNo: data.get("whatsappNo"),
-              status: "open",
+              whatsapp: data.get("whatsappNo"),
+              status: "pending",
             });
           };
         }
@@ -56,7 +56,7 @@ const EnglishCoursePage = () => {
   const courseData = {
     title: "English Course",
     sub: "course",
-    price: "1499",
+    price: "1",
     icon: BookOpen,
     route: "/englishCourse",
     className: "bg-gradient-to-r from-blue-500 to-cyan-500",

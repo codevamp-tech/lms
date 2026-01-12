@@ -19,6 +19,7 @@ export class EnquiryService {
   ) { }
 
   async create(createEnquiryDto: CreateEnquiryDto): Promise<Enquiry> {
+
     try {
       // Validate reCAPTCHA only if type is "Contact"
       if (createEnquiryDto.type === "Contact") {
@@ -29,31 +30,39 @@ export class EnquiryService {
         }
       }
 
-
+      // ✅ 1. SAVE ENQUIRY (CRITICAL)
       const created = new this.enquiryModel(createEnquiryDto);
       const savedEnquiry = await created.save();
 
-      await this.sendEnquiryEmail(createEnquiryDto.email, createEnquiryDto.name);
+      // ✅ 2. EMAIL (NON-BLOCKING)
+      this.sendEnquiryEmail(createEnquiryDto.email, createEnquiryDto.name)
+        .catch(err => {
+          console.error("Email failed (ignored):", err.message);
+        });
 
-      console.log("Creating notification for new enquiry");
 
-            await this.notificationsService.createNotification({
-              name: createEnquiryDto.name,
-              title: `New Enquiry from ${createEnquiryDto.name}`,
-              body: `${createEnquiryDto.name} (${createEnquiryDto.email}) submitted an enquiry of type ${createEnquiryDto.type || 'General'}`,
-              payload: { enquiryId: savedEnquiry._id, email: createEnquiryDto.email },
-            });
+      // ✅ 3. NOTIFICATION (NON-BLOCKING)
+      this.notificationsService.createNotification({
+        name: createEnquiryDto.name,
+        title: `New Enquiry from ${createEnquiryDto.name}`,
+        body: `${createEnquiryDto.name} (${createEnquiryDto.email}) submitted an enquiry of type ${createEnquiryDto.type || 'General'}`,
+        payload: { enquiryId: savedEnquiry._id, email: createEnquiryDto.email },
+      }).catch(err => {
+        console.error("Notification failed (ignored):", err.message);
+      });
 
-            console.log("Notification created successfully");
+      console.log("Notification triggered");
 
-      // if enquiry contains razorpay/order/payment fields, create a Payment record
+      // ✅ 4. PAYMENT (ALREADY SAFE)
       if (savedEnquiry.razorpay_order_id || savedEnquiry.razorpay_payment_id) {
         try {
           await this.paymentsService.create({
             phone: savedEnquiry.whatsapp,
             paymentFor: PaymentFor.ENQUIRY,
             enquiryId: savedEnquiry._id as any,
-            amount: parseFloat(savedEnquiry.amount as any) || parseFloat(savedEnquiry.price as any) || 0,
+            amount: parseFloat(savedEnquiry.amount as any)
+              || parseFloat(savedEnquiry.price as any)
+              || 0,
             currency: savedEnquiry.currency || 'INR',
             razorpayOrderId: savedEnquiry.razorpay_order_id,
             razorpayPaymentId: savedEnquiry.razorpay_payment_id,
@@ -65,6 +74,7 @@ export class EnquiryService {
         }
       }
 
+      // ✅ ALWAYS RETURN SAVED ENQUIRY
       return savedEnquiry;
 
     } catch (error) {
@@ -78,6 +88,10 @@ export class EnquiryService {
   async findAll(): Promise<Enquiry[]> {
     return this.enquiryModel
       .find()
+      .populate({
+        path: 'chatBuddyId',
+        select: 'name photo bio status', // optional: limit fields
+      })
       .sort({ createdAt: -1 }) // 🔥 Latest first
       .exec();
   }

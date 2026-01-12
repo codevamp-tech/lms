@@ -24,6 +24,7 @@ const SessionWithFounderPage = () => {
     name: "",
     email: "",
     whatsappNo: "",
+    preferredTimeToCall: "",
   });
 
   const [selectedEnquiry, setSelectedEnquiry] = useState<any>(null);
@@ -44,8 +45,8 @@ const SessionWithFounderPage = () => {
             resolve({
               name: data.get("name"),
               email: data.get("email"),
-              whatsappNo: data.get("whatsappNo"),
-              status: "open",
+              whatsapp: data.get("whatsappNo"),
+              status: "pending",
             });
           };
         }
@@ -65,64 +66,63 @@ const SessionWithFounderPage = () => {
   const handleEnquiryAndPayment = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const offer = courseData;
-
     try {
+      // 1️⃣ Load Razorpay
       if (!window.Razorpay) {
         const script = document.createElement("script");
         script.src = "https://checkout.razorpay.com/v1/checkout.js";
         script.async = true;
         document.body.appendChild(script);
-
-        await new Promise((resolve) => {
-          script.onload = resolve;
-          script.onerror = resolve;
-        });
+        await new Promise((res) => (script.onload = res));
       }
 
-      const priceDigits = String(offer.price).match(/\d+/);
+      // 2️⃣ Amount
+      const priceDigits = String(courseData.price).match(/\d+/);
       const amountINR = priceDigits ? parseInt(priceDigits[0], 10) : 0;
 
+      // 3️⃣ Create Order
       const orderResp = await fetch(`${API_URL}/razorpay/create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: amountINR,
           currency: "INR",
-          receipt: `enquiry_receipt_${Date.now()}`,
+          receipt: `counselling_${Date.now()}`,
         }),
       });
 
-      if (!orderResp.ok) throw new Error("Failed to create payment order");
+      if (!orderResp.ok) throw new Error("Order creation failed");
 
       const order = await orderResp.json();
 
+      // 4️⃣ Razorpay Options
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: order.currency,
         name: "Mr English Training Academy",
-        description: offer.title,
+        description: courseData.title,
         order_id: order.id,
 
         handler: async (response: any) => {
           try {
-            let payload: any = {
+            // 5️⃣ AUTO CREATE ENQUIRY
+            const payload = {
+              name: formData.name,
+              email: formData.email,
+              whatsapp: formData.whatsappNo,
+              preferredTimeToCall: formData.preferredTimeToCall,
+
+              type: "Counselling",
+              status: "pending",
+              price: courseData.price,
+
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
               amount: order.amount,
               currency: order.currency,
             };
-
-            toast.success("Payment successful");
-
-            setSelectedEnquiry(offer);
-
-            const formPayload = await waitForFormData();
-            formPayload.type = "Counselling";
-
-            payload = { ...payload, ...formPayload };
 
             const res = await fetch(`${API_URL}/enquiry`, {
               method: "POST",
@@ -131,28 +131,28 @@ const SessionWithFounderPage = () => {
             });
 
             if (!res.ok) {
-              toast.error("Failed to save enquiry");
+              toast.error("Payment success but enquiry failed");
               return;
             }
 
-            toast.success("Enquiry saved successfully");
+            toast.success("Session booked successfully 🎉");
             closeRef.current?.click();
           } catch (err) {
             console.error(err);
-            toast.error("Error saving enquiry");
+            toast.error("Failed to save enquiry");
           }
         },
 
         theme: { color: "#b28704" },
       };
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (error) {
-      console.error(error);
+      new window.Razorpay(options).open();
+    } catch (err) {
+      console.error(err);
       toast.error("Payment failed");
     }
   };
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -268,7 +268,7 @@ const SessionWithFounderPage = () => {
                 <p className="text-3xl font-bold text-green-600 mt-2">₹{courseData.price}</p>
               </div>
 
-              <form id="enquiryForm" ref={enquiryFormRef} onSubmit={handleEnquiryAndPayment} className="space-y-6">
+              <form id="enquiryForm" onSubmit={handleEnquiryAndPayment} className="space-y-6">
                 <div className="space-y-4">
                   <div className="grid gap-2">
                     <Label htmlFor="name" className="text-sm font-medium text-gray-700">Full Name</Label>
