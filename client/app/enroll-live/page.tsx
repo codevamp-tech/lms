@@ -375,11 +375,19 @@ const EnrollLivePage = () => {
                                         ) : (
                                             <Button
                                                 onClick={() => handleEnroll(session)}
-                                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                                                disabled={!isRazorpayLoaded}
+                                                className={`w-full text-white ${status === "completed"
+                                                        ? "bg-gray-400 cursor-not-allowed"
+                                                        : "bg-blue-600 hover:bg-blue-700"
+                                                    }`}
+                                                disabled={!isRazorpayLoaded || status === "completed"}
                                             >
-                                                {isRazorpayLoaded ? "Enroll Now" : "Loading..."}
+                                                {status === "completed"
+                                                    ? "Session Completed"
+                                                    : isRazorpayLoaded
+                                                        ? "Enroll Now"
+                                                        : "Loading..."}
                                             </Button>
+
                                         )}
                                     </div>
                                 </CardContent>
