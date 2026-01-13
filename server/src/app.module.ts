@@ -49,8 +49,9 @@ if (!fs.existsSync(uploadDir)) {
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot('mongodb+srv://root:GXkg9RvCMEYOw7nY@arogyaa.l0qed.mongodb.net/lms'),
+    // MongooseModule.forRoot('mongodb+srv://root:GXkg9RvCMEYOw7nY@arogyaa.l0qed.mongodb.net/lms'),
     // MongooseModule.forRoot('mongodb://127.0.0.1:27017/lms'),
+    MongooseModule.forRoot('mongodb+srv://mohsinansari4843:48RMOzYezlJA5Lh7@cluster0.dyphqra.mongodb.net/lms_tesing'),
     MulterModule.register({
       storage: multer.diskStorage({
         destination: (req, file, cb) => {
