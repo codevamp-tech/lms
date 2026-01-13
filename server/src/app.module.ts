@@ -24,7 +24,6 @@ import { CartController } from './cart/cart.controller';
 import { CartService } from './cart/cart.service';
 import { CartModule } from './cart/cart.module';
 import { LiveSessionModule } from './live-session/live-session.module';
-import { ConfigModule } from '@nestjs/config';
 import { RazorpayModule } from './razorpay/razorpay.module';
 import { SessionsModule } from './session/session.module';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -34,6 +33,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { ChatBuddyModule } from './chat-buddy/chat-buddy.module';
 import { NotificationsModule } from './notification/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 
 
@@ -49,9 +49,15 @@ if (!fs.existsSync(uploadDir)) {
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot('mongodb+srv://root:GXkg9RvCMEYOw7nY@arogyaa.l0qed.mongodb.net/lms'),
-    // MongooseModule.forRoot('mongodb://127.0.0.1:27017/lms'),
-    // MongooseModule.forRoot('mongodb+srv://mohsinansari4843:48RMOzYezlJA5Lh7@cluster0.dyphqra.mongodb.net/lms_tesing'),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGOURI'),
+      }),
+    }),
+
+
     MulterModule.register({
       storage: multer.diskStorage({
         destination: (req, file, cb) => {
