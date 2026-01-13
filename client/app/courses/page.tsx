@@ -201,21 +201,23 @@ const CoursesPage = () => {
             {sessionsLoading ? (
               Array.from({ length: 6 }).map((_, index) => <LiveSessionSkeleton key={index} />)
             ) : sessionsData && sessionsData.length > 0 ? (
-              sessionsData.map((session: LiveSessionData) => {
-                const status = getSessionStatus(session)
-                const isEnrolled = session.enrolledUsers?.includes(userId!)
+              sessionsData
+                .filter((session: LiveSessionData) => getSessionStatus(session) === "upcoming")
+                .map((session: LiveSessionData) => {
+                  const isEnrolled = session.enrolledUsers?.includes(userId!)
 
-                return (
-                  <LiveSessionCard
-                    key={session._id}
-                    session={session}
-                    status={status}
-                    isEnrolled={isEnrolled}
-                    countdown={getCountdown(session)}
-                  />
-                )
-              })
+                  return (
+                    <LiveSessionCard
+                      key={session._id}
+                      session={session}
+                      status="upcoming"
+                      isEnrolled={isEnrolled}
+                      countdown={getCountdown(session)}
+                    />
+                  )
+                })
             ) : (
+
               <div className="col-span-full">
                 <EmptyState
                   icon={Video}
@@ -241,38 +243,43 @@ interface LiveSessionCardProps {
   countdown: string
 }
 
-const LiveSessionCard = ({ session, status, isEnrolled, countdown }: LiveSessionCardProps) => {
-
-
+const LiveSessionCard = ({
+  session,
+  status,
+  isEnrolled,
+  countdown,
+}: LiveSessionCardProps) => {
   return (
     <Link href={`/enroll-live`}>
-      <Card className="overflow-hidden rounded-lg dark:bg-gray-800 bg-white shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
-        {/* Image Container - Fixed Height */}
+      <Card className="overflow-hidden rounded-lg dark:bg-gray-800 bg-white shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer">
+        {/* Image */}
         {session.imageUrl && (
-          <div className="relative h-40 sm:h-48 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 overflow-hidden">
+          <div className="relative h-40 sm:h-48 overflow-hidden">
             <img
               src={session.imageUrl || "/placeholder.svg"}
               alt={session.title}
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
             />
 
-            {/* Status Badge - Positioned overlay */}
-
+            {/* UPCOMING Badge */}
+            <span className="absolute top-2 right-2 bg-blue-600 text-white text-xs font-semibold px-2 py-1 rounded">
+              UPCOMING
+            </span>
           </div>
         )}
 
-        {/* Content Container - Flexbox to push button to bottom */}
-        <div className="p-4 sm:p-5 flex flex-col flex-1">
+        {/* Content */}
+        <div className="p-4 sm:p-5 flex flex-col h-full">
           {/* Title */}
-          <h3 className="font-semibold text-sm sm:text-base text-slate-900 dark:text-white mb-3 line-clamp-2 flex-shrink-0">
+          <h3 className="font-semibold text-sm sm:text-base text-slate-900 dark:text-white mb-3 line-clamp-2">
             {session.title}
           </h3>
 
-          {/* Info Section */}
-          <div className="space-y-2 mb-4 text-xs sm:text-sm text-slate-600 dark:text-slate-400 flex-shrink-0">
+          {/* Date & Duration */}
+          <div className="space-y-2 mb-3 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
             <p className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0" />
-              <span className="truncate">
+              <Calendar className="w-4 h-4 text-blue-500" />
+              <span>
                 {new Date(session.date).toLocaleDateString([], {
                   month: "short",
                   day: "numeric",
@@ -284,14 +291,20 @@ const LiveSessionCard = ({ session, status, isEnrolled, countdown }: LiveSession
                 })}
               </span>
             </p>
+
             <p className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-purple-500 flex-shrink-0" />
+              <Clock className="w-4 h-4 text-purple-500" />
               <span>{session.duration} minutes</span>
             </p>
           </div>
 
+          {/* Countdown */}
+          <div className="mb-3 text-sm font-medium text-blue-600 dark:text-blue-400">
+            Starts in {countdown}
+          </div>
+
           {/* Price */}
-          <div className="text-lg sm:text-xl font-bold text-green-600 dark:text-green-400 mb-4 flex-shrink-0">
+          <div className="mt-auto text-lg sm:text-xl font-bold text-green-600 dark:text-green-400">
             ₹{session.price.toLocaleString()}
           </div>
         </div>
@@ -299,6 +312,7 @@ const LiveSessionCard = ({ session, status, isEnrolled, countdown }: LiveSession
     </Link>
   )
 }
+
 
 // ===== COMPONENT: Empty State =====
 interface EmptyStateProps {
