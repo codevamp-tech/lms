@@ -58,13 +58,24 @@ export class CoursePurchaseService {
     }
 
     // Only consider the course 'purchased' when the purchase record
-    // explicitly indicates a completed payment. Pending/failed should
-    // not grant access.
-    const purchased = !!(purchaseRecord && purchaseRecord.status === 'completed');
+    // explicitly indicates a completed payment, is not revoked, and not expired.
+    let purchased = false;
+    let isExpired = false;
+    let isRevoked = false;
+
+    if (purchaseRecord && purchaseRecord.status === 'completed') {
+      isRevoked = purchaseRecord.isRevoked === true;
+      if (purchaseRecord.expiryDate) {
+        isExpired = new Date() > new Date(purchaseRecord.expiryDate);
+      }
+      purchased = !isRevoked && !isExpired;
+    }
 
     return {
       course,
       purchased,
+      isExpired,
+      isRevoked,
       // expose the raw purchase record so clients can show pending/failed state
       coursePurchase: purchaseRecord || null,
     };
@@ -148,6 +159,11 @@ export class CoursePurchaseService {
     const valid = await this.verifyPaymentSignature(dto);
     if (!valid) throw new BadRequestException("Invalid payment");
 
+    // Calculate expiry date (3 months from now)
+    const purchaseDate = new Date();
+    const expiryDate = new Date();
+    expiryDate.setMonth(expiryDate.getMonth() + 3);
+
     const updatedPurchase = await this.coursePurchaseModel.findOneAndUpdate(
       { orderId: razorpay_order_id },
       {
@@ -155,6 +171,9 @@ export class CoursePurchaseService {
         courseId,
         paymentId: razorpay_payment_id,
         status: "completed",
+        purchaseDate,
+        expiryDate,
+        isRevoked: false,
       },
       { new: true }
     );
@@ -197,7 +216,7 @@ export class CoursePurchaseService {
     }
     try {
       // ================================
-     
+
       // ================================
       await sendMail({
         to: user.email,
@@ -372,4 +391,94 @@ export class CoursePurchaseService {
       );
     }
   }
+
+  // Admin: Get all course purchases with user and course details
+  async getAllPurchasesForAdmin() {
+    try {
+      const purchases = await this.coursePurchaseModel
+        .find({ status: 'completed' })
+        .populate({ path: 'userId', select: 'name email' })
+        .populate({ path: 'courseId', select: 'courseTitle subTitle' })
+        .sort({ createdAt: -1 });
+
+      return {
+        success: true,
+        purchases: purchases.map((p) => {
+          const now = new Date();
+          const isExpired = p.expiryDate ? now > new Date(p.expiryDate) : false;
+          return {
+            _id: p._id,
+            user: p.userId,
+            course: p.courseId,
+            amount: p.amount,
+            purchaseDate: p.purchaseDate,
+            expiryDate: p.expiryDate,
+            isRevoked: p.isRevoked,
+            isExpired,
+            isActive: !p.isRevoked && !isExpired,
+          };
+        }),
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Failed to fetch purchases',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // Admin: Revoke access to a course for a specific purchase
+  async revokeAccess(purchaseId: string) {
+    const purchase = await this.coursePurchaseModel.findById(purchaseId);
+    if (!purchase) {
+      throw new NotFoundException('Purchase not found');
+    }
+
+    if (purchase.status !== 'completed') {
+      throw new BadRequestException('Cannot revoke a non-completed purchase');
+    }
+
+    purchase.isRevoked = true;
+    await purchase.save();
+
+    // Optionally remove from enrolledCourses/enrolledStudents arrays
+    await this.userModel.findByIdAndUpdate(purchase.userId, {
+      $pull: { enrolledCourses: purchase.courseId },
+    });
+
+    await this.courseModel.findByIdAndUpdate(purchase.courseId, {
+      $pull: { enrolledStudents: purchase.userId },
+    });
+
+    return {
+      success: true,
+      message: 'Access revoked successfully',
+    };
+  }
+
+  // Admin: Restore access (un-revoke)
+  async restoreAccess(purchaseId: string) {
+    const purchase = await this.coursePurchaseModel.findById(purchaseId);
+    if (!purchase) {
+      throw new NotFoundException('Purchase not found');
+    }
+
+    purchase.isRevoked = false;
+    await purchase.save();
+
+    // Re-add to enrolledCourses/enrolledStudents arrays
+    await this.userModel.findByIdAndUpdate(purchase.userId, {
+      $addToSet: { enrolledCourses: purchase.courseId },
+    });
+
+    await this.courseModel.findByIdAndUpdate(purchase.courseId, {
+      $addToSet: { enrolledStudents: purchase.userId },
+    });
+
+    return {
+      success: true,
+      message: 'Access restored successfully',
+    };
+  }
 }
+

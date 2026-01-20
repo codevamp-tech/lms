@@ -57,4 +57,21 @@ export class CoursePurchaseController {
   async getPurchasedCourses(@Param('userId') userId: string) {
     return this.coursePurchaseService.getPurchasedCourses(userId);
   }
+
+  // Admin endpoints
+  @Get('admin/all-purchases')
+  async getAllPurchasesForAdmin() {
+    return this.coursePurchaseService.getAllPurchasesForAdmin();
+  }
+
+  @Post('admin/revoke/:purchaseId')
+  async revokeAccess(@Param('purchaseId') purchaseId: string) {
+    return this.coursePurchaseService.revokeAccess(purchaseId);
+  }
+
+  @Post('admin/restore/:purchaseId')
+  async restoreAccess(@Param('purchaseId') purchaseId: string) {
+    return this.coursePurchaseService.restoreAccess(purchaseId);
+  }
 }
+

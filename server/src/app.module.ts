@@ -33,6 +33,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { ChatBuddyModule } from './chat-buddy/chat-buddy.module';
 import { NotificationsModule } from './notification/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
+import { BlogModule } from './blogs/blog.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 
@@ -113,6 +114,7 @@ if (!fs.existsSync(uploadDir)) {
     ChatBuddyModule,
     NotificationsModule,
     PaymentsModule,
+    BlogModule,
     ThrottlerModule.forRoot([{
       ttl: 60, // time window in seconds
       limit: 5, // max requests per IP within ttl

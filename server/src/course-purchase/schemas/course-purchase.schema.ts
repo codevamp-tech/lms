@@ -26,6 +26,16 @@ export class CoursePurchase extends Document {
 
   @Prop()
   paymentId: string;
+
+  // Course validity fields
+  @Prop({ type: Date })
+  purchaseDate: Date;
+
+  @Prop({ type: Date })
+  expiryDate: Date;
+
+  @Prop({ type: Boolean, default: false })
+  isRevoked: boolean;
 }
 
 // Create the schema from the class
