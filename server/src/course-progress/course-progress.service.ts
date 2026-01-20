@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Course } from 'src/courses/schemas/course.schema';
 import { CourseProgress } from './schemas/course-progress.schema';
+import { CoursePurchase } from 'src/course-purchase/schemas/course-purchase.schema';
 
 @Injectable()
 export class CourseProgressService {
@@ -11,15 +12,38 @@ export class CourseProgressService {
     private readonly courseProgressModel: Model<CourseProgress>,
     @InjectModel('Course')
     private readonly courseModel: Model<Course>,
-  ) {}
+    @InjectModel('CoursePurchase')
+    private readonly coursePurchaseModel: Model<CoursePurchase>,
+  ) { }
 
   async getCourseProgress(courseId: string, userId: string) {
-    // Step-1: Fetch the user's course progress
+    // Step-1: Check if user has valid purchase (not expired & not revoked)
+    const purchase = await this.coursePurchaseModel.findOne({
+      courseId,
+      userId,
+      status: 'completed',
+    });
+
+    if (!purchase) {
+      throw new ForbiddenException('You have not purchased this course');
+    }
+
+    // Check if access is revoked
+    if (purchase.isRevoked) {
+      throw new ForbiddenException('Your access to this course has been revoked');
+    }
+
+    // Check if access is expired
+    if (purchase.expiryDate && new Date() > new Date(purchase.expiryDate)) {
+      throw new ForbiddenException('Your course access has expired');
+    }
+
+    // Step-2: Fetch the user's course progress
     const courseProgress = await this.courseProgressModel
       .findOne({ courseId, userId })
       .populate('courseId');
 
-    // Step-2: Fetch course details
+    // Step-3: Fetch course details
     const courseDetails = await this.courseModel
       .findById(courseId)
       .populate('lectures');
@@ -28,7 +52,7 @@ export class CourseProgressService {
       throw new NotFoundException('Course not found');
     }
 
-    // Step-3: If no progress found, return course details with an empty progress
+    // Step-4: If no progress found, return course details with an empty progress
     if (!courseProgress) {
       return {
         data: {
@@ -39,7 +63,7 @@ export class CourseProgressService {
       };
     }
 
-    // Step-4: Return the user's course progress along with course details
+    // Step-5: Return the user's course progress along with course details
     return {
       data: {
         courseDetails,
