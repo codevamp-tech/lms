@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   BookOpen,
   PlayCircle,
+  Plus,
 } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -336,6 +337,12 @@ const DropdownMenuItems = ({ user }) => {
             <DropdownMenuItem className="cursor-pointer">
               <BookOpen className="mr-2 h-4 w-4" />
               <span>My Learning</span>
+            </DropdownMenuItem>
+          </Link>
+          <Link href="/create-blog">
+            <DropdownMenuItem className="cursor-pointer">
+              <Plus className="mr-2 h-4 w-4" />
+              <span>Create Blog</span>
             </DropdownMenuItem>
           </Link>
           <Link href="/profile">

@@ -252,4 +252,42 @@ export class BlogService {
             throw new InternalServerErrorException('Failed to fetch published blogs');
         }
     }
+
+    async getBlogsByAuthorId(
+        authorId: string,
+        page = 1,
+        limit = 10,
+        isPublished?: boolean,
+    ) {
+        const skip = (page - 1) * limit;
+
+        const filter: any = { author: authorId };
+
+        if (isPublished !== undefined) {
+            filter.isPublished = isPublished;
+        }
+
+        try {
+            const blogs = await this.blogModel
+                .find(filter)
+                .populate({ path: 'author', select: 'name photoUrl' })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit);
+
+            const totalBlogs = await this.blogModel.countDocuments(filter);
+
+            return {
+                blogs, // ✅ empty array is valid
+                totalPages: Math.ceil(totalBlogs / limit),
+                currentPage: page,
+                totalBlogs,
+            };
+        } catch (error) {
+            console.error('Error fetching blogs by author:', error);
+            throw new InternalServerErrorException(
+                'Failed to fetch blogs by author',
+            );
+        }
+    }
 }
