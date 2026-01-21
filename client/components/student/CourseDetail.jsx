@@ -42,7 +42,7 @@ const CourseDetail = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isInCart, setIsInCart] = useState(false);
   const [activePreviewVideo, setActivePreviewVideo] = useState(0);
-const [razorpayPhone, setRazorpayPhone] = useState(null); 
+  const [razorpayPhone, setRazorpayPhone] = useState(null);
 
   const {
     data: courseData,
@@ -79,7 +79,7 @@ const [razorpayPhone, setRazorpayPhone] = useState(null);
     }
   }, [courseId, userId, courseData]);
 
- // Create account using phone number from Razorpay
+  // Create account using phone number from Razorpay
   const createAccountWithPhone = async (phoneNumber, paymentData) => {
     try {
       const response = await fetch(
@@ -99,20 +99,20 @@ const [razorpayPhone, setRazorpayPhone] = useState(null);
       }
 
       const userData = await response.json();
-    console.log("useerData??",userData);
+      console.log("useerData??", userData);
       // Store user data
       localStorage.setItem("userId", userData.userId || userData._id);
       localStorage.setItem("token", userData.token);
 
       toast.success("Account created automatically!");
 
-const newUserId = userData.userId || userData.user?._id || userData._id;
+      const newUserId = userData.userId || userData.user?._id || userData._id;
 
       // Now verify payment with the new userId
       await verifyNow({
-  ...paymentData,
-  userId: newUserId, // ✅ THIS IS THE KEY
-});
+        ...paymentData,
+        userId: newUserId, // ✅ THIS IS THE KEY
+      });
 
 
       return userData.userId || userData.user._id;
@@ -123,7 +123,7 @@ const newUserId = userData.userId || userData.user?._id || userData._id;
     }
   };
 
-    const handleLoginModalClose = async () => {
+  const handleLoginModalClose = async () => {
     setLoginPopup(false);
 
     // If user closes modal and has pending payment, create account automatically
@@ -138,7 +138,7 @@ const newUserId = userData.userId || userData.user?._id || userData._id;
     }
   };
 
-  
+
   const handleBuyCourse = async () => {
     try {
       const { order } = await createRazorpayOrder(courseId);
@@ -157,7 +157,7 @@ const newUserId = userData.userId || userData.user?._id || userData._id;
             courseId,
           };
 
-           if (!userId) {
+          if (!userId) {
             try {
               // Fetch payment details to get phone number
               const paymentDetails = await fetch(
@@ -207,44 +207,44 @@ const newUserId = userData.userId || userData.user?._id || userData._id;
     }
   };
 
-  
+
   const verifyNow = async (paymentData) => {
-  try {
-    const userIdToUse = paymentData.userId || userId;
-    console.log("🔍 Starting payment verification...");
-    console.log("📦 Payment Data:", paymentData);
-    console.log("👤 User ID:", userIdToUse);
+    try {
+      const userIdToUse = paymentData.userId || userId;
+      console.log("🔍 Starting payment verification...");
+      console.log("📦 Payment Data:", paymentData);
+      console.log("👤 User ID:", userIdToUse);
 
-    const verify = await verifyPayment({
-      ...paymentData,
-      userId: userIdToUse,
-      courseId,
-    });
+      const verify = await verifyPayment({
+        ...paymentData,
+        userId: userIdToUse,
+        courseId,
+      });
 
-    if (!verify?.success) {
+      if (!verify?.success) {
+        toast.error("Payment verification failed!");
+        return;
+      }
+
+      console.log("📝 Enrolling user...");
+      await enrollIdCourse({ courseId, userId: userIdToUse });
+
+      toast.success("Course purchased successfully!");
+
+      queryClient.invalidateQueries({
+        queryKey: ["courseDetails", courseId, userIdToUse],
+      });
+
+      router.push(`/course/course-progress/${courseId}`);
+    } catch (error) {
+      console.error("❌ Verification error:", error);
       toast.error("Payment verification failed!");
-      return;
     }
-
-    console.log("📝 Enrolling user...");
-    await enrollIdCourse({ courseId, userId: userIdToUse });
-
-    toast.success("Course purchased successfully!");
-
-    queryClient.invalidateQueries({
-      queryKey: ["courseDetails", courseId, userIdToUse],
-    });
-
-    router.push(`/course/course-progress/${courseId}`);
-  } catch (error) {
-    console.error("❌ Verification error:", error);
-    toast.error("Payment verification failed!");
-  }
-};
+  };
 
 
 
-// Handle manual login success from LoginModal
+  // Handle manual login success from LoginModal
   useEffect(() => {
     if (!pendingPayment) return;
 
@@ -272,7 +272,7 @@ const newUserId = userData.userId || userData.user?._id || userData._id;
   }, [pendingPayment]);
 
 
-  
+
 
   if (isLoading) return <CourseDetailSkeleton />;
   if (error) return <div>Error: {error.message}</div>;
@@ -280,13 +280,18 @@ const newUserId = userData.userId || userData.user?._id || userData._id;
 
   const course = courseData.course;
   const purchased = courseData.purchased;
+  const isExpired = courseData.isExpired;
+  const isRevoked = courseData.isRevoked;
+
+  // User has valid access only if purchased AND not expired AND not revoked
+  const hasValidAccess = purchased && !isExpired && !isRevoked;
 
   // Get first two lectures for preview
   const previewLectures = course.lectures.slice(0, 2);
 
   return (
     <>
-       <LoginModal
+      <LoginModal
         isOpen={loginPopup}
         onClose={handleLoginModalClose}
       />
@@ -364,7 +369,7 @@ const newUserId = userData.userId || userData.user?._id || userData._id;
                         key={idx}
                         className="flex items-center gap-3 text-sm p-2 rounded-md bg-secondary/50"
                       >
-                        {purchased ? (
+                        {hasValidAccess ? (
                           <PlayCircle size={16} className="text-primary" />
                         ) : (
                           <Lock size={16} className="text-muted-foreground" />
@@ -411,8 +416,8 @@ const newUserId = userData.userId || userData.user?._id || userData._id;
                           onClick={() => setActivePreviewVideo(idx)}
                           className={`
                             relative group rounded-lg overflow-hidden border-2 transition-all duration-200
-                            ${activePreviewVideo === idx 
-                              ? 'border-primary shadow-md scale-[1.02]' 
+                            ${activePreviewVideo === idx
+                              ? 'border-primary shadow-md scale-[1.02]'
                               : 'border-border hover:border-primary/50'
                             }
                           `}
@@ -443,7 +448,7 @@ const newUserId = userData.userId || userData.user?._id || userData._id;
                 </CardContent>
 
                 <CardFooter className="flex-col gap-3 pt-0">
-                  {purchased ? (
+                  {hasValidAccess ? (
                     <Button
                       size="lg"
                       onClick={() => router.push(`/course/course-progress/${courseId}`)}
@@ -454,6 +459,11 @@ const newUserId = userData.userId || userData.user?._id || userData._id;
                     </Button>
                   ) : (
                     <>
+                      {(isExpired || isRevoked) && purchased && (
+                        <p className="text-sm text-destructive text-center mb-2">
+                          {isRevoked ? "Your access has been revoked." : "Your course access has expired."}
+                        </p>
+                      )}
                       <Button
                         size="lg"
                         variant="outline"

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-   ChartNoAxesColumn,
+  ChartNoAxesColumn,
   UserPlus,
   MessageCircle,
   BookOpen,
@@ -12,72 +12,80 @@ import {
   GraduationCap,
   Bell,
   Phone,
-   SquareLibrary,
+  SquareLibrary,
   Store,
-  
+  FileText,
 } from "lucide-react";
 import { getUserIdFromToken } from "@/utils/helpers";
 import { useUserProfile } from "@/hooks/useUsers";
 
 const SIDEBAR_LINKS = {
   admin: [
-   {
-    href: "/admin/dashboard",
-    label: "Dashboard",
-    icon: ChartNoAxesColumn,
-  },
-  {
-    href: "/admin/add-instructor",
-    label: "Add Instructor",
-    icon: UserPlus,
-  },
-  {
-    href: "/admin/chat-buddy",
-    label: "Chat Buddy",
-    icon: MessageCircle,
-  },
-  {
-    href: "/admin/courses",
-    label: "Record Courses",
-    icon: BookOpen,
-  },
-  {
-    href: "/admin/live-session",
-    label: "Live Session",
-    icon: Video,
-  },
-  {
-    href: "/admin/student-list",
-    label: "Students",
-    icon: Users,
-  },
-  {
-    href: "/admin/enquiries",
-    label: "Sales",
-    icon: IndianRupee,
-  },
-  {
-    href: "/admin/student-enrolled",
-    label: "Student Enrolled",
-    icon: GraduationCap,
-  },
-  {
-    href: "/admin/notifications",
-    label: "Notifications",
-    icon: Bell,
-  },
-  {
-    href: "/admin/contact",
-    label: "Contact",
-    icon: Phone,
-  },
-
     {
-    href: "/admin/payments",
-    label: "Payments",
-    icon: IndianRupee,
-  },
-
+      href: "/admin/dashboard",
+      label: "Dashboard",
+      icon: ChartNoAxesColumn,
+    },
+    {
+      href: "/admin/add-instructor",
+      label: "Add Instructor",
+      icon: UserPlus,
+    },
+    {
+      href: "/admin/chat-buddy",
+      label: "Chat Buddy",
+      icon: MessageCircle,
+    },
+    {
+      href: "/admin/courses",
+      label: "Record Courses",
+      icon: BookOpen,
+    },
+    {
+      href: "/admin/blogs",
+      label: "Blogs",
+      icon: FileText,
+    },
+    {
+      href: "/admin/live-session",
+      label: "Live Session",
+      icon: Video,
+    },
+    {
+      href: "/admin/course-purchases",
+      label: "Course Purchases",
+      icon: BookOpen,
+    },
+    {
+      href: "/admin/student-list",
+      label: "Students",
+      icon: Users,
+    },
+    {
+      href: "/admin/enquiries",
+      label: "Sales",
+      icon: IndianRupee,
+    },
+    {
+      href: "/admin/student-enrolled",
+      label: "Student Enrolled",
+      icon: GraduationCap,
+    },
+    {
+      href: "/admin/notifications",
+      label: "Notifications",
+      icon: Bell,
+    },
+    {
+      href: "/admin/contact",
+      label: "Contact",
+      icon: Phone,
+    },
+    {
+      href: "/admin/payments",
+      label: "Payments",
+      icon: IndianRupee,
+    },
   ],
   superadmin: [
     {
@@ -90,10 +98,8 @@ const SIDEBAR_LINKS = {
       label: "Create Admin",
       icon: UserPlus,
     },
-    
   ],
   instructor: [
-    
     {
       href: "/admin/courses",
       label: "Courses",
@@ -103,7 +109,7 @@ const SIDEBAR_LINKS = {
       href: "/admin/live-session",
       label: "Live Session",
       icon: Video,
-    }
+    },
   ],
 };
 

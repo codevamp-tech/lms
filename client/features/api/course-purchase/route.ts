@@ -81,3 +81,36 @@ export const enrollIdCourse = async ({ courseId, userId }) => {
   return res.json();
 };
 
+// Admin API functions
+export const getAllPurchasesForAdmin = async () => {
+  try {
+    const { data } = await axios.get(`${API_BASE_URL}/admin/all-purchases`);
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || 'Failed to fetch purchases',
+    );
+  }
+};
+
+export const revokeAccess = async (purchaseId: string) => {
+  try {
+    const { data } = await axios.post(`${API_BASE_URL}/admin/revoke/${purchaseId}`);
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || 'Failed to revoke access',
+    );
+  }
+};
+
+export const restoreAccess = async (purchaseId: string) => {
+  try {
+    const { data } = await axios.post(`${API_BASE_URL}/admin/restore/${purchaseId}`);
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || 'Failed to restore access',
+    );
+  }
+};
