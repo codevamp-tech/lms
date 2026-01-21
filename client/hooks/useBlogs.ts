@@ -8,6 +8,7 @@ import {
     deleteBlog,
     togglePublishBlog,
     BlogData,
+    getBlogsByAuthorId,
 } from "@/features/api/blogs/route";
 
 export const useBlogs = (page = 1, limit = 10) => {
@@ -88,10 +89,26 @@ export const useTogglePublishBlog = () => {
     });
 };
 
+export const useBlogsByAuthorId = (
+    authorId: string,
+    page = 1,
+    limit = 10,
+    published?: boolean
+) => {
+    return useQuery({
+        queryKey: ["blogs", "author", authorId, page, limit, published],
+        queryFn: () =>
+            getBlogsByAuthorId(authorId, page, limit, published),
+        enabled: !!authorId,
+    });
+};
+
+
 export default function useBlogHooks() {
     return {
         getBlogsQuery: useBlogs,
         getBlogByIdQuery: useBlogById,
+        getBlogsByAuthorIdQuery: useBlogsByAuthorId,
         createBlogMutation: useCreateBlog,
         updateBlogMutation: useUpdateBlog,
         deleteBlogMutation: useDeleteBlog,

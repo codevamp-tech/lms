@@ -171,3 +171,33 @@ export const togglePublishBlog = async (
         );
     }
 };
+
+export const getBlogsByAuthorId = async (
+    authorId: string,
+    page = 1,
+    limit = 10,
+    published?: boolean
+): Promise<BlogsResponse> => {
+    try {
+        const { data } = await axios.get(
+            `${API_BASE_URL}/author/${authorId}`,
+            {
+                params: {
+                    page,
+                    limit,
+                    ...(published !== undefined && {
+                        published: published.toString(),
+                    }),
+                },
+            }
+        );
+
+        return data;
+    } catch (error: any) {
+        throw new Error(
+            error.response?.data?.message ||
+            "Failed to fetch blogs by author"
+        );
+    }
+};
+

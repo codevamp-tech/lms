@@ -54,6 +54,25 @@ export class BlogController {
         return this.blogService.getPublishedBlogs(Number(page), Number(limit));
     }
 
+    @Get('author/:authorId')
+    async getBlogsByAuthorId(
+        @Param('authorId') authorId: string,
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 10,
+        @Query('published') published?: string,
+    ) {
+        const isPublished =
+            published !== undefined ? published === 'true' : undefined;
+
+        return this.blogService.getBlogsByAuthorId(
+            authorId,
+            Number(page),
+            Number(limit),
+            isPublished,
+        );
+    }
+
+
     @Get(':blogId')
     async getBlogById(@Param('blogId') blogId: string): Promise<Blog> {
         try {
