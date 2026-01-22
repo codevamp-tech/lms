@@ -19,7 +19,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 const ChatBuddyPage = () => {
   const enquiryFormRef = useRef<HTMLFormElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-
+  const MAX_SLOTS = 5;
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -67,6 +67,18 @@ const ChatBuddyPage = () => {
   // ✅ FIXED: works with form submit, no logic change
   const handleEnquiryAndPayment = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const selectedBuddy = buddies.find(b => b._id === selectedBuddyId);
+
+    if (!selectedBuddyId || !selectedBuddy) {
+      toast.error("Please select an available chat buddy");
+      return;
+    }
+
+    if (selectedBuddy.bookedSlots >= MAX_SLOTS) {
+      toast.error("This chat buddy is fully booked. Please choose another.");
+      return;
+    }
 
     try {
       // 1️⃣ Load Razorpay
@@ -174,6 +186,42 @@ const ChatBuddyPage = () => {
     }
   };
 
+  const SlotTicks = ({ bookedSlots = 0 }: { bookedSlots: number }) => {
+    return (
+      <div className="flex gap-1 mt-2">
+        {Array.from({ length: MAX_SLOTS }).map((_, i) => (
+          <span
+            key={i}
+            className={`w-4 h-4 rounded-full border flex items-center justify-center
+            ${i < bookedSlots
+                ? "bg-green-500 border-green-500"
+                : "bg-gray-100 border-gray-300"
+              }`}
+          >
+            {i < bookedSlots && (
+              <span className="text-white text-xs">✓</span>
+            )}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+
+  useEffect(() => {
+    if (!selectedBuddyId) return;
+
+    const selectedBuddy = buddies.find(
+      (b) => b._id === selectedBuddyId
+    );
+
+    if (selectedBuddy && selectedBuddy.bookedSlots >= MAX_SLOTS) {
+      toast.error("Selected chat buddy is full. Please choose another.");
+      setSelectedBuddyId(""); // 🔥 auto reset
+    }
+  }, [buddies, selectedBuddyId]);
+
+
   useEffect(() => {
     fetchChatBuddies();
   }, []);
@@ -213,7 +261,9 @@ const ChatBuddyPage = () => {
                 {buddies.map((buddy) => (
                   <div
                     key={buddy._id}
-                    className="bg-white rounded-xl shadow-md p-4 flex items-start gap-4"
+                    className={`bg-white rounded-xl shadow-md p-4 flex items-start gap-4
+    ${buddy.status === "full" ? "opacity-60" : ""}
+  `}
                   >
                     <img
                       src={buddy.photo || "/placeholder-avatar.png"}
@@ -224,21 +274,31 @@ const ChatBuddyPage = () => {
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
                         <h3 className="font-semibold text-lg">{buddy.name}</h3>
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${buddy.status === "online"
-                            ? "bg-green-100 text-green-700"
-                            : buddy.status === "busy"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-gray-100 text-gray-700"
-                            }`}
-                        >
-                          {buddy.status}
-                        </span>
+
+                        {buddy.status === "full" ? (
+                          <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">
+                            Full
+                          </span>
+                        ) : (
+                          <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                            Available
+                          </span>
+                        )}
                       </div>
 
                       {buddy.bio && (
                         <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                           {buddy.bio}
+                        </p>
+                      )}
+
+                      {/* ✅ Slot ticks */}
+                      <SlotTicks bookedSlots={buddy.bookedSlots} />
+
+                      {/* ❌ Full message */}
+                      {buddy.bookedSlots >= MAX_SLOTS && (
+                        <p className="text-xs text-red-600 mt-2 font-medium">
+                          This chat buddy is fully booked.
                         </p>
                       )}
                     </div>
@@ -302,10 +362,15 @@ const ChatBuddyPage = () => {
                       >
                         <option value="">Choose your buddy</option>
                         {buddies.map((buddy) => (
-                          <option key={buddy._id} value={buddy._id}>
-                            {buddy.name}
+                          <option
+                            key={buddy._id}
+                            value={buddy._id}
+                            disabled={buddy.bookedSlots >= MAX_SLOTS}
+                          >
+                            {buddy.name} {buddy.bookedSlots >= MAX_SLOTS ? "(Full)" : ""}
                           </option>
                         ))}
+
                       </select>
                     </div>
 

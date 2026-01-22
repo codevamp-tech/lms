@@ -86,6 +86,11 @@ const SIDEBAR_LINKS = {
       label: "Payments",
       icon: IndianRupee,
     },
+    {
+      href: "/admin/trainers",
+      label: "Trainers",
+      icon: Users,
+    },
   ],
   superadmin: [
     {

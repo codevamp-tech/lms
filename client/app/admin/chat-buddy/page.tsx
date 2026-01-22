@@ -120,6 +120,54 @@ export default function ChatBuddyPage() {
     }
   };
 
+  const handleRemoveSlot = async (id: string) => {
+    const confirmed = confirm("Remove one booked slot?");
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(
+        `${API_URL}/chat-buddy/${id}/remove-slot`,
+        { method: "PATCH" }
+      );
+
+      if (!res.ok) throw new Error("Failed");
+
+      fetchChatBuddies();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to remove slot");
+    }
+  };
+
+  const SlotTicks = ({
+    bookedSlots,
+    maxSlots,
+  }: {
+    bookedSlots: number;
+    maxSlots: number;
+  }) => {
+    return (
+      <div className="flex gap-1 mt-2">
+        {Array.from({ length: maxSlots }).map((_, i) => (
+          <span
+            key={i}
+            className={`w-4 h-4 rounded-full border flex items-center justify-center
+            ${i < bookedSlots
+                ? "bg-green-500 border-green-500"
+                : "bg-gray-100 border-gray-300"
+              }`}
+          >
+            {i < bookedSlots && (
+              <span className="text-white text-xs">✓</span>
+            )}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+
+
   /* ---------------- UI ---------------- */
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-8">
@@ -161,7 +209,7 @@ export default function ChatBuddyPage() {
             onChange={(e) => setForm({ ...form, bio: e.target.value })}
           />
 
-          <select
+          {/* <select
             className="w-full border rounded px-3 py-2"
             value={form.status}
             onChange={(e) => setForm({ ...form, status: e.target.value })}
@@ -169,7 +217,7 @@ export default function ChatBuddyPage() {
             <option value="online">Online</option>
             <option value="offline">Offline</option>
             <option value="busy">Busy</option>
-          </select>
+          </select> */}
 
           <input
             type="file"
@@ -220,6 +268,11 @@ export default function ChatBuddyPage() {
                   </p>
                 )}
 
+                <SlotTicks
+                  bookedSlots={buddy.bookedSlots}
+                  maxSlots={buddy.maxSlots}
+                />
+
                 <div className="flex gap-2 mt-3">
                   <Button
                     size="sm"
@@ -235,6 +288,15 @@ export default function ChatBuddyPage() {
                   >
                     Delete
                   </Button>
+                  {buddy.bookedSlots > 0 && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handleRemoveSlot(buddy._id)}
+                    >
+                      Remove Slot
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

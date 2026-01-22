@@ -11,7 +11,7 @@ import useCourseProgress from "@/hooks/useCourseProgress";
 const CourseProgress = () => {
   const router = useRouter();
   const { courseId } = useParams();
-  console.log("cousreidd??",courseId);
+  console.log("cousreidd??", courseId);
 
   const userId = getUserIdFromToken();
   const {
@@ -26,6 +26,7 @@ const CourseProgress = () => {
   const [userRating, setUserRating] = useState(0);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
+  const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
 
   useEffect(() => {
     if (data) {
@@ -71,7 +72,7 @@ const CourseProgress = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           // Pass both rating and userId in the request body.
-          body: JSON.stringify({ rating: ratingValue, userId,courseId }),
+          body: JSON.stringify({ rating: ratingValue, userId, courseId }),
         }
       );
       if (!response.ok) {
@@ -80,6 +81,46 @@ const CourseProgress = () => {
       setRatingSubmitted(true);
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleGenerateCertificate = async () => {
+    try {
+      setIsGeneratingCertificate(true);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/certificate/generate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId,
+            courseId,
+            course: data?.courseDetails.courseTitle,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to generate certificate");
+      }
+
+      // Handle file download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Certificate-${data?.courseDetails.courseTitle}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Error generating certificate:", error);
+      alert("Failed to generate certificate. Please try again.");
+    } finally {
+      setIsGeneratingCertificate(false);
     }
   };
 
@@ -94,21 +135,33 @@ const CourseProgress = () => {
         <h1 className="text-2xl font-bold text-blue-500">
           {data?.courseDetails.courseTitle}
         </h1>
-        <Button
-          onClick={
-            data?.completed ? handleInCompleteCourse : handleCompleteCourse
-          }
-          variant={data?.courseDetails.completed ? "outline" : "default"}
-        >
-          {data?.completed ? (
-            <div className="flex items-center">
-              <CheckCircle className="h-4 w-4 mr-2" />{" "}
-              <span>Mark as InCompleted</span>{" "}
-            </div>
-          ) : (
-            "Mark as completed"
+        <div className="flex gap-2">
+          {data?.completed && (
+            <Button
+              onClick={handleGenerateCertificate}
+              disabled={isGeneratingCertificate}
+              variant="outline"
+              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+            >
+              {isGeneratingCertificate ? "Generating..." : "Generate Certificate"}
+            </Button>
           )}
-        </Button>
+          <Button
+            onClick={
+              data?.completed ? handleInCompleteCourse : handleCompleteCourse
+            }
+            variant={data?.completed ? "outline" : "default"}
+          >
+            {data?.completed ? (
+              <div className="flex items-center">
+                <CheckCircle className="h-4 w-4 mr-2" />{" "}
+                <span>Mark as InComplete</span>{" "}
+              </div>
+            ) : (
+              "Mark as completed"
+            )}
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
@@ -124,11 +177,10 @@ const CourseProgress = () => {
           {/* Display current watching lecture title */}
           <div className="mt-2">
             <h3 className="font-medium text-lg">
-              {`Lecture ${
-                data?.courseDetails.lectures.findIndex(
-                  (lec) => lec._id === currentLecture?._id
-                ) + 1
-              } : ${currentLecture?.lectureTitle}`}
+              {`Lecture ${data?.courseDetails.lectures.findIndex(
+                (lec) => lec._id === currentLecture?._id
+              ) + 1
+                } : ${currentLecture?.lectureTitle}`}
             </h3>
             {!isLectureCompleted(currentLecture?._id) && (
               <Button
@@ -156,11 +208,10 @@ const CourseProgress = () => {
             {data?.courseDetails.lectures.map((lecture) => (
               <Card
                 key={lecture._id}
-                className={`mb-3 hover:cursor-pointer transition transform ${
-                  lecture._id === currentLecture?._id
-                    ? "bg-gray-200 dark:bg-gray-800"
-                    : ""
-                } `}
+                className={`mb-3 hover:cursor-pointer transition transform ${lecture._id === currentLecture?._id
+                  ? "bg-gray-200 dark:bg-gray-800"
+                  : ""
+                  } `}
                 onClick={() => handleSelectLecture(lecture)}
               >
                 <CardContent className="flex items-center justify-between p-4">
@@ -202,11 +253,10 @@ const CourseProgress = () => {
                 <Star
                   key={star}
                   onClick={() => setUserRating(star)}
-                  className={`cursor-pointer h-8 w-8 ${
-                    userRating >= star
-                      ? "text-yellow-500 fill-current"
-                      : "text-gray-300"
-                  }`}
+                  className={`cursor-pointer h-8 w-8 ${userRating >= star
+                    ? "text-yellow-500 fill-current"
+                    : "text-gray-300"
+                    }`}
                 />
               ))}
             </div>

@@ -33,6 +33,37 @@ export class ChatBuddyService {
     return this.chatBuddyModel.find().sort({ createdAt: -1 });
   }
 
+  async removeSlot(buddyId: string, enquiryId?: string) {
+    const buddy = await this.chatBuddyModel.findById(buddyId);
+
+    if (!buddy) {
+      throw new NotFoundException('Chat Buddy not found');
+    }
+
+    // ❌ No slots to remove
+    if (buddy.bookedSlots <= 0) {
+      return buddy;
+    }
+
+    // Remove specific enquiry OR last booking
+    if (enquiryId) {
+      buddy.bookings = buddy.bookings.filter(
+        (id) => id.toString() !== enquiryId,
+      );
+    } else {
+      buddy.bookings.pop();
+    }
+
+    buddy.bookedSlots = Math.max(buddy.bookedSlots - 1, 0);
+
+    // Update status
+    if (buddy.bookedSlots < 5) {
+      buddy.status = 'available';
+    }
+
+    return buddy.save();
+  }
+
   async findOne(id: string) {
     const buddy = await this.chatBuddyModel.findById(id);
     if (!buddy) throw new NotFoundException('Chat Buddy not found');

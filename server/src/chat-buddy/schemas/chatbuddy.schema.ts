@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
+
+export type ChatBuddyDocument = ChatBuddy & Document;
 
 @Schema({ timestamps: true })
 export class ChatBuddy extends Document {
@@ -12,10 +14,23 @@ export class ChatBuddy extends Document {
   @Prop({ default: '' })
   bio: string;
 
-  // @Prop({
-  //   enum: ['online', 'offline', 'busy'],
-  //   default: 'offline',
-  // })
+  // TOTAL SLOTS (5 TICK MARKS)
+  @Prop({ default: 5 })
+  maxSlots: number;
+
+  // CURRENT BOOKED SLOTS
+  @Prop({ default: 0 })
+  bookedSlots: number;
+
+  // TRACK WHO BOOKED (OPTIONAL BUT RECOMMENDED)
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Enquiry' }] })
+  bookings: Types.ObjectId[];
+
+  // AUTO STATUS
+  @Prop({
+    enum: ['available', 'full'],
+    default: 'available',
+  })
   status: string;
 }
 
