@@ -9,79 +9,102 @@ import { PaymentFor, PaymentStatus } from 'src/payments/schemas/payment.schema';
 import { sendMail } from '../../utils/mail';
 import axios from 'axios';
 import { NotificationsService } from 'src/notification/notifications.service';
+import { ChatBuddy, ChatBuddyDocument } from 'src/chat-buddy/schemas/chatbuddy.schema';
 
 @Injectable()
 export class EnquiryService {
   constructor(
     @InjectModel(Enquiry.name) private readonly enquiryModel: Model<EnquiryDocument>,
+    @InjectModel(ChatBuddy.name) private readonly chatBuddyModel: Model<ChatBuddyDocument>,
     private readonly notificationsService: NotificationsService,
     private readonly paymentsService: PaymentsService,
   ) { }
 
   async create(createEnquiryDto: CreateEnquiryDto): Promise<Enquiry> {
-
     try {
-      // Validate reCAPTCHA only if type is "Contact"
-      if (createEnquiryDto.type === "Contact") {
+      // 🔐 CAPTCHA CHECK
+      if (createEnquiryDto.type === 'Contact') {
         const isHuman = await this.verifyRecaptcha(createEnquiryDto.recaptchaToken);
-        console.log("isHuman = ", isHuman, "token =", createEnquiryDto.recaptchaToken);
         if (!isHuman) {
-          throw new BadRequestException("Bot detected");
+          throw new BadRequestException('Bot detected');
         }
       }
 
-      // ✅ 1. SAVE ENQUIRY (CRITICAL)
+      let chatBuddy = null;
+
+      // 👤 CHATBUDDY SLOT CHECK
+      if (createEnquiryDto.chatBuddyId) {
+        chatBuddy = await this.chatBuddyModel.findById(createEnquiryDto.chatBuddyId);
+
+        if (!chatBuddy) {
+          throw new NotFoundException('ChatBuddy not found');
+        }
+
+        if (chatBuddy.bookedSlots >= chatBuddy.maxSlots) {
+          throw new BadRequestException('ChatBuddy is fully booked');
+        }
+      }
+
+      // ✅ SAVE ENQUIRY
       const created = new this.enquiryModel(createEnquiryDto);
       const savedEnquiry = await created.save();
 
-      // ✅ 2. EMAIL (NON-BLOCKING)
-      this.sendEnquiryEmail(createEnquiryDto.email, createEnquiryDto.name)
-        .catch(err => {
-          console.error("Email failed (ignored):", err.message);
-        });
+      // ✅ UPDATE CHATBUDDY SLOT (ATOMIC)
+      if (chatBuddy) {
+        await this.chatBuddyModel.findByIdAndUpdate(
+          chatBuddy._id,
+          {
+            $inc: { bookedSlots: 1 },
+            $push: { bookings: savedEnquiry._id },
+            ...(chatBuddy.bookedSlots + 1 >= chatBuddy.maxSlots && {
+              status: 'full',
+            }),
+          },
+        );
+      }
 
 
-      // ✅ 3. NOTIFICATION (NON-BLOCKING)
+      // 📧 EMAIL (NON-BLOCKING)
+      this.sendEnquiryEmail(savedEnquiry.email, savedEnquiry.name)
+        .catch(err => console.error('Email failed:', err.message));
+
+      // 🔔 NOTIFICATION (NON-BLOCKING)
       this.notificationsService.createNotification({
-        name: createEnquiryDto.name,
-        title: `New Enquiry from ${createEnquiryDto.name}`,
-        body: `${createEnquiryDto.name} (${createEnquiryDto.email}) submitted an enquiry of type ${createEnquiryDto.type || 'General'}`,
-        payload: { enquiryId: savedEnquiry._id, email: createEnquiryDto.email },
-      }).catch(err => {
-        console.error("Notification failed (ignored):", err.message);
-      });
+        name: savedEnquiry.name,
+        title: `New Enquiry from ${savedEnquiry.name}`,
+        body: `${savedEnquiry.name} booked a ChatBuddy`,
+        payload: { enquiryId: savedEnquiry._id },
+      }).catch(err => console.error('Notification failed:', err.message));
 
-      console.log("Notification triggered");
-
-      // ✅ 4. PAYMENT (ALREADY SAFE)
+      // 💳 PAYMENT
       if (savedEnquiry.razorpay_order_id || savedEnquiry.razorpay_payment_id) {
         try {
           await this.paymentsService.create({
             phone: savedEnquiry.whatsapp,
             paymentFor: PaymentFor.ENQUIRY,
             enquiryId: savedEnquiry._id as any,
-            amount: parseFloat(savedEnquiry.amount as any)
-              || parseFloat(savedEnquiry.price as any)
-              || 0,
+            amount:
+              parseFloat(savedEnquiry.amount as any) ||
+              parseFloat(savedEnquiry.price as any) ||
+              0,
             currency: savedEnquiry.currency || 'INR',
             razorpayOrderId: savedEnquiry.razorpay_order_id,
             razorpayPaymentId: savedEnquiry.razorpay_payment_id,
             razorpaySignature: savedEnquiry.razorpay_signature,
             status: PaymentStatus.SUCCESS,
           });
-        } catch (pErr) {
-          console.error('Failed creating payment record for enquiry:', pErr);
+        } catch (err) {
+          console.error('Payment record failed:', err);
         }
       }
 
-      // ✅ ALWAYS RETURN SAVED ENQUIRY
       return savedEnquiry;
-
     } catch (error) {
-      console.error("ERROR in create enquiry:", error);
+      console.error('ERROR in create enquiry:', error);
       throw error;
     }
   }
+
 
 
 

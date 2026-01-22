@@ -35,6 +35,8 @@ import { NotificationsModule } from './notification/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
 import { BlogModule } from './blogs/blog.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TrainersModule } from './trainers/trainers.module';
+import { CertificateModule } from './certificate/certificate.module';
 
 
 
@@ -115,6 +117,8 @@ if (!fs.existsSync(uploadDir)) {
     NotificationsModule,
     PaymentsModule,
     BlogModule,
+    TrainersModule,
+    CertificateModule,
     ThrottlerModule.forRoot([{
       ttl: 60, // time window in seconds
       limit: 5, // max requests per IP within ttl

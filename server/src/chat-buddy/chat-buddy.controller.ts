@@ -32,6 +32,15 @@ export class ChatBuddyController {
     return this.chatBuddyService.findAll();
   }
 
+  @Patch(':id/remove-slot')
+  removeSlot(
+    @Param('id') id: string,
+    @Body('enquiryId') enquiryId?: string,
+  ) {
+    return this.chatBuddyService.removeSlot(id, enquiryId);
+  }
+
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.chatBuddyService.findOne(id);

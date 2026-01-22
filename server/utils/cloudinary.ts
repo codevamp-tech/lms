@@ -113,6 +113,29 @@ export async function uploadImageToCloudinary(filePath: string) {
 }
 
 
+// Utility for uploading PDF files to Cloudinary (for certificates)
+export async function uploadPDFToCloudinary(filePath: string): Promise<{ secure_url: string; public_id: string }> {
+  try {
+    const result = await cloudinary.uploader.upload(filePath, {
+      folder: 'certificates',
+      resource_type: 'raw', // Use 'raw' for PDF files
+    });
+
+    // Delete local file after successful upload
+    if (existsSync(filePath)) {
+      unlinkSync(filePath);
+    }
+
+    return {
+      secure_url: result.secure_url,
+      public_id: result.public_id,
+    };
+  } catch (error) {
+    console.error('Cloudinary PDF upload error:', error);
+    throw new Error('Cloudinary PDF upload failed');
+  }
+}
+
 export async function uploadChatbuddyImageToCloudinary(
   file: Express.Multer.File,
 ) {
