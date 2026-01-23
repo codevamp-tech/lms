@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import Razorpay from 'razorpay';
-import { RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET } from './razorpay.constants';
+
 
 @Injectable()
 export class RazorpayService {
@@ -8,8 +8,8 @@ export class RazorpayService {
 
   constructor() {
     this.razorpay = new Razorpay({
-      key_id: RAZORPAY_KEY_ID,
-      key_secret: RAZORPAY_KEY_SECRET,
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
   }
 
