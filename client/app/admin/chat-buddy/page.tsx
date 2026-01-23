@@ -31,7 +31,6 @@ export default function ChatBuddyPage() {
   const [form, setForm] = useState({
     name: "",
     bio: "",
-    status: "offline",
   });
 
   /* ---------------- FETCH LIST ---------------- */
@@ -70,7 +69,6 @@ export default function ChatBuddyPage() {
     const formData = new FormData();
     formData.append("name", form.name);
     formData.append("bio", form.bio);
-    formData.append("status", form.status);
     if (photo) formData.append("photo", photo);
 
     const url = editingId
@@ -97,7 +95,6 @@ export default function ChatBuddyPage() {
     setForm({
       name: buddy.name,
       bio: buddy.bio || "",
-      status: buddy.status,
     });
     setShowForm(true);
   };
