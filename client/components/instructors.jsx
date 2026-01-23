@@ -1,91 +1,40 @@
 "use client"
 import { motion } from "framer-motion"
 import { Star, Award, Users } from "lucide-react"
-
-const instructors = [
-  { 
-    name: "Aafreen Nissar", 
-    title: "IELTS & TOEFL Expert", 
-    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Aafreen-Nissar.png",
-    experience: "3+ years",
-    students: "1350+",
-    rating: 4.8
-  },
-  { 
-    name: "Mir Mohammad Wahid", 
-    title: "Business English Specialist", 
-    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Mir-Wahid.png",
-    experience: "3+ years",
-    students: "1400+",
-    rating: 4.9
-  },
-  { 
-    name: "Juzlain Tanzeem", 
-    title: "Conversation & Fluency Coach", 
-    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Juzlain-Tanzeem.png",
-    experience: "3+ years",
-    students: "1400+",
-    rating: 4.8
-  },
-  { 
-    name: "Waqas Masoodi", 
-    title: "IELTS & TOEFL Expert", 
-    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Waqas-Masoodi.png",
-    experience: "2+ years",
-    students: "1300+",
-    rating: 4.7
-  },
-  { 
-    name: "Mir Tazeem", 
-    title: "Business English Specialist", 
-    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Mir-Tazeem.png",
-    experience: "1+ years",
-    students: "1200+",
-    rating: 4.8
-  },
-  { 
-    name: "Mursaleen Nisar", 
-    title: "Conversation & Fluency Coach", 
-    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Mursaleen-Nisar-1.png",
-    experience: "3+ years",
-    students: "1300+",
-    rating: 4.8
-  },
-  { 
-    name: "Aaman Bin Gowhar", 
-    title: "Conversation & Fluency Coach", 
-    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Aman-Gowhar.png",
-    experience: "1+ years",
-    students: "1200+",
-    rating: 4.7
-  },
-  { 
-    name: "Asra Rehman", 
-    title: "Business English Specialist", 
-    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Asra-Rehman.png",
-    experience: "2+ years",
-    students: "1300+",
-    rating: 4.8
-  },
-  { 
-    name: "Tufail", 
-    title: "Conversation & Fluency Coach", 
-    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Tufail.png",
-    experience: "3+ years",
-    students: "1400+",
-    rating: 4.7
-  },
-  { 
-    name: "Zubana Zair", 
-    title: "Conversation & Fluency Coach", 
-    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Zubana-Zair.png",
-    experience: "2+ years",
-    students: "1250+",
-    rating: 4.8 
-  },
-]
+import { useEffect, useState } from "react"
+import axios from "axios"
 
 export default function Instructors() {
+  const [instructors, setInstructors] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trainers`);
+        if (response.data.success) {
+          setInstructors(response.data.trainers);
+        }
+      } catch (error) {
+        console.error("Failed to fetch instructors:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInstructors();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-20 bg-gradient-to-b from-secondary/30 to-background">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <p>Loading instructors...</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-20 bg-gradient-to-b from-secondary/30 to-background">
       <div className="max-w-7xl mx-auto px-6">
@@ -110,7 +59,7 @@ export default function Instructors() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {instructors.map((ins, i) => (
             <motion.div
-              key={ins.name}
+              key={ins._id || i}
               initial={{ opacity: 0, y: 30, scale: 0.95 }}
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true, amount: 0.3 }}
@@ -119,11 +68,11 @@ export default function Instructors() {
               className="group relative rounded-2xl border-2 border-border bg-card p-8 hover:border-primary/50 transition-all shadow-lg hover:shadow-2xl overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              
+
               <div className="relative text-center">
                 <div className="mb-6 relative inline-block">
                   <img
-                    src={ins.img || "/placeholder.svg"}
+                    src={ins.photoUrl || "/placeholder.svg"}
                     alt={ins.name}
                     className="mx-auto h-32 w-32 rounded-full object-cover ring-4 ring-primary/20 group-hover:ring-primary/40 transition-all shadow-xl"
                   />
@@ -135,7 +84,7 @@ export default function Instructors() {
                 <h3 className="font-bold text-xl text-foreground mb-1 group-hover:text-primary transition-colors">
                   {ins.name}
                 </h3>
-                <p className="text-sm text-primary font-medium mb-4">{ins.title}</p>
+                <p className="text-sm text-primary font-medium mb-4">{ins.expertise}</p>
 
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center justify-center gap-2 text-muted-foreground">
@@ -144,7 +93,7 @@ export default function Instructors() {
                   </div>
                   <div className="flex items-center justify-center gap-2 text-muted-foreground">
                     <Users className="w-4 h-4" />
-                    <span>{ins.students} Students Taught</span>
+                    <span>{ins.studentsTaught} Students Taught</span>
                   </div>
                   <div className="flex items-center justify-center gap-2">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />

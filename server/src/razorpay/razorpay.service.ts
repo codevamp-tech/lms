@@ -7,10 +7,14 @@ export class RazorpayService {
   private readonly razorpay: any;
 
   constructor() {
-    this.razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    });
+    if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+      this.razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
+      });
+    } else {
+      console.warn('⚠️ Razorpay keys missing. Razorpay service will not function properly.');
+    }
   }
 
   async createOrder(amount: number, currency: string, receipt: string) {
@@ -20,6 +24,7 @@ export class RazorpayService {
       receipt,
     };
     try {
+      if (!this.razorpay) throw new Error('Razorpay client not initialized (missing keys)');
       const order = await this.razorpay.orders.create(options);
       return order;
     } catch (error) {
@@ -33,6 +38,7 @@ export class RazorpayService {
 
   async getPaymentById(paymentId: string) {
     try {
+      if (!this.razorpay) throw new Error('Razorpay client not initialized (missing keys)');
       const payment = await this.razorpay.payments.fetch(paymentId);
 
       return {
