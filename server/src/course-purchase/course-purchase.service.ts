@@ -14,10 +14,7 @@ import { sendMail } from '../../utils/mail';
 import { NotificationsService } from 'src/notification/notifications.service';
 
 import { Lecture } from 'src/lectures/schemas/lecture.schema';
-import {
-  RAZORPAY_KEY_SECRET,
-  RAZORPAY_WEBHOOK_SECRET,
-} from 'src/razorpay/razorpay.constants';
+
 import { RazorpayService } from 'src/razorpay/razorpay.service';
 import { PaymentsService } from 'src/payments/payments.service';
 import { PaymentFor, PaymentStatus } from 'src/payments/schemas/payment.schema';
@@ -126,7 +123,7 @@ export class CoursePurchaseService {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = paymentDetails;
     const body = razorpay_order_id + '|' + razorpay_payment_id;
 
-    if (!RAZORPAY_KEY_SECRET) {
+    if (!process.env.RAZORPAY_KEY_SECRET) {
       throw new HttpException(
         'Razorpay key secret not found',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -134,7 +131,7 @@ export class CoursePurchaseService {
     }
 
     const expectedSignature = crypto
-      .createHmac('sha256', RAZORPAY_KEY_SECRET)
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(body.toString())
       .digest('hex');
 
@@ -304,7 +301,7 @@ export class CoursePurchaseService {
   }
 
   async handleWebhook(signature: string, body: any) {
-    if (!RAZORPAY_WEBHOOK_SECRET) {
+    if (!process.env.RAZORPAY_WEBHOOK_SECRET) {
       throw new HttpException(
         'Razorpay webhook secret not found',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -312,7 +309,7 @@ export class CoursePurchaseService {
     }
 
     const expectedSignature = crypto
-      .createHmac('sha256', RAZORPAY_WEBHOOK_SECRET)
+      .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
       .update(JSON.stringify(body))
       .digest('hex');
 
