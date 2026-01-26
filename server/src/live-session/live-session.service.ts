@@ -8,7 +8,7 @@ import { UsersService } from '../users/users.service';
 import { NotificationsService } from 'src/notification/notifications.service';
 import { PaymentsService } from 'src/payments/payments.service';
 import { PaymentFor, PaymentStatus } from 'src/payments/schemas/payment.schema';
-import { RAZORPAY_KEY_SECRET } from 'src/razorpay/razorpay.constants';
+
 import * as crypto from 'crypto';
 import * as nodemailer from 'nodemailer';
 import { google } from 'googleapis';
@@ -71,12 +71,12 @@ export class LiveSessionService {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, sessionId } = dto;
 
         const body = razorpay_order_id + '|' + razorpay_payment_id;
-        if (!RAZORPAY_KEY_SECRET) {
+        if (!process.env.RAZORPAY_KEY_SECRET) {
             throw new BadRequestException('Razorpay key secret not configured');
         }
 
         const expectedSignature = crypto
-            .createHmac('sha256', RAZORPAY_KEY_SECRET)
+            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
             .update(body.toString())
             .digest('hex');
 

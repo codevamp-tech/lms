@@ -8,12 +8,10 @@ import { useRouter } from "next/navigation";
 import { usePublishedBlogs } from "@/hooks/useBlogs";
 import { Blog } from "@/features/api/blogs/route";
 
-const CATEGORIES = ["All", "Grammar", "Vocabulary", "Speaking", "Writing", "Listening", "Business"];
-
 export default function Blogs() {
     const router = useRouter();
-    const [selectedCategory, setSelectedCategory] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
+
     const [likedBlogs, setLikedBlogs] = useState(new Set<string>());
     const [selectedBlogId, setSelectedBlogId] = useState<string | null>(null);
     const leftColumnRef = useRef<HTMLDivElement | null>(null);
@@ -38,14 +36,13 @@ export default function Blogs() {
     // Filter blogs based on category and search query
     const filteredBlogs = useMemo(() => {
         return blogs.filter((blog) => {
-            const categoryMatch = selectedCategory === "All" || blog.category === selectedCategory;
             const searchMatch =
                 blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 (blog.excerpt?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
                 (blog.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())) ?? false);
-            return categoryMatch && searchMatch;
+            return searchMatch;
         });
-    }, [blogs, selectedCategory, searchQuery]);
+    }, [blogs, searchQuery]);
 
     const toggleLike = (id: string) => {
         setLikedBlogs((prev) => {
@@ -169,18 +166,6 @@ export default function Blogs() {
                         />
                     </div>
                     <div className="flex gap-2 flex-wrap justify-end w-full lg:w-auto">
-                        {CATEGORIES.map((category) => (
-                            <button
-                                key={category}
-                                onClick={() => setSelectedCategory(category)}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedCategory === category
-                                    ? "bg-gray-900 text-white"
-                                    : "bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-100"
-                                    }`}
-                            >
-                                {category}
-                            </button>
-                        ))}
                     </div>
                 </div>
 
@@ -207,13 +192,7 @@ export default function Blogs() {
                                             onError={handleImgError}
                                             className="w-full h-full object-cover"
                                         />
-                                        {selectedBlog.category && (
-                                            <div className="absolute top-4 left-4">
-                                                <span className="inline-block bg-gray-900 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                                                    {selectedBlog.category}
-                                                </span>
-                                            </div>
-                                        )}
+
                                     </div>
 
                                     <div className="p-6">
