@@ -185,19 +185,19 @@ export default function PaymentPage() {
         }
     };
 
-    const handleNextPage = () => {
-        if (isFetchAll || !hasNextPage) return;
-        const next = currentPage + 1;
-        fetchPayments({ page: next, limit: itemsPerPage, captured: isCapturedOnly, fetchAll: false });
-        setCurrentPage(next);
-    };
+    // const handleNextPage = () => {
+    //     if (isFetchAll || !hasNextPage) return;
+    //     const next = currentPage + 1;
+    //     fetchPayments({ page: next, limit: itemsPerPage, captured: isCapturedOnly, fetchAll: false });
+    //     setCurrentPage(next);
+    // };
 
-    const handlePrevPage = () => {
-        if (isFetchAll || currentPage <= 1) return;
-        const prev = currentPage - 1;
-        fetchPayments({ page: prev, limit: itemsPerPage, captured: isCapturedOnly, fetchAll: false });
-        setCurrentPage(prev);
-    };
+    // const handlePrevPage = () => {
+    //     if (isFetchAll || currentPage <= 1) return;
+    //     const prev = currentPage - 1;
+    //     fetchPayments({ page: prev, limit: itemsPerPage, captured: isCapturedOnly, fetchAll: false });
+    //     setCurrentPage(prev);
+    // };
     const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
 
     const paginatedPayments = isFetchAll

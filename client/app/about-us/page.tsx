@@ -7,6 +7,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { getInitials } from "../../lib/utils";
 
+
 export default function AboutUs() {
     const router = useRouter();
 
