@@ -41,8 +41,8 @@ export default function ChatBuddyPage() {
         `${API_URL}/chat-buddy?skip=${skip}&limit=${itemsPerPage}`
       );
       const data = await res.json();
-      setBuddies(data.buddies || data);
-      setTotalBuddies(data.total || data.length);
+      setBuddies(data.buddies || []);
+      setTotalBuddies(data.total || 0);
     } catch (err) {
       console.error(err);
     } finally {
@@ -56,7 +56,7 @@ export default function ChatBuddyPage() {
 
   /* ---------------- RESET FORM ---------------- */
   const resetForm = () => {
-    setForm({ name: "", bio: "", status: "offline" });
+    setForm({ name: "", bio: "" });
     setPhoto(null);
     setEditingId(null);
     setShowForm(false);

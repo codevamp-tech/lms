@@ -10,6 +10,8 @@ import { sendMail } from '../../utils/mail';
 import axios from 'axios';
 import { NotificationsService } from 'src/notification/notifications.service';
 import { ChatBuddy, ChatBuddyDocument } from 'src/chat-buddy/schemas/chatbuddy.schema';
+import { Fast2SmsService } from 'src/messaging/fast2sms.service';
+import { WatiService } from 'src/messaging/wati.service';
 
 @Injectable()
 export class EnquiryService {
@@ -18,6 +20,8 @@ export class EnquiryService {
     @InjectModel(ChatBuddy.name) private readonly chatBuddyModel: Model<ChatBuddyDocument>,
     private readonly notificationsService: NotificationsService,
     private readonly paymentsService: PaymentsService,
+    private readonly fast2SmsService: Fast2SmsService,
+    private readonly watiService: WatiService,
   ) { }
 
   async create(createEnquiryDto: CreateEnquiryDto): Promise<Enquiry> {
@@ -75,6 +79,17 @@ export class EnquiryService {
         body: `${savedEnquiry.name} booked a ChatBuddy`,
         payload: { enquiryId: savedEnquiry._id },
       }).catch(err => console.error('Notification failed:', err.message));
+
+      // 📱 SMS NOTIFICATION (NON-BLOCKING)
+      if (savedEnquiry.whatsapp) {
+        const smsMessage = `Thank you ${savedEnquiry.name}! Your enquiry has been received. Our team at Mr English Training Academy will contact you soon.`;
+        this.fast2SmsService.sendSms(savedEnquiry.whatsapp, smsMessage)
+          .catch(err => console.error('SMS notification failed:', err.message));
+
+        // 📲 WHATSAPP NOTIFICATION (COMMENTED - Using SMSBits only)
+        // this.watiService.sendEnquiryConfirmation(savedEnquiry.whatsapp, savedEnquiry.name)
+        //   .catch(err => console.error('WhatsApp notification failed:', err.message));
+      }
 
       // 💳 PAYMENT
       if (savedEnquiry.razorpay_order_id || savedEnquiry.razorpay_payment_id) {

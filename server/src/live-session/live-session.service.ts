@@ -13,6 +13,8 @@ import * as crypto from 'crypto';
 import * as nodemailer from 'nodemailer';
 import { google } from 'googleapis';
 import { sendMail } from '../../utils/mail';
+import { Fast2SmsService } from 'src/messaging/fast2sms.service';
+import { WatiService } from 'src/messaging/wati.service';
 
 @Injectable()
 export class LiveSessionService {
@@ -23,6 +25,8 @@ export class LiveSessionService {
         private readonly usersService: UsersService,
         private readonly notificationsService: NotificationsService,
         private readonly paymentsService: PaymentsService,
+        private readonly fast2SmsService: Fast2SmsService,
+        private readonly watiService: WatiService,
     ) {
         console.log('🔧 ========== CONSTRUCTOR START ==========');
         console.log('🔧 Initializing LiveSessionService...');
@@ -109,6 +113,50 @@ export class LiveSessionService {
             });
         } catch (err) {
             console.error('Failed to create payment record for live session:', err);
+        }
+
+        // 🔥 Send SMS and WhatsApp notification
+        console.log('\n📱 ========== NOTIFICATION DEBUG (LIVE SESSION) ==========');
+        console.log('📱 User ID:', userId);
+        console.log('📱 Session ID:', sessionId);
+        try {
+            const session = await this.liveSessionModel.findById(sessionId).select('title date link').lean();
+            const userResult = await this.usersService.getUserProfile(userId);
+            const userData = (userResult as any)?.user;
+
+            console.log('📱 User data found:', !!userData);
+            console.log('📱 User phone number (number field):', userData?.number || 'NOT SET');
+            console.log('📱 Session found:', !!session);
+            console.log('📱 Session title:', session?.title || 'N/A');
+
+            if (userData?.number && session) {
+                const sessionTitle = session.title || 'Live Session';
+                const sessionDate = session.date ? new Date(session.date).toLocaleString() : 'TBD';
+
+                // Send SMS
+                console.log('📱 Attempting to send SMS to:', userData.number);
+                const smsMessage = `🎓 Live Session Enrolled! You are enrolled in "${sessionTitle}" on ${sessionDate}. Thank you for choosing Mr English Training Academy!`;
+                const smsResult = await this.fast2SmsService.sendSms(userData.number, smsMessage);
+                console.log('📱 SMS result:', smsResult);
+
+                // Send WhatsApp via WATI (COMMENTED - Using SMSBits only)
+                // console.log('📱 Attempting to send WhatsApp to:', userData.number);
+                // const waResult = await this.watiService.sendLiveSessionNotification(
+                //     userData.number,
+                //     sessionTitle,
+                //     sessionDate,
+                // );
+                // console.log('📱 WhatsApp result:', waResult);
+                console.log('📱 ========== END NOTIFICATION DEBUG ==========\n');
+            } else {
+                console.log('⚠️ Condition not met for notifications:');
+                console.log('  - Has phone number:', !!userData?.number);
+                console.log('  - Has session:', !!session);
+                console.log('📱 ========== END NOTIFICATION DEBUG ==========\n');
+            }
+        } catch (notifErr) {
+            console.error('❌ SMS/WhatsApp notification failed for live session:', notifErr);
+            console.log('📱 ========== END NOTIFICATION DEBUG (ERROR) ==========\n');
         }
 
         return { success: true };
@@ -472,11 +520,59 @@ export class LiveSessionService {
     }
 
     async enroll(sessionId: string, studentId: string): Promise<LiveSession | null> {
-        return this.liveSessionModel.findByIdAndUpdate(
+        console.log('\n🎟️ ========== ENROLL METHOD CALLED ==========');
+        console.log('🎟️ Session ID:', sessionId);
+        console.log('🎟️ Student ID:', studentId);
+
+        const result = await this.liveSessionModel.findByIdAndUpdate(
             sessionId,
             { $addToSet: { enrolledUsers: new Types.ObjectId(studentId) } }, // ✅ Ensure ObjectId
             { new: true }
         ).exec();
+
+        // 🔥 Send SMS and WhatsApp notification
+        console.log('\n📱 ========== NOTIFICATION DEBUG (ENROLL) ==========');
+        try {
+            const session = await this.liveSessionModel.findById(sessionId).select('title date link').lean();
+            const userResult = await this.usersService.getUserProfile(studentId);
+            const userData = (userResult as any)?.user;
+
+            console.log('📱 User data found:', !!userData);
+            console.log('📱 User phone number (number field):', userData?.number || 'NOT SET');
+            console.log('📱 Session found:', !!session);
+            console.log('📱 Session title:', session?.title || 'N/A');
+
+            if (userData?.number && session) {
+                const sessionTitle = session.title || 'Live Session';
+                const sessionDate = session.date ? new Date(session.date).toLocaleString() : 'TBD';
+
+                // Send SMS
+                console.log('📱 Attempting to send SMS to:', userData.number);
+                const smsMessage = `🎓 Live Session Enrolled! You are enrolled in "${sessionTitle}" on ${sessionDate}. Thank you for choosing Mr English Training Academy!`;
+                const smsResult = await this.fast2SmsService.sendSms(userData.number, smsMessage);
+                console.log('📱 SMS result:', smsResult);
+
+                // Send WhatsApp via WATI (COMMENTED - Using SMSBits only)
+                // console.log('📱 Attempting to send WhatsApp to:', userData.number);
+                // const waResult = await this.watiService.sendLiveSessionNotification(
+                //     userData.number,
+                //     sessionTitle,
+                //     sessionDate,
+                // );
+                // console.log('📱 WhatsApp result:', waResult);
+                console.log('📱 ========== END NOTIFICATION DEBUG ==========\n');
+            } else {
+                console.log('⚠️ Condition not met for notifications:');
+                console.log('  - Has phone number:', !!userData?.number);
+                console.log('  - Has session:', !!session);
+                console.log('📱 ========== END NOTIFICATION DEBUG ==========\n');
+            }
+        } catch (notifErr) {
+            console.error('❌ SMS/WhatsApp notification failed for enroll:', notifErr);
+            console.log('📱 ========== END NOTIFICATION DEBUG (ERROR) ==========\n');
+        }
+
+        return result;
     }
 
     async updateStatusForLive(now: Date) {

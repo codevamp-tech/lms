@@ -26,15 +26,14 @@ export class CoursesService {
 
   async createCourse(createCourseDto: CreateCourseDto) {
     try {
-      const { courseTitle, category, creatorId, companyId } = createCourseDto;
+      const { courseTitle, creatorId, companyId } = createCourseDto;
 
-      if (!courseTitle || !category) {
-        throw new Error('Course title and category are required.');
+      if (!courseTitle) {
+        throw new Error('Course title is required.');
       }
 
       const course = await this.courseModel.create({
         courseTitle,
-        category,
         creator: creatorId,
         companyId,
       });
@@ -44,7 +43,8 @@ export class CoursesService {
         message: 'Course created.',
       };
     } catch (error) {
-      throw new Error('Failed to create course');
+      console.error('Error creating course:', error);
+      throw error;
     }
   }
 

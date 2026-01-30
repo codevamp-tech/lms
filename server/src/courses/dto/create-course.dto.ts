@@ -6,10 +6,6 @@ export class CreateCourseDto {
   courseTitle: string;
 
   @IsString()
-  @IsNotEmpty()
-  category: string;
-
-  @IsString()
   creatorId: string;
 
   @IsNotEmpty()

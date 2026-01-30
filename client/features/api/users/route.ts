@@ -151,3 +151,80 @@ export const updateUserProfile = async (
   }
 };
 
+// ================================
+// OTP Authentication APIs
+// ================================
+
+/**
+ * Send OTP to phone number
+ * @param phone - Phone number (with or without country code)
+ * @param channel - 'sms' or 'whatsapp' (default: 'sms')
+ * @param name - Optional name for new users
+ */
+export const sendOtp = async (
+  phone: string,
+  channel: "sms" | "whatsapp" = "sms",
+  name?: string
+) => {
+  try {
+    const { data } = await axios.post(
+      `${API_BASE_URL}/send-otp`,
+      { phone, channel, name },
+      { headers: { "Content-Type": "application/json" } }
+    );
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || "Failed to send OTP"
+    );
+  }
+};
+
+/**
+ * Verify OTP and login
+ * @param phone - Phone number
+ * @param otp - 6-digit OTP
+ */
+export const verifyOtp = async (phone: string, otp: string) => {
+  try {
+    const { data } = await axios.post(
+      `${API_BASE_URL}/verify-otp`,
+      { phone, otp },
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    // Save token if login successful
+    if (data.token) {
+      setCookie("token", data.token);
+    }
+
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || "Invalid OTP"
+    );
+  }
+};
+
+/**
+ * Resend OTP
+ * @param phone - Phone number
+ * @param retryType - 'text' for SMS, 'voice' for voice call
+ */
+export const resendOtp = async (
+  phone: string,
+  retryType: "text" | "voice" = "text"
+) => {
+  try {
+    const { data } = await axios.post(
+      `${API_BASE_URL}/resend-otp`,
+      { phone, retryType },
+      { headers: { "Content-Type": "application/json" } }
+    );
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || "Failed to resend OTP"
+    );
+  }
+};
