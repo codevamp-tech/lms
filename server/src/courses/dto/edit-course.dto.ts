@@ -40,4 +40,8 @@ export class EditCourseDto {
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   is_3_month_validity?: boolean;
+
+  @IsOptional()
+  @Type(() => Date)
+  courseExpiryDate?: Date;
 }
