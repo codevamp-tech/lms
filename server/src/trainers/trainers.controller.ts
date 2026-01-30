@@ -23,6 +23,11 @@ export class TrainersController {
         return this.trainersService.create(createTrainerDto);
     }
 
+    @Get('active')
+    async findActive() {
+        return this.trainersService.findActive();
+    }
+
     @Get()
     async findAll(
         @Headers('Authorization') auth: string,

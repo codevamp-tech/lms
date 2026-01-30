@@ -8,6 +8,7 @@ import {
   Body,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ChatBuddyService } from './chat-buddy.service';
@@ -28,8 +29,8 @@ export class ChatBuddyController {
   }
 
   @Get()
-  findAll() {
-    return this.chatBuddyService.findAll();
+  findAll(@Query('skip') skip?: number, @Query('limit') limit?: number) {
+    return this.chatBuddyService.findAll(skip, limit);
   }
 
   @Patch(':id/remove-slot')

@@ -34,9 +34,7 @@ export class CoursesController {
       console.log('cmid', response);
       return response;
     } catch (error) {
-      return {
-        message: 'Failed to create course',
-      };
+      throw new InternalServerErrorException(error.message || 'Failed to create course');
     }
   }
 

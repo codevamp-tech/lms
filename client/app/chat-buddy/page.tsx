@@ -7,11 +7,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import SuccessModal from "@/components/SuccessModal";
 
 declare global {
   interface Window {
     Razorpay: any;
   }
+}
+
+interface ChatBuddy {
+  _id: string;
+  name: string;
+  photo?: string;
+  bio?: string;
+  bookedSlots: number;
+  status: string;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -63,6 +73,8 @@ const ChatBuddyPage = () => {
     route: "/chatBuddy",
     className: "bg-gradient-to-r from-yellow-400 to-orange-400",
   };
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // ✅ FIXED: works with form submit, no logic change
   const handleEnquiryAndPayment = async (e: React.FormEvent) => {
@@ -147,7 +159,11 @@ const ChatBuddyPage = () => {
               return;
             }
 
-            toast.success("Payment & Enquiry completed 🎉");
+            // toast.success("Payment & Enquiry completed 🎉");
+            setShowSuccessModal(true); // Show Success Modal
+
+            // Optional: Clear form or redirect? 
+            // setFormData({ ... }) 
           } catch (err) {
             console.error(err);
             toast.error("Enquiry creation failed");
@@ -171,20 +187,41 @@ const ChatBuddyPage = () => {
     });
   };
 
+  /* Pagination State */
   const [buddies, setBuddies] = useState<ChatBuddy[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loadingBuddies, setLoadingBuddies] = useState(true);
+  const ITEMS_PER_PAGE = 5;
 
-  const fetchChatBuddies = async () => {
+  const fetchChatBuddies = async (page = 1) => {
     try {
-      const res = await fetch(`${API_URL}/chat-buddy`);
+      setLoadingBuddies(true);
+      const skip = (page - 1) * ITEMS_PER_PAGE;
+      const res = await fetch(`${API_URL}/chat-buddy?skip=${skip}&limit=${ITEMS_PER_PAGE}`);
       const data = await res.json();
-      setBuddies(data);
+
+      if (data.buddies && Array.isArray(data.buddies)) {
+        setBuddies(data.buddies);
+        setTotalPages(Math.ceil(data.total / ITEMS_PER_PAGE));
+      } else if (Array.isArray(data)) {
+        setBuddies(data);
+      } else {
+        console.error("Unexpected API response format:", data);
+        setBuddies([]);
+      }
     } catch (err) {
       console.error(err);
+      setBuddies([]);
     } finally {
       setLoadingBuddies(false);
     }
   };
+
+  useEffect(() => {
+    fetchChatBuddies(currentPage);
+  }, [currentPage]);
+
 
   const SlotTicks = ({ bookedSlots = 0 }: { bookedSlots: number }) => {
     return (
@@ -221,11 +258,6 @@ const ChatBuddyPage = () => {
     }
   }, [buddies, selectedBuddyId]);
 
-
-  useEffect(() => {
-    fetchChatBuddies();
-  }, []);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -257,54 +289,79 @@ const ChatBuddyPage = () => {
             ) : buddies.length === 0 ? (
               <p className="text-gray-500">No chat buddies available</p>
             ) : (
-              <div className="space-y-4">
-                {buddies.map((buddy) => (
-                  <div
-                    key={buddy._id}
-                    className={`bg-white rounded-xl shadow-md p-4 flex items-start gap-4
+              <>
+                <div className="space-y-4">
+                  {buddies.map((buddy) => (
+                    <div
+                      key={buddy._id}
+                      className={`bg-white rounded-xl shadow-md p-4 flex items-start gap-4
     ${buddy.status === "full" ? "opacity-60" : ""}
   `}
-                  >
-                    <img
-                      src={buddy.photo || "/placeholder-avatar.png"}
-                      alt={buddy.name}
-                      className="w-14 h-14 rounded-full object-cover"
-                    />
+                    >
+                      <img
+                        src={buddy.photo || "/placeholder-avatar.png"}
+                        alt={buddy.name}
+                        className="w-14 h-14 rounded-full object-cover"
+                      />
 
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-lg">{buddy.name}</h3>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-lg">{buddy.name}</h3>
 
-                        {buddy.status === "full" ? (
-                          <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">
-                            Full
-                          </span>
-                        ) : (
-                          <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
-                            Available
-                          </span>
+                          {buddy.status === "full" ? (
+                            <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">
+                              Full
+                            </span>
+                          ) : (
+                            <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                              Available
+                            </span>
+                          )}
+                        </div>
+
+                        {buddy.bio && (
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                            {buddy.bio}
+                          </p>
+                        )}
+
+                        {/* ✅ Slot ticks */}
+                        <SlotTicks bookedSlots={buddy.bookedSlots} />
+
+                        {/* ❌ Full message */}
+                        {buddy.bookedSlots >= MAX_SLOTS && (
+                          <p className="text-xs text-red-600 mt-2 font-medium">
+                            This chat buddy is fully booked.
+                          </p>
                         )}
                       </div>
-
-                      {buddy.bio && (
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                          {buddy.bio}
-                        </p>
-                      )}
-
-                      {/* ✅ Slot ticks */}
-                      <SlotTicks bookedSlots={buddy.bookedSlots} />
-
-                      {/* ❌ Full message */}
-                      {buddy.bookedSlots >= MAX_SLOTS && (
-                        <p className="text-xs text-red-600 mt-2 font-medium">
-                          This chat buddy is fully booked.
-                        </p>
-                      )}
                     </div>
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex justify-between items-center mt-6">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-sm font-medium text-gray-600">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                    </Button>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </div>
 
@@ -434,10 +491,17 @@ const ChatBuddyPage = () => {
         </div>
       </div>
 
-      {/* Hidden close button */}
-      <button ref={closeRef} style={{ display: "none" }} />
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Chat Buddy Booked! 🎉"
+        message="We have received your payment and booking details. Our team will contact you shortly on your WhatsApp number."
+        buttonText="Awesome, thanks!"
+      />
     </div>
   );
 };
 
 export default ChatBuddyPage;
+
+

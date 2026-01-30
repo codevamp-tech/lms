@@ -29,8 +29,16 @@ export class ChatBuddyService {
     return buddy.save();
   }
 
-  async findAll() {
-    return this.chatBuddyModel.find().sort({ createdAt: -1 });
+  async findAll(skip: number = 0, limit: number = 10) {
+    const buddies = await this.chatBuddyModel
+      .find()
+      .sort({ createdAt: -1 })
+      .skip(Number(skip))
+      .limit(Number(limit));
+
+    const total = await this.chatBuddyModel.countDocuments();
+
+    return { buddies, total };
   }
 
   async removeSlot(buddyId: string, enquiryId?: string) {
