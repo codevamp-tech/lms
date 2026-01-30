@@ -230,9 +230,9 @@ const Navbar = () => {
               {/* <Link href="/favorites" aria-label="Favorites">
                 <Heart className="h-5 w-5" />
               </Link> */}
-              <Link href="/cart" aria-label="Shopping Cart">
+              {/* <Link href="/cart" aria-label="Shopping Cart">
                 <ShoppingCart className="h-5 w-5" />
-              </Link>
+              </Link> */}
             </div>
           )}
           {/* New CTAs: Enroll for Live Classes and Download App */}
