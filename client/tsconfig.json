@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -11,7 +15,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -19,9 +23,42 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "components/RichTextEditor.jsx", "components/Navbar.tsx", "components/admin/lecture/CreateLecture.jsx", "components/admin/lecture/EditLecture.jsx", "components/admin/lecture/Lecture.jsx", "components/admin/lecture/LectureTab.jsx", "components/admin/Sidebar.jsx", "components/student/CourseDetail.jsx", "components/student/CourseProgress.jsx", "components/student/Courses.jsx", "components/student/Filter.jsx", "components/student/HeroSection.jsx", "components/student/MyLearning.jsx", "components/student/Profile.jsx", "components/student/SearchPage.jsx", "components/student/SearchResult.jsx", "components/BuyCourseButton.jsx", "components/Course.jsx", "components/DarkMode.jsx", "components/LoadingSpinner.jsx", "components/ProtectedRoutes.jsx", "components/PurchaseCourseProtectedRoute.jsx", "components/ThemeProvider.jsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "components/RichTextEditor.jsx",
+    "components/Navbar.tsx",
+    "components/admin/lecture/CreateLecture.jsx",
+    "components/admin/lecture/EditLecture.jsx",
+    "components/admin/lecture/Lecture.jsx",
+    "components/admin/lecture/LectureTab.jsx",
+    "components/admin/Sidebar.jsx",
+    "components/student/CourseDetail.jsx",
+    "components/student/CourseProgress.jsx",
+    "components/student/Courses.jsx",
+    "components/student/Filter.jsx",
+    "components/student/HeroSection.jsx",
+    "components/student/MyLearning.jsx",
+    "components/student/Profile.jsx",
+    "components/student/SearchPage.jsx",
+    "components/student/SearchResult.jsx",
+    "components/BuyCourseButton.jsx",
+    "components/Course.jsx",
+    "components/DarkMode.jsx",
+    "components/LoadingSpinner.jsx",
+    "components/ProtectedRoutes.jsx",
+    "components/PurchaseCourseProtectedRoute.jsx",
+    "components/ThemeProvider.jsx",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

@@ -4,19 +4,25 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Course } from './schemas/course.schema';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { EditCourseDto } from './dto/edit-course.dto';
 import { Lecture } from 'src/lectures/schemas/lecture.schema';
 import { deleteMediaFromCloudinary, uploadMedia } from 'utils/cloudinary';
+import { Enquiry } from 'src/enquiries/schemas/enquiry.schema';
+import { LiveSession } from 'src/live-session/schemas/live-session.schema';
+import { User } from 'src/users/schemas/user.schema';
 
 @Injectable()
 export class CoursesService {
   constructor(
     @InjectModel(Course.name) private courseModel: Model<Course>,
     @InjectModel(Lecture.name) private lectureModel: Model<Lecture>,
-  ) {}
+    @InjectModel(Enquiry.name) private enquiryModel: Model<Enquiry>,
+    @InjectModel(LiveSession.name) private liveSessionModel: Model<LiveSession>,
+    @InjectModel(User.name) private userModel: Model<User>,
+  ) { }
 
   async createCourse(createCourseDto: CreateCourseDto) {
     try {
@@ -129,9 +135,9 @@ export class CoursesService {
 
       const query = companyId
         ? {
-            isPublished: true,
-            $or: [{ companyId }, { isPrivate: false }],
-          }
+          isPublished: true,
+          $or: [{ companyId }, { isPrivate: false }],
+        }
         : { isPublished: true, isPrivate: false };
 
       const courses = await this.courseModel
@@ -223,9 +229,14 @@ export class CoursesService {
   }
 
   async findAll(): Promise<Course[]> {
+    return this.courseModel.find().sort({ createdAt: -1 }).exec();
+  }
+
+  async findByCreator(userId: any): Promise<Course[]> {
     return this.courseModel
-      .find()
+      .find({ creatorId: userId })
       .populate('creator enrolledStudents lectures')
+      .sort({ createdAt: -1 })
       .exec();
   }
 
@@ -251,6 +262,141 @@ export class CoursesService {
       throw new InternalServerErrorException('Failed to delete course.');
     }
   }
+
+  async getLiveSessionsRevenue() {
+    const liveSessions = await this.liveSessionModel.find({}, '_id price enrolledUsers');
+
+    let totalRevenue = 0;
+    let totalSales = 0;
+
+    liveSessions.forEach((session) => {
+      const enrolledCount = session.enrolledUsers?.length || 0;
+      totalSales += enrolledCount; // count number of enrolled users
+
+      const price = Number(session.price) || 0;
+      totalRevenue += enrolledCount * price;
+    });
+
+    return { totalRevenue, totalSales };
+  }
+
+  async getenquiryRevenue() {
+    try {
+      // Fetch all enquiries
+      const enquiries = await this.enquiryModel.find({}, 'amount type');
+
+      let totalRevenue = 0;
+      let totalSales = 0;
+
+      enquiries.forEach((enquiry) => {
+        // Skip enquiries of type "Contact"
+        if (enquiry.type?.toLowerCase() === "contact") return;
+        const amount = Number(enquiry.amount) || 0;
+        totalRevenue += amount;
+        totalSales += 1; // count each enquiry as 1 sale
+      });
+
+      return { totalRevenue, totalSales };
+    } catch (err) {
+      console.error("Error calculating enquiry revenue:", err);
+      return { totalRevenue: 0, totalSales: 0 };
+    }
+  }
+
+
+  async getCourseAnalytics() {
+    try {
+      // Fetch all courses with only needed fields
+      const courses = await this.courseModel.find({}, 'coursePrice enrolledStudents');
+
+      const totalCourses = courses.length;
+
+      let totalSales = 0;
+      let totalCourseRevenue = 0;
+
+      courses.forEach((course) => {
+        const enrolledCount = course.enrolledStudents?.length || 0;
+        totalSales += enrolledCount;
+
+        const price = Number(course.coursePrice) || 0;
+        totalCourseRevenue += price * enrolledCount;
+      });
+
+      const { totalRevenue: enquiryRevenue, totalSales: enquirySales } = await this.getenquiryRevenue();
+      const { totalRevenue: liveRevenue, totalSales: liveSales } = await this.getLiveSessionsRevenue();
+
+      const totalRevenue = totalCourseRevenue + enquiryRevenue + liveRevenue;
+      console.log('totalAllSales', totalSales, enquirySales, liveSales);
+      const totalAllSales = totalSales + enquirySales + liveSales;
+
+      return {
+        totalCourses,
+        totalAllSales,
+        totalRevenue,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException('Error generating course analytics');
+    }
+  }
+
+  async getCourseSales(courseId: string) {
+    try {
+      // Find the course and populate enrolled students
+      const course = await this.courseModel
+        .findById(courseId)
+        .populate({
+          path: 'enrolledStudents',
+          select: 'name email photoUrl', // select only the fields you need
+        });
+
+      if (!course) {
+        throw new NotFoundException(`Course with ID ${courseId} not found.`);
+      }
+
+      const enrolledUsers = course.enrolledStudents || [];
+
+      return {
+        courseId: course._id,
+        courseTitle: course.courseTitle,
+        totalEnrolled: enrolledUsers.length,
+        enrolledUsers, // populated user details
+      };
+    } catch (error) {
+      console.error('Error fetching course sales:', error);
+      throw new InternalServerErrorException(
+        'Failed to fetch enrolled users for the course',
+      );
+    }
+  }
+
+  async enrollUserInCourse(courseId: string, userId: string) {
+    const courseObjectId = new Types.ObjectId(courseId);
+    const userObjectId = new Types.ObjectId(userId);
+
+    const course = await this.courseModel.findById(courseObjectId);
+    if (!course) throw new NotFoundException('Course not found');
+
+    const user = await this.userModel.findById(userObjectId);
+    if (!user) throw new NotFoundException('User not found');
+
+    // Add student to course
+    await this.courseModel.findByIdAndUpdate(courseObjectId, {
+      $addToSet: { enrolledStudents: userObjectId },
+    });
+
+    // Add course to user
+    await this.userModel.findByIdAndUpdate(userObjectId, {
+      $addToSet: { enrolledCourses: courseObjectId },
+    });
+
+    return {
+      success: true,
+      message: 'User enrolled successfully',
+    };
+  }
 }
+
+
 
 // Add methods for updating, deleting, or finding a single course

@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
-import { BookOpen, MessageCircle, Award } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { BookOpen, MessageCircle, Award } from "lucide-react";
 import {
   Dialog,
   DialogTrigger,
@@ -15,232 +15,293 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import toast from "react-hot-toast";
+import Link from "next/link";
 
 const HeroSection = () => {
-  const [searchQuery, setSearchQuery] = useState("")
-  const router = useRouter()
-
-  const searchHandler = (e) => {
-    e.preventDefault()
-    if (searchQuery.trim() !== "") {
-      router.push(`/course/search?query=${searchQuery}`)
-    }
-    setSearchQuery("")
-  }
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+  const [selectedEnquiry, setSelectedEnquiry] = useState(null);
+  const enquiryFormRef = useRef(null);
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
+    visible: { opacity: 1, y: 0 },
+  };
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+  // 🔥 Dialog close button ref
+  const closeRef = useRef(null);
+
+  function waitForFormData() {
+    return new Promise((resolve) => {
+
+      const checkForm = setInterval(() => {
+        const form = enquiryFormRef.current;
+
+        if (form) {
+          clearInterval(checkForm);
+
+          form.onsubmit = (e) => {
+            e.preventDefault();
+
+            const data = new FormData(form);
+
+            resolve({
+              name: data.get("name"),
+              email: data.get("email"),
+              whatsapp: data.get("whatsappNo"),
+              status: "open",
+            });
+          };
+        }
+      }, 50); // checks every 50ms until form exists
+    });
   }
 
-  // 🟢 Replace with your backend API URL
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
+
 
   // Function to handle form submission
-  const handleSubmit = async (e, offer) => {
-    e.preventDefault()
-
-    const formData = new FormData(e.target)
-    const data = {
-      name: formData.get("name"),
-      email: formData.get("email"),
-      whatsappNo: formData.get("whatsappNo"),
-      message: formData.get("message"),
-      product: offer.title,
-      price: offer.price
-    }
-
+  const handleEnquiryAndPayment = async (offer) => {
+    const title = offer.sub;
     try {
-      const res = await fetch(`${API_URL}/sessions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      })
-
-      if (!res.ok) {
-        throw new Error("Failed to create session")
+      // Ensure Razorpay script is loaded
+      if (!window.Razorpay) {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        document.body.appendChild(script);
+        await new Promise((resolve) => {
+          script.onload = resolve;
+          script.onerror = resolve;
+        });
       }
 
-      const result = await res.json()
-      console.log("✅ Session created:", result)
+      // Parse numeric amount from offer.price (strip non-digits)
+      const priceString = String(offer.price || "0");
+      const priceDigits = priceString.match(/\d+/);
+      const amountINR = priceDigits ? parseInt(priceDigits[0], 10) : 0;
 
-      alert("Your session request has been submitted successfully!")
+      // Create Razorpay order on server
+      const orderResp = await fetch(`${API_URL}/razorpay/create-order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: amountINR,
+          currency: "INR",
+          receipt: `enquiry_receipt_${Date.now()}`,
+        }),
+      });
+      if (!orderResp.ok) throw new Error("Failed to create payment order");
+      const order = await orderResp.json();
 
-      // Redirect to payment or thank you page
-      router.push(`/cart?product=${encodeURIComponent(offer.title)}&price=${offer.price}`)
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: "Mr English Training Academy",
+        description: title,
+        order_id: order.id,
+        handler: async function (response) {
+          try {
+            // Attach razorpay details to enquiry payload
+            let payload = {
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              amount: order.amount,
+              currency: order.currency,
+            };
+
+            toast.success("Payment successful.");
+
+            // open form submission after payment success
+            setSelectedEnquiry(offer);
+
+            // 🔥 WAIT until the form is submitted (PAUSE here)
+            const formData = await waitForFormData();
+
+            // add type
+            formData.type = title;
+            payload = { ...payload, ...formData };
+
+            const res = await fetch(`${API_URL}/enquiry`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+
+            if (!res.ok) {
+              toast.error("Failed to save enquiry after payment");
+              return;
+            }
+
+            toast.success("Payment successful and enquiry saved");
+            if (closeRef.current) closeRef.current.click();
+          } catch (err) {
+            console.error("Error saving enquiry after payment:", err);
+            toast.error("Error saving enquiry after payment");
+          }
+        },
+        // prefill: {
+        //   name: formData.get("name") || "",
+        //   email: formData.get("email") || "",
+        //   contact: formData.get("whatsappNo") || "",
+        // },
+        notes: {},
+        theme: { color: "#b28704" },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (error) {
-      console.error("❌ Error creating session:", error)
-      alert("Something went wrong. Please try again.")
+      console.error("❌ Error:", error);
+      toast.error("Payment failed or could not start checkout");
     }
-  }
+  };
 
   return (
     <>
-      {/* Full-width Banner Image */}
+      {/* Banner */}
       <div className="w-full">
         <img
           src="/img/hero_page.jpg"
-          alt="Mr English Training Academy Banner"
-          className="w-full h-auto object-cover max-h-[500px] md:max-h-[500px] lg:max-h-[700px]"
+          alt="Mr English Training Academy"
+          className="w-full h-auto object-cover max-h-[500px] lg:max-h-[700px]"
         />
       </div>
 
       {/* Hero Section */}
       <div
         style={{ backgroundImage: `url('/img/hero-4.jpg')` }}
-        className="relative py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-cover bg-center bg-no-repeat"
-        aria-label="Hero"
+        className="relative py-8 lg:py-16 px-4 bg-cover bg-center bg-no-repeat"
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/85 to-primary/20 backdrop-blur-sm" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/85 to-primary/20 backdrop-blur-sm" />
 
-        <div className="relative max-w-6xl mx-auto">
+        <div className="relative max-w-6xl mx-auto text-center">
           <motion.div
             initial="hidden"
             animate="visible"
             variants={fadeIn}
             transition={{ duration: 0.8 }}
-            className="text-center"
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
-              className="mb-4 sm:mb-6"
-            >
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl h-auto font-extrabold mb-2 sm:mb-3 bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent px-2">
-                Mr English Training Academy
-              </h1>
-              <div className="h-0.5 sm:h-1 w-24 sm:w-32 lg:w-40 mx-auto bg-gradient-to-r from-primary to-purple-600 rounded-full" />
-            </motion.div>
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent leading-snug py-2">
+              Mr English Training Academy
+            </h1>
 
-            <motion.span
-              variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="inline-block text-xs sm:text-sm font-semibold tracking-wider uppercase text-primary bg-primary/10 rounded-full px-3 py-1.5 sm:px-4 sm:py-2 mb-3 sm:mb-4"
-            >
-              Master English with Confidence
-            </motion.span>
-
-            <motion.h2
-              variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 text-foreground text-balance px-2"
-            >
-              Transform Your English Speaking Skills
-            </motion.h2>
 
             <motion.p
               variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.7, duration: 0.6 }}
-              className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-2"
+              className="text-sm md:text-lg text-muted-foreground max-w-3xl mx-auto mt-4"
             >
-              Join thousands of learners who have improved their English communication, grammar, and confidence with our expert-led courses and personalized learning paths.
+              Transform your English speaking skills with expert-led coaching.
             </motion.p>
-
-            {/* Search form */}
-
-            {/* <motion.form
-              onSubmit={searchHandler}
-              variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.9, duration: 0.6 }}
-              className="flex items-center bg-card rounded-full shadow-2xl overflow-hidden max-w-2xl mx-auto mb-6 border-2 border-primary/20 hover:border-primary/40 transition-all"
-              aria-label="Search courses"
-            >
-              <Input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for English courses..."
-                aria-label="Search courses"
-                className="flex-grow border-none focus-visible:ring-0 px-6 py-4 text-foreground placeholder-muted-foreground bg-transparent text-lg"
-              />
-              <Button type="submit" size="lg" className="px-8 py-6 rounded-none">
-                Search
-              </Button>
-            </motion.form>
-            *
 
             {/* Quick Enroll Boxes */}
             <motion.div
               variants={fadeIn}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 1.0, duration: 0.6 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 max-w-4xl mx-auto mb-8 sm:mb-12"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto mt-10"
             >
               {[
-                { title: "Zero to Hero English Course", price: "999", icon: BookOpen, className: "bg-gradient-to-r from-blue-500 to-cyan-500" },
-                { title: "Counselling Session by Founder", price: "749", icon: MessageCircle, className: "bg-gradient-to-r from-green-500 to-lime-400" },
-                { title: "Chat Buddy", price: "199", icon: Award, className: "bg-gradient-to-r from-yellow-400 to-orange-400" }
-              ].map((offer, i) => (
-                <Dialog key={offer.title}>
-                  <DialogTrigger asChild>
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 1.1 + i * 0.1, duration: 0.5 }}
-                      // Use offer.className here and include other utility classes
-                      className={`${offer.className} cursor-pointer p-6 rounded-xl border border-border shadow-lg hover:shadow-xl transition-all text-black`}
-                    >
-                      <offer.icon className="w-10 h-10 text-primary mb-4" />
-                      <h3 className="text-lg font-bold mb-2">{offer.title}</h3>
-                      <p className="text-2xl font-bold text-primary">₹{offer.price}</p>
-                    </motion.div>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>{offer.title}</DialogTitle>
-                      <DialogDescription>Fill in your details to enroll</DialogDescription>
-                    </DialogHeader>
-
-                    {/* 🟢 Updated form — Sends to NestJS backend */}
-                    <form onSubmit={(e) => handleSubmit(e, offer)}>
-                      <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                          <Label htmlFor="name">Name</Label>
-                          <Input id="name" name="name" required />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="email">Email</Label>
-                          <Input id="email" name="email" type="email" required />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="whatsappNo">whatsappNo Number</Label>
-                          <Input id="whatsappNo" name="whatsappNo" type="tel" required />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="message">Message</Label>
-                          <Input id="message" name="message" />
-                        </div>
+                {
+                  title: "English Course",
+                  sub: "course",
+                  price: "1499",
+                  icon: BookOpen,
+                  route: "course/course-detail/68e39b7bc3c6876a13d052dd",
+                  className: "bg-gradient-to-r from-blue-500 to-cyan-500",
+                },
+                {
+                  title: "Counselling Session by Gowhar Amaan",
+                  sub: "course",
+                  price: "499",
+                  icon: MessageCircle,
+                  route: "/session-with-founder",
+                  className: "bg-gradient-to-r from-green-500 to-lime-400",
+                },
+                {
+                  title: "Chat Buddy",
+                  sub: "chat",
+                  price: "2000/m",
+                  icon: Award,
+                  route: "/chat-buddy",
+                  className: "bg-gradient-to-r from-yellow-400 to-orange-400",
+                },
+              ]
+                .map((offer) => (
+                  <>
+                    <Link href={offer.route}>
+                      <div
+                        className={`${offer.className} p-6 rounded-xl cursor-pointer shadow-lg hover:shadow-xl`}
+                      // onClick={() => handleEnquiryAndPayment(offer)}
+                      >
+                        <offer.icon className="w-10 h-10 mb-4 mx-auto" />
+                        <h3 className="text-lg font-bold">{offer.title}</h3>
+                        <p className="text-2xl font-bold">₹{offer.price}</p>
                       </div>
-                      <DialogFooter>
-                        <DialogClose asChild>
-                          <Button type="button" variant="outline">Cancel</Button>
-                        </DialogClose>
-                        <Button type="submit">Submit</Button>
-                      </DialogFooter>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              ))}
+                    </Link>
+                  </>
+                ))}
+
+
+
+              {/* <Dialog open={!!selectedEnquiry} onOpenChange={() => setSelectedEnquiry(null)}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{selectedEnquiry?.title}</DialogTitle>
+                    <DialogDescription>
+                      Fill in your details to enroll
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <form id="enquiryForm" ref={enquiryFormRef}>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label>Name</Label>
+                        <Input name="name" required />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Email</Label>
+                        <Input name="email" type="email" required />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Whatsapp Number</Label>
+                        <Input
+                          name="whatsappNo"
+                          type="tel"
+                          required
+                          pattern="[0-9]{10}"
+                        />
+
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button type="button" variant="outline">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+
+                      <Button type="submit">Submit</Button>
+                    </DialogFooter>
+
+                 
+                    <DialogClose asChild>
+                      <button ref={closeRef} style={{ display: "none" }} />
+                    </DialogClose>
+                  </form>
+                </DialogContent>
+              </Dialog> */}
             </motion.div>
           </motion.div>
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default HeroSection
+export default HeroSection;

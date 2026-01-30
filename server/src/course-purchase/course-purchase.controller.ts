@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 
 @Controller('course-purchase')
 export class CoursePurchaseController {
-  constructor(private readonly coursePurchaseService: CoursePurchaseService) {}
+  constructor(private readonly coursePurchaseService: CoursePurchaseService) { }
 
   @Get(':courseId')
   async getCoursedetailWithPurchaseStatus(
@@ -22,17 +22,28 @@ export class CoursePurchaseController {
     }
   }
 
-  @Post(':userId/:courseId/create-razorpay-order')
-  async createRazorpayOrder(
+  @Post(':courseId/create-razorpay-order')
+  createOrder(@Param('courseId') courseId: string) {
+    return this.coursePurchaseService.createRazorpayOrder(courseId);
+  }
+
+  @Post(':userId/:courseId/cancel')
+  async cancelPurchase(
     @Param('courseId') courseId: string,
     @Param('userId') userId: string,
+    @Body() body?: { orderId?: string },
   ) {
-    return this.coursePurchaseService.createRazorpayOrder(userId, courseId);
+    return this.coursePurchaseService.cancelPurchase(userId, courseId, body?.orderId);
   }
 
   @Post('verify-payment')
-  async verifyPayment(@Body() body: { razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string }) {
-    return this.coursePurchaseService.verifyPayment(body.razorpay_order_id, body.razorpay_payment_id, body.razorpay_signature);
+  verify(@Body() body: any) {
+    return this.coursePurchaseService.verifyPayment(body);
+  }
+
+  @Post('mark-failed')
+  async markFailed(@Body() body: { razorpay_order_id?: string; razorpay_payment_id?: string; userId?: string; courseId?: string; }) {
+    return this.coursePurchaseService.markFailed(body);
   }
 
   @Post('webhook')
@@ -46,4 +57,21 @@ export class CoursePurchaseController {
   async getPurchasedCourses(@Param('userId') userId: string) {
     return this.coursePurchaseService.getPurchasedCourses(userId);
   }
+
+  // Admin endpoints
+  @Get('admin/all-purchases')
+  async getAllPurchasesForAdmin() {
+    return this.coursePurchaseService.getAllPurchasesForAdmin();
+  }
+
+  @Post('admin/revoke/:purchaseId')
+  async revokeAccess(@Param('purchaseId') purchaseId: string) {
+    return this.coursePurchaseService.revokeAccess(purchaseId);
+  }
+
+  @Post('admin/restore/:purchaseId')
+  async restoreAccess(@Param('purchaseId') purchaseId: string) {
+    return this.coursePurchaseService.restoreAccess(purchaseId);
+  }
 }
+

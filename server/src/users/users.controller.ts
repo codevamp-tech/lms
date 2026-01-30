@@ -27,10 +27,13 @@ import { CreateInstructorDto } from './dto/create-instructor';
 import { ResetPasswordDto } from './dto/reset-password';
 import { ForgotPasswordDto } from './dto/forgot-password';
 import { CreateAdminDto } from './dto/create-admin';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateStudentDto } from './dto/update-student';
+import { RegisterWithPhoneDto } from './dto/register-with-phone.dto';
 
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(private usersService: UsersService) { }
 
   @Post('signup')
   async signup(
@@ -53,6 +56,19 @@ export class UsersController {
       );
     }
   }
+
+  @Post('register-with-phone')
+  async registerWithPhone(@Body() dto: RegisterWithPhoneDto) {
+    try {
+      return await this.usersService.registerWithPhone(dto.phone, dto.name);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Phone authentication failed',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
 
   @Post('addinstructor')
   async addInstructor(@Body() createInstructorDto: CreateInstructorDto) {
@@ -96,6 +112,17 @@ export class UsersController {
     }
   }
 
+
+
+  @Get('students')
+  async getStudents(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.usersService.getStudents(Number(page), Number(limit));
+  }
+
+
   // @UseGuards(AuthGuard)
   @Get(':userId/profile')
   async getUserProfile(@Param('userId') userId: string) {
@@ -133,6 +160,14 @@ export class UsersController {
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  @Patch('students/:id')
+  async updateStudent(
+    @Param('id') id: string,
+    @Body() updateStudentDto: UpdateStudentDto,
+  ) {
+    return this.usersService.updateStudent(id, updateStudentDto);
   }
 
   @Put('toggle-status/:id')
@@ -185,14 +220,35 @@ export class UsersController {
     }
   }
 
+  @Post('change-password')
+  async changePassword(@Body() changePasswordDto: ChangePasswordDto) {
+    const { userId, currentPassword, newPassword } = changePasswordDto;
+    try {
+      const result = await this.usersService.changePassword(
+        userId,
+        currentPassword,
+        newPassword,
+      );
+      return result;
+    } catch (error) {
+      if (error.status && error.message) {
+        throw error;
+      }
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   // @UseGuards(AuthGuard)
   @Patch(':userId/update')
   @UseInterceptors(FileInterceptor('profilePhoto'))
   async updateProfile(
     @Param('userId') userId: string,
     @Body('name') name: string,
-    @UploadedFile() profilePhoto: Express.Multer.File,
+    @Body('email') email: string,
+    @UploadedFile() profilePhoto?: Express.Multer.File,
   ) {
-    return this.usersService.updateProfile(userId, name, profilePhoto);
+    return this.usersService.updateProfile(userId, name, email, profilePhoto);
   }
+
+
 }

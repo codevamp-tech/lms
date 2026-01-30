@@ -46,8 +46,8 @@ export default function Categories() {
               className="group relative border-2 rounded-2xl p-6 bg-card hover:bg-accent/20 hover:border-primary/50 transition-all shadow-lg hover:shadow-xl overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              
-              <Link href={`/course/search?query=${encodeURIComponent(q)}`} className="relative block">
+
+              <Link href={label === 'Certification' ? '/certificate' : '/courses'} className="relative block">
                 <div className="flex items-start gap-4 mb-3">
                   <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-all">
                     <Icon className="h-6 w-6" />

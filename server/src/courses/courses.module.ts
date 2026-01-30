@@ -4,15 +4,21 @@ import { Course, CourseSchema } from './schemas/course.schema';
 import { CoursesService } from './courses.service';
 import { CoursesController } from './courses.controller';
 import { Lecture, LectureSchema } from 'src/lectures/schemas/lecture.schema';
+import { Enquiry, EnquirySchema } from 'src/enquiries/schemas/enquiry.schema';
+import { LiveSession, LiveSessionSchema } from 'src/live-session/schemas/live-session.schema';
+import { User, UserSchema } from 'src/users/schemas/user.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Course.name, schema: CourseSchema },
       { name: Lecture.name, schema: LectureSchema },
+      { name: Enquiry.name, schema: EnquirySchema },
+      { name: LiveSession.name, schema: LiveSessionSchema },
+      { name: User.name, schema: UserSchema },
     ]),
   ],
   providers: [CoursesService],
   controllers: [CoursesController],
 })
-export class CoursesModule {}
+export class CoursesModule { }

@@ -10,17 +10,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-// import { deleteCourses } from "@/features/api/courses/route";
 import useCourses from "@/hooks/useCourses";
 import { Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -33,22 +24,14 @@ const CourseTab = () => {
   const router = useRouter();
   const { getCourseByIdQuery, editCourse, publishCourse, deleteCourse, privateCourse } = useCourses();
 
-  // Fetch course data
-  const {
-    data: course,
-    isLoading: isCourseLoading,
-    error,
-    refetch,
-  } = getCourseByIdQuery(courseId);
-
+  const { data: course, isLoading: isCourseLoading, error, refetch } = getCourseByIdQuery(courseId);
 
   const [companyId, setCompanyId] = useState<string | null>(null);
-  // Local state for form inputs
+
   const [input, setInput] = useState({
     courseTitle: "",
     subTitle: "",
     description: "",
-    category: "",
     courseLevel: "",
     coursePrice: "",
     courseMRP: "",
@@ -58,138 +41,88 @@ const CourseTab = () => {
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [previewThumbnail, setPreviewThumbnail] = useState<string | null>("");
 
-
   useEffect(() => {
     const storedCompanyId = localStorage.getItem("companyId");
     if (storedCompanyId) {
       setCompanyId(storedCompanyId);
-      setInput((prev) => ({ ...prev, companyId: storedCompanyId }));
+      setInput(prev => ({ ...prev, companyId: storedCompanyId }));
     }
   }, []);
 
-
-  const [categories, setCategories] = useState([
-    ...new Set([
-      "Next JS",
-      "Data Science",
-      "Frontend Development",
-      "Fullstack Development",
-      "MERN Stack Development",
-      "Javascript",
-      "Python",
-      "Docker",
-      "MongoDB",
-      "HTML",
-    ])
-  ]);
-  // Populate form with fetched course data
   useEffect(() => {
     if (course) {
       setInput({
         courseTitle: course.courseTitle || "",
         subTitle: course.subTitle || "",
         description: course.description || "",
-        category: course.category || "",
         courseLevel: course.courseLevel || "",
         coursePrice: course.coursePrice || "",
         courseMRP: course.courseMRP || "",
-        companyId: companyId || "",
+        companyId: course.companyId || companyId || "",
       });
       setPreviewThumbnail(course.courseThumbnail || "");
-      if (course.category && !categories.includes(course.category)) {
-        setCategories((prev) => [...new Set([...prev, course.category])]);
-      }
       refetch();
     }
-  }, [refetch, course, categories]);
+  }, [course, companyId, refetch]);
 
   // Handlers
   const changeEventHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setInput((prev) => ({ ...prev, [name]: value }));
+    setInput(prev => ({ ...prev, [name]: value }));
   };
 
-  const selectCategory = (value: string) =>
-    setInput((prev) => ({ ...prev, category: value }));
-
   const selectCourseLevel = (value: string) =>
-    setInput((prev) => ({ ...prev, courseLevel: value }));
+    setInput(prev => ({ ...prev, courseLevel: value }));
 
   const selectThumbnail = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setThumbnail(file);
-      const fileReader = new FileReader();
-      fileReader.onloadend = () =>
-        setPreviewThumbnail(fileReader.result as string);
-      fileReader.readAsDataURL(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setPreviewThumbnail(reader.result as string);
+      reader.readAsDataURL(file);
     }
   };
 
   const publishCourseHandler = async () => {
     if (!courseId) return;
-    const status = course.isPublished === true ? false : true
-    await publishCourse(
-      { courseId, publish: status, companyId },
-
-      {
-        onSuccess: () => {
-          toast.success(
-            `Course ${status ? "published" : "unpublished"} successfully.`
-          );
-          refetch();
-        },
-        onError: () => {
-          toast.error("Failed to update publish state.");
-        },
-      }
-    );
+    const status = course?.isPublished ? false : true;
+    await publishCourse({ courseId, publish: status, companyId }, {
+      onSuccess: () => {
+        toast.success(`Course ${status ? "published" : "unpublished"} successfully.`);
+        refetch();
+      },
+      onError: () => toast.error("Failed to update publish state."),
+    });
   };
 
   const privateCourseHandler = async () => {
     if (!courseId) return;
-    const status = course.isPrivate === true ? false : true
-    await privateCourse(
-      { courseId, privated: status, companyId },
-
-      {
-        onSuccess: () => {
-          toast.success(
-            `Course ${status ? "private" : "public"} successfully.`
-          );
-          refetch();
-        },
-        onError: () => {
-          toast.error("Failed to update publish state.");
-        },
-      }
-    );
+    const status = course?.isPrivate ? false : true;
+    await privateCourse({ courseId, privated: status, companyId }, {
+      onSuccess: () => {
+        toast.success(`Course ${status ? "private" : "public"} successfully.`);
+        refetch();
+      },
+      onError: () => toast.error("Failed to update privacy state."),
+    });
   };
 
   const updateCourseHandler = () => {
     if (!courseId) return;
-    if (!input.courseTitle || !input.category || !input.courseLevel) {
+    if (!input.courseTitle || !input.courseLevel) {
       toast.error("Please fill out all required fields.");
       return;
     }
 
-    editCourse(
-      { courseId, updatedData: input, thumbnail: thumbnail || undefined },
-      {
-        onSuccess: () => {
-          toast.success(`Course ${courseId} updated successfully.`);
-          router.push("/admin/courses");
-        },
-        onError: () => {
-          toast.error(`Failed to update course ${courseId}.`);
-        },
-      }
-    );
+    editCourse({ courseId, updatedData: input, thumbnail: thumbnail || undefined }, {
+      onSuccess: () => {
+        toast.success(`Course ${courseId} updated successfully.`);
+        router.push("/admin/courses");
+      },
+      onError: () => toast.error(`Failed to update course ${courseId}.`),
+    });
   };
-
-
-
-
 
   if (isCourseLoading) {
     return (
@@ -210,96 +143,44 @@ const CourseTab = () => {
         <div>
           <CardTitle>Basic Course Information</CardTitle>
           <CardDescription>
-            Make changes to your course (ID: {courseId}). Click save when you're
-            done.
+            Make changes to your course (ID: {courseId}). Click save when you're done.
           </CardDescription>
         </div>
         <div className="space-x-1">
-          <Button
-            disabled={!course?.lectures?.length}
-            variant="outline"
-            onClick={publishCourseHandler}
-          >
+          <Button disabled={!course?.lectures?.length} variant="outline" onClick={publishCourseHandler}>
             {course?.isPublished ? "Unpublish" : "Publish"}
           </Button>
-          <Button variant="default"
-            onClick={(e) => {
-              e.stopPropagation(),
-                router.push("/admin/courses"),
-                courseId && deleteCourse({ courseId });
-            }}>Remove Course</Button>
+          <Button variant="default" onClick={() => { router.push("/admin/courses"); courseId && deleteCourse({ courseId }); }}>
+            Remove Course
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4 mt-5">
           <div>
             <Label htmlFor="courseTitle">Title</Label>
-            <Input
-              id="courseTitle"
-              type="text"
-              name="courseTitle"
-              value={input.courseTitle}
-              onChange={changeEventHandler}
-              placeholder="Ex. Fullstack developer"
-            />
+            <Input id="courseTitle" type="text" name="courseTitle" value={input.courseTitle} onChange={changeEventHandler} placeholder="Ex. Fullstack developer" />
           </div>
           <div>
             <Label htmlFor="subTitle">Subtitle</Label>
-            <Input
-              id="subTitle"
-              type="text"
-              name="subTitle"
-              value={input.subTitle}
-              onChange={changeEventHandler}
-              placeholder="Ex. Become a Fullstack developer from zero to hero in 2 months"
-            />
+            <Input id="subTitle" type="text" name="subTitle" value={input.subTitle} onChange={changeEventHandler} placeholder="Ex. Become a Fullstack developer from zero to hero in 2 months" />
           </div>
           <div>
             <Label htmlFor="description">Description</Label>
-            <Input
-              id="description"
-              name="description"
-              value={input.description}
-              onChange={(e) => changeEventHandler(e as any)}
-              placeholder="Course description here..."
-              className="w-full border rounded-md p-2"
-            />
+            <Input id="description" name="description" value={input.description} onChange={changeEventHandler as any} placeholder="Course description here..." className="w-full border rounded-md p-2" />
           </div>
           <div className="flex items-center gap-5">
             <div>
-              <Label>Category</Label>
-              <Select value={input.category} onValueChange={selectCategory}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Category</SelectLabel>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
               <Label>Course Level</Label>
-              <Select
-                value={input.courseLevel}
-                onValueChange={selectCourseLevel}
-              >
+              <Select value={input.courseLevel} onValueChange={selectCourseLevel}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select a course level" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Course Level</SelectLabel>
-                    {["Beginner", "Medium", "Advance"].map((level) => (
-                      <SelectItem key={level} value={level}>
-                        {level}
-                      </SelectItem>
+                    {["Beginner", "Medium", "Advance"].map(level => (
+                      <SelectItem key={level} value={level}>{level}</SelectItem>
                     ))}
                   </SelectGroup>
                 </SelectContent>
@@ -307,67 +188,26 @@ const CourseTab = () => {
             </div>
             <div>
               <Label htmlFor="coursePrice">Offer Price (INR)</Label>
-              <Input
-                id="coursePrice"
-                type="number"
-                name="coursePrice"
-                value={input.coursePrice}
-                onChange={changeEventHandler}
-                placeholder="199"
-                className="w-fit"
-              />
+              <Input id="coursePrice" type="number" name="coursePrice" value={input.coursePrice} onChange={changeEventHandler} placeholder="199" className="w-fit" />
             </div>
             <div>
               <Label htmlFor="courseMRP">Price (INR)</Label>
-              <Input
-                id="courseMRP"
-                type="number"
-                name="courseMRP"
-                value={input.courseMRP}
-                onChange={changeEventHandler}
-                placeholder="599"
-                className="w-fit"
-              />
+              <Input id="courseMRP" type="number" name="courseMRP" value={input.courseMRP} onChange={changeEventHandler} placeholder="599" className="w-fit" />
             </div>
             <div className="flex flex-col space-y-2">
-
               <div className="flex items-center mt-2 space-x-2 bg-slate-50 p-3 rounded-lg">
-                <span className="text-sm font-medium">
-                  {course?.isPrivate ? 'Private Course' : 'Public Course'}
-                </span>
-                <Switch
-                  checked={course?.isPrivate}
-                  onCheckedChange={privateCourseHandler}
-                  className="data-[state=checked]:bg-blue-600"
-                />
+                <span className="text-sm font-medium">{course?.isPrivate ? 'Private Course' : 'Public Course'}</span>
+                <Switch checked={course?.isPrivate} onCheckedChange={privateCourseHandler} className="data-[state=checked]:bg-blue-600" />
               </div>
-
             </div>
           </div>
           <div>
             <Label htmlFor="courseThumbnail">Course Thumbnail</Label>
-            <Input
-              id="courseThumbnail"
-              type="file"
-              onChange={selectThumbnail}
-              accept="image/*"
-              className="w-fit"
-            />
-            {previewThumbnail && (
-              <img
-                src={previewThumbnail}
-                className="h-64 my-2"
-                alt="Course Thumbnail"
-              />
-            )}
+            <Input id="courseThumbnail" type="file" onChange={selectThumbnail} accept="image/*" className="w-fit" />
+            {previewThumbnail && <img src={previewThumbnail} className="h-64 my-2" alt="Course Thumbnail" />}
           </div>
           <div className="space-x-2">
-            <Button
-              onClick={() => router.push("/admin/courses")}
-              variant="outline"
-            >
-              Cancel
-            </Button>
+            <Button onClick={() => router.push("/admin/courses")} variant="outline">Cancel</Button>
             <Button onClick={updateCourseHandler}>Save</Button>
           </div>
         </div>

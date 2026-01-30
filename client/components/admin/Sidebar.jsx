@@ -3,10 +3,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ChartNoAxesColumn,
+  UserPlus,
+  MessageCircle,
+  BookOpen,
+  Video,
+  Users,
+  IndianRupee,
+  GraduationCap,
+  Bell,
+  Phone,
   SquareLibrary,
   Store,
-  UserPlus,
-  Video
+  FileText,
 } from "lucide-react";
 import { getUserIdFromToken } from "@/utils/helpers";
 import { useUserProfile } from "@/hooks/useUsers";
@@ -14,9 +22,74 @@ import { useUserProfile } from "@/hooks/useUsers";
 const SIDEBAR_LINKS = {
   admin: [
     {
-      href: "/admin/addinstructor",
+      href: "/admin/dashboard",
+      label: "Dashboard",
+      icon: ChartNoAxesColumn,
+    },
+    {
+      href: "/admin/add-instructor",
       label: "Add Instructor",
       icon: UserPlus,
+    },
+    {
+      href: "/admin/chat-buddy",
+      label: "Chat Buddy",
+      icon: MessageCircle,
+    },
+    {
+      href: "/admin/courses",
+      label: "Record Courses",
+      icon: BookOpen,
+    },
+    {
+      href: "/admin/blogs",
+      label: "Blogs",
+      icon: FileText,
+    },
+    {
+      href: "/admin/live-session",
+      label: "Live Session",
+      icon: Video,
+    },
+    {
+      href: "/admin/course-purchases",
+      label: "Course Purchases",
+      icon: BookOpen,
+    },
+    {
+      href: "/admin/student-list",
+      label: "Students",
+      icon: Users,
+    },
+    {
+      href: "/admin/enquiries",
+      label: "Sales",
+      icon: IndianRupee,
+    },
+    {
+      href: "/admin/student-enrolled",
+      label: "Student Enrolled",
+      icon: GraduationCap,
+    },
+    {
+      href: "/admin/notifications",
+      label: "Notifications",
+      icon: Bell,
+    },
+    {
+      href: "/admin/contact",
+      label: "Contact",
+      icon: Phone,
+    },
+    {
+      href: "/admin/payments",
+      label: "Payments",
+      icon: IndianRupee,
+    },
+    {
+      href: "/admin/trainers",
+      label: "Trainers",
+      icon: Users,
     },
   ],
   superadmin: [
@@ -33,11 +106,6 @@ const SIDEBAR_LINKS = {
   ],
   instructor: [
     {
-      href: "/admin/dashboard",
-      label: "Dashboard",
-      icon: ChartNoAxesColumn,
-    },
-    {
       href: "/admin/courses",
       label: "Courses",
       icon: SquareLibrary,
@@ -46,7 +114,7 @@ const SIDEBAR_LINKS = {
       href: "/admin/live-session",
       label: "Live Session",
       icon: Video,
-    }
+    },
   ],
 };
 

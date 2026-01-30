@@ -23,6 +23,14 @@ export default function OurTeam() {
             students: "1400+",
             rating: 4.9
         },
+        // {
+        //     name: "Juzlain Tanzeem",
+        //     title: "Conversation & Fluency Coach",
+        //     img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Juzlain-Tanzeem.png",
+        //     experience: "3+ years",
+        //     students: "1400+",
+        //     rating: 4.8
+        // },
         {
             name: "Waqas Masoodi",
             title: "IELTS & TOEFL Expert",
@@ -48,7 +56,7 @@ export default function OurTeam() {
             rating: 4.8
         },
         {
-            name: "Aman Gowhar",
+            name: "Aaman Bin Gowhar",
             title: "Conversation & Fluency Coach",
             img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Aman-Gowhar.png",
             experience: "1+ years",
@@ -90,6 +98,13 @@ export default function OurTeam() {
     ];
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <button
+                onClick={() => router.back()}
+                className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors mb-4 sm:mb-6 group"
+            >
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:-translate-x-1 transition-transform" />
+                <span className="text-sm sm:text-base">Back</span>
+            </button>
             <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow">
                 <h3 className="text-xl sm:text-2xl font-semibold mb-4">Course Instructors</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">

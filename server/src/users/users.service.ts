@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -12,11 +13,10 @@ import { User } from './schemas/user.schema';
 import * as jwt from 'jsonwebtoken';
 import { deleteMediaFromCloudinary, uploadMedia } from 'utils/cloudinary';
 import * as nodemailer from 'nodemailer';
-import { createTransport } from 'nodemailer';
 import { CreateInstructorDto } from './dto/create-instructor';
 import { CreateAdminDto } from './dto/create-admin';
-import { exec } from 'child_process';
-import { Company } from 'src/company/schemas/company.schema';
+import { sendMail } from '../../utils/mail';
+
 // import { uploadMedia, deleteMediaFromCloudinary } from './media.service';
 
 @Injectable()
@@ -24,39 +24,106 @@ export class UsersService {
   instructorModel: any;
   constructor(@InjectModel(User.name) private userModel: Model<User>) { }
 
-  private transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: 'mohsinansari4843@gmail.com',
-      pass: 'zgyc pkar kyjc vfmm',
-    },
-  });
-
-  async signup(data: { name: string; email: string; password: string }) {
-    const existingUser = await this.userModel
-      .findOne({ email: data.email })
-      .exec();
+  async signup(data: {
+    name: string; email: string; password: string; number?: string; role?: string
+  }) {
+    // 1. Check if user already exists
+    const existingUser = await this.userModel.findOne({ email: data.email }).exec();
     if (existingUser) {
       throw new Error('Email is already registered');
     }
 
+    // 2. Hash password
     const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    // 3. Create new user explicitly including all fields
     const newUser = new this.userModel({
-      ...data,
+      name: data.name,
+      email: data.email,
       password: hashedPassword,
+      number: data.number, // ✅ make sure number is included
+      role: data.role || 'student',
     });
+
+    // 4. Send welcome email
+    const mailOptions = {
+      to: data.email,
+      name: data.name,
+      subject: 'Welcome to Mr English Training Academy',
+      html: `
+      <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+        <div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+          <h2 style="color: #007BFF; text-align: center;">Welcome, ${data.name}</h2>
+          <p>Dear ${data.name},</p>
+          <p>You have successfully signed up to our platform.</p>
+          <p>Email: ${data.email}</p>
+          <p>Password: ${data.password}</p>
+          <p>Mobile: ${data.number || 'N/A'}</p>
+          <p>Best Regards,</p>
+          <p>Mr English Training Academy</p>
+        </div>
+      </div>
+    `,
+    };
+
+    try {
+      await sendMail(mailOptions);
+      console.log(`Welcome email sent to ${data.email}`);
+    } catch (error) {
+      console.error(`Failed to send email to ${data.email}`, error);
+      // Do not block signup if email fails
+    }
+
+    // 5. Save user in DB
     return newUser.save();
   }
 
+  // users.service.ts
+  async registerWithPhone(phone: string, name?: string) {
+    // 1. Check if user exists
+    let user = await this.userModel.findOne({ number: phone });
+
+    // 2. If not exists → create user
+    if (!user) {
+      user = new this.userModel({
+        name: name || `User ${phone.slice(-4)}`,
+        number: phone,
+        role: 'student',
+      });
+
+      await user.save();
+    }
+
+
+    return {
+      success: true,
+      message: 'User authenticated successfully',
+      userId: user._id,
+      user: {
+        id: user._id,
+        name: user.name,
+        phone: user.number,
+        role: user.role,
+      },
+    };
+  }
+
+
   async login(email: string, password: string) {
     const user = await this.userModel.findOne({ email });
+
+    console.log("login user lookup:", user);
+
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid email');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    bcrypt.compare("test@123#", "$2a$10$IYVst4upWOhH2HhYbM4y7.BVnLQhUGXpSuu1BpuOqlHGGgb9/wBUq")
+      .then(res => console.log("test bcrypt compare result:", res));
+    console.log("ispassword", isPasswordValid, password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid password');
     }
 
     return user;
@@ -279,46 +346,52 @@ export class UsersService {
   async updateProfile(
     userId: string,
     name: string,
+    email: string,
     profilePhoto?: Express.Multer.File,
   ) {
-    try {
-      const user = await this.userModel.findById(userId);
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      let updatedData: { name: string; photoUrl?: string } = { name };
-
-      // If a new profile photo is provided
-      if (profilePhoto) {
-        // Delete old photo if it exists
-        if (user.photoUrl) {
-          const publicId = user.photoUrl.split('/').pop()?.split('.')[0]; // Extract public ID
-          if (publicId) {
-            await deleteMediaFromCloudinary(publicId);
-          }
-        }
-
-        // Upload new photo
-        const cloudResponse = await uploadMedia(profilePhoto?.buffer);
-        updatedData.photoUrl = cloudResponse.secure_url; // Update with new photo URL
-      }
-
-      // Update user in the database
-      const updatedUser = await this.userModel
-        .findByIdAndUpdate(userId, updatedData, { new: true })
-        .select('-password');
-
-      return {
-        success: true,
-        user: updatedUser,
-        message: 'Profile updated successfully.',
-      };
-    } catch (error) {
-      console.error(error);
-      throw new Error('Failed to update profile');
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
+
+    // ✅ Email uniqueness check
+    if (email && email !== user.email) {
+      const emailExists = await this.userModel.findOne({ email });
+      if (emailExists) {
+        throw new BadRequestException('Email already registered');
+      }
+    }
+
+    let updatedData: {
+      name: string;
+      email: string;
+      photoUrl?: string;
+    } = { name, email };
+
+    if (profilePhoto) {
+      if (user.photoUrl) {
+        const publicId = user.photoUrl.split('/').pop()?.split('.')[0];
+        if (publicId) {
+          await deleteMediaFromCloudinary(publicId);
+        }
+      }
+
+      const cloudResponse = await uploadMedia(profilePhoto.buffer);
+      updatedData.photoUrl = cloudResponse.secure_url;
+    }
+
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(userId, updatedData, { new: true })
+      .select('-password');
+
+    return {
+      success: true,
+      user: updatedUser,
+      message: 'Profile updated successfully.',
+    };
   }
+
+
 
   async deleteAdmin(Id: string) {
     try {
@@ -370,6 +443,37 @@ export class UsersService {
     }
   }
 
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    try {
+      const user = await this.userModel.findById(userId);
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        throw new HttpException(
+          'Current password is incorrect',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      user.password = hashedPassword;
+      await user.save();
+
+      return { success: true, message: 'Password changed successfully' };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      console.error('Error in changePassword:', error);
+      throw new HttpException('Failed to change password', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   private async sendWelcomeEmail(
     email: string,
     name: string,
@@ -382,10 +486,10 @@ export class UsersService {
     const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
-    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+    const resetLink = `${process.env.SITE_URL}/reset-password?token=${token}`;
     const mailOptions = {
-      from: 'mohsinansari4843@gmail.com',
       to: `${email}`,
+      name: name,
       subject: 'Welcome to Our Platform and Reset Your Password',
       html: `
       <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -407,13 +511,13 @@ export class UsersService {
           <p>If you did not request this, you can safely ignore this email.</p>
           <p style="margin-top: 20px;">This link will expire in 1 hour.</p>
           <p>Best Regards,</p>
-          <p>The LMS Team</p>
+          <p>Mr English Academy</p>
         </div>
       </div>
     `,
     };
     try {
-      await this.transporter.sendMail(mailOptions);
+      await sendMail(mailOptions);
       console.log(`Welcome and reset email sent to ${email}`);
     } catch (error) {
       console.error(`Failed to send welcome email to ${email}`, error);
@@ -433,10 +537,10 @@ export class UsersService {
       expiresIn: '1h',
     });
 
-    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+    const resetLink = `${process.env.SITE_URL}/reset-password?token=${token}`;
     const mailOptions = {
-      from: 'mohsinansari4843@gmail.com',
       to: email,
+      name: user.name,
       subject: 'Reset Password Request',
       html: `
         <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -452,7 +556,7 @@ export class UsersService {
             </div>
             <p style="margin-top: 20px;">This link will expire in 1 hour. If you did not request this, you can safely ignore this email.</p>
             <p>Best Regards,</p>
-            <p>The LMS Team</p>
+            <p>Mr English Academy</p>
           </div>
         </div>
       `,
@@ -460,7 +564,7 @@ export class UsersService {
 
     try {
       // Send email
-      await this.transporter.sendMail(mailOptions);
+      await sendMail(mailOptions);
       console.log(`Reset password email sent to ${email}`);
       return {
         success: true,
@@ -485,10 +589,10 @@ export class UsersService {
     const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
-    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+    const resetLink = `${process.env.SITE_URL}/reset-password?token=${token}`;
     const mailOptions = {
-      from: 'mohsinansari4843@gmail.com',
       to: `${email}`,
+      name: name,
       subject: 'Welcome to Our Platform and Reset Your Password',
       html: `
       <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -510,13 +614,13 @@ export class UsersService {
           <p>If you did not request this, you can safely ignore this email.</p>
           <p style="margin-top: 20px;">This link will expire in 1 hour.</p>
           <p>Best Regards,</p>
-          <p>The LMS Team</p>
+          <p>Mr English Academy</p>
         </div>
       </div>
     `,
     };
     try {
-      await this.transporter.sendMail(mailOptions);
+      await sendMail(mailOptions);
       console.log(`Welcome and reset email sent to ${email}`);
     } catch (error) {
       console.error(`Failed to send welcome email to ${email}`, error);
@@ -527,4 +631,64 @@ export class UsersService {
   async getUsersByCompany(companyId: string): Promise<User[]> {
     return this.userModel.find().exec();
   }
+
+  // ================= STUDENTS =================
+
+  async getStudents(page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+
+    const students = await this.userModel
+      .find({ role: 'student' })
+      .select('-password')
+      .sort({ createdAt: -1 }) // latest first
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const totalStudents = await this.userModel.countDocuments({
+      role: 'student',
+    });
+
+    return {
+      success: true,
+      students,
+      totalStudents,
+      totalPages: Math.ceil(totalStudents / limit) || 1,
+      currentPage: page,
+    };
+  }
+
+  async getStudentById(id: string) {
+    const student = await this.userModel
+      .findOne({ _id: id, role: 'student' })
+      .select('-password');
+
+    if (!student) {
+      throw new NotFoundException('Student not found');
+    }
+
+    return {
+      success: true,
+      student,
+    };
+  }
+
+  async updateStudent(id: string, updateStudentDto: any) {
+    const student = await this.userModel.findOneAndUpdate(
+      { _id: id, role: 'student' },
+      updateStudentDto,
+      { new: true },
+    ).select('-password');
+
+    if (!student) {
+      throw new NotFoundException('Student not found');
+    }
+
+    return {
+      success: true,
+      message: 'Student updated successfully',
+      student,
+    };
+  }
+
 }

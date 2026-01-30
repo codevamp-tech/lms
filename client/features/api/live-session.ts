@@ -1,6 +1,7 @@
 import { axiosInstance } from "@/lib/axios";
 
 export interface LiveSessionData {
+    link: string;
     _id?: string;
     title: string;
     description?: string;
@@ -11,6 +12,7 @@ export interface LiveSessionData {
     companyId: string;
     meetLink?: string;
     enrolledUsers?: string[];
+    imageUrl?: string;
 }
 
 export const createLiveSession = async (sessionData: LiveSessionData): Promise<LiveSessionData> => {

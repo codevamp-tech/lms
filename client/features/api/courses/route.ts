@@ -1,9 +1,8 @@
 import Course from "@/components/Course";
 import axios from "axios";
 
-const API_BASE_URL = `${
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
-}/courses`;
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"
+  }/courses`;
 
 export interface CourseData {
   courseTitle: string;
@@ -51,6 +50,33 @@ export const getCreatorCourses = async (
     return data;
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Failed to fetch courses");
+  }
+};
+
+export const getCourses = async (
+  userRole: string,
+  userId?: string,
+  page = 1,
+) => {
+  const params = new URLSearchParams({
+    userRole,
+    page: page.toString(),
+  });
+
+  if (userRole === 'instructor' && userId) {
+    params.append('userId', userId);
+  }
+
+  const res = await fetch(`${API_BASE_URL}/alladmin?${params.toString()}`);
+  return res.json();
+};
+
+export const getAnalyticsSummary = async () => {
+  try {
+    const { data } = await axios.get(`${API_BASE_URL}/summary`);
+    return data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to fetch analytics");
   }
 };
 

@@ -13,6 +13,7 @@ import Features from "@/components/features"
 import Instructors from "@/components/instructors"
 import CTASection from "@/components/cta"
 import LearningMethodology from "@/components/learning-methodology"
+import InstaReelsSection from "@/components/InstaReelsSection"
 // import SuccessMetrics from "@/components/success-metrics"
 
 export default function Home() {
@@ -29,6 +30,8 @@ export default function Home() {
       <TopPickCourse />
       
       <Categories />
+      
+      < InstaReelsSection />
       
       <LearningMethodology />
       

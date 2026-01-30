@@ -179,7 +179,7 @@ const Course: React.FC<CourseProps> = ({ course, userId }) => {
               {discountPercentage}% OFF
             </div>
           )}
-          <button
+          {/* <button
             onClick={toggleFavorite}
             disabled={isLoading}
             className="absolute top-2 left-2 p-2 rounded-full bg-white dark:bg-gray-700 shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
@@ -187,7 +187,7 @@ const Course: React.FC<CourseProps> = ({ course, userId }) => {
             <Heart
               className={`h-5 w-5 ${isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400'}`}
             />
-          </button>
+          </button> */}
         </div>
         <CardContent className="px-5 py-4 space-y-3">
           <h1 className="hover:underline font-bold text-lg truncate">

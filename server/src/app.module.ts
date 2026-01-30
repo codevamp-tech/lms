@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CoursesModule } from './courses/courses.module';
+import { EnquiryModule } from './enquiries/enquiry.module';
 import { LecturesModule } from './lectures/lectures.module';
 import { CoursePurchaseModule } from './course-purchase/course-purchase.module';
 import { CourseProgressModule } from './course-progress/course-progress.module';
@@ -23,9 +24,21 @@ import { CartController } from './cart/cart.controller';
 import { CartService } from './cart/cart.service';
 import { CartModule } from './cart/cart.module';
 import { LiveSessionModule } from './live-session/live-session.module';
-import { ConfigModule } from '@nestjs/config';
 import { RazorpayModule } from './razorpay/razorpay.module';
 import { SessionsModule } from './session/session.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
+import { ChatBuddyModule } from './chat-buddy/chat-buddy.module';
+import { NotificationsModule } from './notification/notifications.module';
+import { PaymentsModule } from './payments/payments.module';
+import { BlogModule } from './blogs/blog.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TrainersModule } from './trainers/trainers.module';
+import { CertificateModule } from './certificate/certificate.module';
+
+
 
 // Ensure uploads directory exists
 const uploadDir = './uploads';
@@ -35,10 +48,19 @@ if (!fs.existsSync(uploadDir)) {
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRoot('mongodb+srv://root:GXkg9RvCMEYOw7nY@arogyaa.l0qed.mongodb.net/lms'),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGOURI'),
+      }),
+    }),
+
+
     MulterModule.register({
       storage: multer.diskStorage({
         destination: (req, file, cb) => {
@@ -50,9 +72,9 @@ if (!fs.existsSync(uploadDir)) {
           cb(
             null,
             file.fieldname +
-              '-' +
-              uniqueSuffix +
-              path.extname(file.originalname),
+            '-' +
+            uniqueSuffix +
+            path.extname(file.originalname),
           );
         },
       }),
@@ -90,6 +112,23 @@ if (!fs.existsSync(uploadDir)) {
     CartModule,
     LiveSessionModule,
     RazorpayModule,
+    EnquiryModule,
+    ChatBuddyModule,
+    NotificationsModule,
+    PaymentsModule,
+    BlogModule,
+    TrainersModule,
+    CertificateModule,
+    ThrottlerModule.forRoot([{
+      ttl: 60, // time window in seconds
+      limit: 5, // max requests per IP within ttl
+    }])
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard, // global rate limiting
+    },
   ],
 })
-export class AppModule {}
+export class AppModule { }

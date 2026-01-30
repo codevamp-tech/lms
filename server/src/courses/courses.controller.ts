@@ -23,14 +23,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('courses')
 export class CoursesController {
-  constructor(private readonly coursesService: CoursesService) {}
+  constructor(private readonly coursesService: CoursesService) { }
 
-  @Delete(':id')
-  async deleteCourse(
-    @Param('id') courseId: string,
-  ): Promise<{ message: string }> {
-    return this.coursesService.deleteCourse(courseId);
-  }
+
 
   @Post()
   async createCourse(@Body() createCourseDto: CreateCourseDto) {
@@ -73,6 +68,43 @@ export class CoursesController {
     }
   }
 
+  @Post('enroll-student')
+  async enrollCourse(
+    @Body() body: { courseId: string; userId: string },
+  ) {
+    return this.coursesService.enrollUserInCourse(
+      body.courseId,
+      body.userId,
+    );
+  }
+
+  @Get('alladmin')
+  async findAll(
+    @Query('userRole') userRole: string,
+    @Query('userId') userId?: string | undefined,
+    @Query('page') page = 1,
+  ) {
+    const courses =
+      userRole === 'admin'
+        ? await this.coursesService.findAll()
+        : await this.coursesService.findByCreator(userId);
+
+    return {
+      courses,
+      totalPages: 1, // or calculate later
+    };
+  }
+
+
+  @Get('summary')
+  async getCourseAnalytics() {
+    try {
+      return await this.coursesService.getCourseAnalytics();
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to fetch analytics');
+    }
+  }
+
   @Patch(':courseId')
   @UseInterceptors(FileInterceptor('thumbnail')) // Intercept the 'thumbnail' file
   async editCourse(
@@ -92,6 +124,13 @@ export class CoursesController {
     };
   }
 
+  @Delete(':id')
+  async deleteCourse(
+    @Param('id') courseId: string,
+  ): Promise<{ message: string }> {
+    return this.coursesService.deleteCourse(courseId);
+  }
+
   @Get(':courseId')
   async getCourseById(@Param('courseId') courseId: string): Promise<Course> {
     try {
@@ -99,6 +138,23 @@ export class CoursesController {
       return course;
     } catch (error) {
       throw new NotFoundException(error.message);
+    }
+  }
+
+  @Get(':courseId/sales')
+  async getCourseSales(@Param('courseId') courseId: string) {
+    try {
+      const salesData = await this.coursesService.getCourseSales(courseId);
+      return {
+        success: true,
+        data: salesData,
+      };
+    } catch (error) {
+      // Handle not found separately if needed
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw error;
     }
   }
 
@@ -165,10 +221,9 @@ export class CoursesController {
     }
   }
 
-  @Get()
-  async findAll(): Promise<Course[]> {
-    return this.coursesService.findAll();
-  }
+
+
+
 
   // You can add more routes here for updating or deleting courses
 }

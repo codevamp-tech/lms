@@ -20,6 +20,7 @@ export const config = {
   matcher: [
     "/profile",
     "/my-learning",
+    "/create-blog",
     "/favorites",
     "/cart",
     "/course/course-progress/:path*",

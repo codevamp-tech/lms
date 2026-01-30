@@ -1,36 +1,31 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { LiveSession } from './schemas/live-session.schema';
 import { CreateLiveSessionDto } from './dto/create-live-session.dto';
 import { EditLiveSessionDto } from './dto/edit-live-session.dto';
 import { UsersService } from '../users/users.service';
+import { NotificationsService } from 'src/notification/notifications.service';
+import { PaymentsService } from 'src/payments/payments.service';
+import { PaymentFor, PaymentStatus } from 'src/payments/schemas/payment.schema';
+import { RAZORPAY_KEY_SECRET } from 'src/razorpay/razorpay.constants';
+import * as crypto from 'crypto';
 import * as nodemailer from 'nodemailer';
 import { google } from 'googleapis';
+import { sendMail } from '../../utils/mail';
 
 @Injectable()
 export class LiveSessionService {
-    private transporter: nodemailer.Transporter;
     private oAuth2Client: any;
 
     constructor(
         @InjectModel(LiveSession.name) private liveSessionModel: Model<LiveSession>,
-        private readonly usersService: UsersService
+        private readonly usersService: UsersService,
+        private readonly notificationsService: NotificationsService,
+        private readonly paymentsService: PaymentsService,
     ) {
         console.log('🔧 ========== CONSTRUCTOR START ==========');
         console.log('🔧 Initializing LiveSessionService...');
-
-        // Initialize nodemailer
-        console.log('📧 Setting up nodemailer...');
-        this.transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER || 'mohsinansari4843@gmail.com',
-                pass: process.env.EMAIL_PASS || 'zgyc pkar kyjc vfmm',
-            },
-        });
-        console.log('✅ Nodemailer configured with user:', process.env.EMAIL_USER || 'mohsinansari4843@gmail.com');
-
         // Initialize Google OAuth2 Client
         console.log('🔑 Setting up Google OAuth2 Client...');
         const credentials = {
@@ -64,6 +59,59 @@ export class LiveSessionService {
         }
 
         console.log('✅ ========== CONSTRUCTOR END ==========\n');
+    }
+
+    async verifyPayment(dto: {
+        razorpay_order_id: string;
+        razorpay_payment_id: string;
+        razorpay_signature: string;
+        userId: string;
+        sessionId: string;
+    }) {
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, sessionId } = dto;
+
+        const body = razorpay_order_id + '|' + razorpay_payment_id;
+        if (!RAZORPAY_KEY_SECRET) {
+            throw new BadRequestException('Razorpay key secret not configured');
+        }
+
+        const expectedSignature = crypto
+            .createHmac('sha256', RAZORPAY_KEY_SECRET)
+            .update(body.toString())
+            .digest('hex');
+
+        if (expectedSignature !== razorpay_signature) {
+            throw new BadRequestException('Invalid payment signature');
+        }
+
+        // enroll user in session
+        await this.liveSessionModel.findByIdAndUpdate(
+            sessionId,
+            { $addToSet: { enrolledUsers: new Types.ObjectId(userId) } },
+            { new: true },
+        );
+
+        // create payment record
+        try {
+            const session = await this.liveSessionModel.findById(sessionId).select('price').lean();
+            const amount = session?.price || 0;
+
+            await this.paymentsService.create({
+                userId: new Types.ObjectId(userId),
+                paymentFor: PaymentFor.LIVE_SESSION,
+                liveSessionId: new Types.ObjectId(sessionId),
+                amount: amount,
+                currency: 'INR',
+                razorpayOrderId: razorpay_order_id,
+                razorpayPaymentId: razorpay_payment_id,
+                razorpaySignature: razorpay_signature,
+                status: PaymentStatus.SUCCESS,
+            });
+        } catch (err) {
+            console.error('Failed to create payment record for live session:', err);
+        }
+
+        return { success: true };
     }
 
     getAuthUrl(): { authUrl: string } {
@@ -261,9 +309,9 @@ export class LiveSessionService {
             console.log(`\n📧 [${index + 1}/${studentUsers.length}] Preparing email for:`, student.email);
 
             const mailOptions = {
-                from: process.env.EMAIL_USER || 'mohsinansari4843@gmail.com',
                 to: student.email,
                 subject: 'Live Session Invitation',
+                name: student.name,
                 html: `
                     <!DOCTYPE html>
                     <html>
@@ -311,8 +359,23 @@ export class LiveSessionService {
 
             try {
                 console.log(`📤 Sending email to ${student.email}...`);
-                await this.transporter.sendMail(mailOptions);
+                await sendMail(mailOptions);
                 console.log(`✅ Email sent successfully to ${student.email}`);
+                try {
+                    const sid = (student as any)?._id || (student as any)?.id;
+                    if (sid) {
+                        await this.notificationsService.createNotification({
+                            userId: new Types.ObjectId(String(sid)),
+                            title: `Live Session Invitation`,
+                            body: `You have been invited to join a live session. Join here: ${meetLink}`,
+                            payload: { meetLink, companyId },
+                        });
+                    } else {
+                        console.warn('⚠ Skipping notification creation - no student id:', student);
+                    }
+                } catch (nErr) {
+                    console.error('❌ Notification creation failed for invitation:', (student as any)?._id || (student as any)?.id, nErr);
+                }
             } catch (error) {
                 console.error(`❌ Failed to send email to ${student.email}:`, error.message);
                 console.error('Full error:', error);
@@ -362,18 +425,39 @@ export class LiveSessionService {
 
     async create(createLiveSessionDto: CreateLiveSessionDto): Promise<LiveSession> {
         const createdLiveSession = new this.liveSessionModel(createLiveSessionDto);
-        return createdLiveSession.save();
-    }
+        const saved = await createdLiveSession.save();
 
+        // Notify explicitly enrolled users (if any)
+        try {
+            const enrolled = (saved.enrolledUsers || []).filter(Boolean);
+            if (enrolled.length) {
+                await Promise.all(enrolled.map(async (uid: any) => {
+                    try {
+                        await this.notificationsService.createNotification({
+                            userId: new Types.ObjectId(uid),
+                            title: `New Live Session: ${saved.title}`,
+                            body: `A live session is scheduled on ${new Date(saved.date).toLocaleString()}`,
+                            payload: { sessionId: saved._id },
+                        });
+                    } catch (nErr) {
+                        console.error('❌ Failed to create notification for enrolled user', uid, nErr);
+                    }
+                }));
+            }
+        } catch (err) {
+            console.error('❌ Error creating live session notifications:', err);
+        }
+
+        return saved;
+    }
 
     async findAll(): Promise<LiveSession[]> {
         return this.liveSessionModel.find().exec();
     }
 
-
     async getEnrolledSessions(userId: string) {
-  return this.liveSessionModel.find({ students: userId }).populate('instructor');
-}
+        return this.liveSessionModel.find({ students: userId }).populate('instructor');
+    }
 
     async findOne(id: string): Promise<LiveSession | null> {
         return this.liveSessionModel.findById(id).exec();
@@ -390,8 +474,132 @@ export class LiveSessionService {
     async enroll(sessionId: string, studentId: string): Promise<LiveSession | null> {
         return this.liveSessionModel.findByIdAndUpdate(
             sessionId,
-            { $addToSet: { enrolledUsers: studentId } },
+            { $addToSet: { enrolledUsers: new Types.ObjectId(studentId) } }, // ✅ Ensure ObjectId
             { new: true }
         ).exec();
     }
+
+    async updateStatusForLive(now: Date) {
+        return this.liveSessionModel.updateMany(
+            { date: { $lte: now }, status: "upcoming" },
+            { status: "live" }
+        );
+    }
+
+    async updateStatusForCompleted(now: Date) {
+        return this.liveSessionModel.updateMany(
+            { endDate: { $lte: now }, status: "live" },
+            { status: "completed" }
+        );
+    }
+
+    // Get sessions starting in 30 mins that haven't received reminders
+    async getSessionsStartingAt(dateTime: Date) {
+        const sessions = await this.liveSessionModel.find({
+            date: {
+                $gte: new Date(dateTime.getTime() - 60000),
+                $lte: new Date(dateTime.getTime() + 60000),
+            },
+            status: 'upcoming',
+            isReminderSent: false,
+        })
+            .populate({
+                path: 'enrolledUsers',
+                select: 'name email',
+                model: 'User', // <-- Explicitly specify the model name
+            })
+            .exec();
+
+        // Debug log to see if populate worked
+        console.log('Session with populated users:', JSON.stringify(sessions, null, 2));
+
+        return sessions;
+    }
+    // Send email reminders to all enrolled students
+    async sendReminderEmails(session: any) {
+
+        if (!session.enrolledUsers?.length) {
+            console.warn("⚠ No enrolled users found for session:", session._id);
+            return;
+        }
+
+        const emailPromises = session.enrolledUsers.map(async (student: any) => {
+            if (!student?.email) {
+                console.warn(`⚠ Student missing email: ${student._id || student}`);
+                return;
+            }
+
+            const mailOptions = {
+                to: student.email,
+                name: student.name,
+                subject: `Reminder: Your Live Class Starts in 30 Minutes`,
+                html: `
+        <p>Hello ${student.name},</p>
+        <p>Your live session <strong>${session.title}</strong> will start in <strong>30 minutes</strong>.</p>
+        <p><strong>Join Link:</strong> <a href="${session.link}">${session.link}</a></p>
+        <p><strong>Start Time:</strong> ${new Date(session.date).toLocaleString()}</p>
+        <p>See you there!</p>
+      `,
+            };
+
+            try {
+                await sendMail(mailOptions);
+                console.log(`✔ Email sent: ${student.email}`);
+                try {
+                    const sid = (student as any)?._id || (student as any)?.id;
+                    if (sid) {
+                        console.log(`✔ Creating notification for reminder: ${sid}`);
+                        await this.notificationsService.createNotification({
+                            userId: new Types.ObjectId(String(sid)),
+                            title: `Reminder: ${session.title}`,
+                            body: `Your live session starts at ${new Date(session.date).toLocaleString()}. Join: ${session.link}`,
+                            payload: { sessionId: session._id },
+                        });
+
+                        console.log(`✔ Notification created for reminder: ${sid}`);
+                    } else {
+                        console.warn('⚠ Skipping reminder notification - no student id:', student);
+                    }
+                } catch (nErr) {
+                    console.error('❌ Notification creation failed for reminder:', (student as any)?._id || (student as any)?.id, nErr);
+                }
+            } catch (err) {
+                console.error(`❌ Error sending email to ${student.email}:`, err);
+            }
+        });
+
+        await Promise.all(emailPromises);
+
+        await this.liveSessionModel.findByIdAndUpdate(session._id, {
+            isReminderSent: true,
+        });
+
+    }
+
+    async getEnrolledStudentsBySession(sessionId: string) {
+        if (!Types.ObjectId.isValid(sessionId)) {
+            throw new Error('Invalid sessionId');
+        }
+
+        const session = await this.liveSessionModel
+            .findById(sessionId)
+            .populate({
+                path: 'enrolledUsers',
+                select: 'name email',
+                model: 'User',
+            })
+            .select('title enrolledUsers')
+            .exec();
+
+        if (!session) {
+            throw new Error('Session not found');
+        }
+
+        return {
+            sessionId: session._id,
+            title: session.title,
+            students: session.enrolledUsers,
+        };
+    }
+
 }

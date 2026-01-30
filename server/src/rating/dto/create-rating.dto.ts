@@ -1,4 +1,3 @@
-// create-rating.dto.ts
 import {
   IsNotEmpty,
   IsInt,
@@ -6,12 +5,16 @@ import {
   Max,
   IsString,
   IsOptional,
-} from 'class-validator';
+} from "class-validator";
 
 export class CreateRatingDto {
-  @IsNotEmpty()
   @IsString()
-  courseId: string;
+  @IsNotEmpty()
+  userId: string;   // frontend sends this → required
+
+  @IsString()
+  @IsOptional()
+  courseId: string; // controller injects
 
   @IsNotEmpty()
   @IsInt()

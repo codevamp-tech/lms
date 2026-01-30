@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsDate, IsOptional, IsNumber } from 'class-validator';
+import { IsString, IsNotEmpty, IsDate, IsOptional, IsNumber, IsUrl } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateLiveSessionDto {
@@ -27,4 +27,12 @@ export class CreateLiveSessionDto {
 
     @IsNumber()
     readonly price: number;
+
+    @IsString()
+    @IsOptional()
+    readonly imageUrl?: string;
+
+    @IsUrl()
+    @IsNotEmpty()
+    readonly link: string;
 }

@@ -42,7 +42,12 @@ const LiveSession = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {sessions?.map((session: LiveSessionData) => (
-                        <Card key={session._id} className="shadow-md hover:shadow-lg transition-all">
+                        <Card key={session._id} className="shadow-md hover:shadow-lg transition-all overflow-hidden">
+                            {session.imageUrl && (
+                                <div className="w-full h-48 overflow-hidden bg-gray-100">
+                                    <img src={session.imageUrl} alt={session.title} className="w-full h-full object-cover" />
+                                </div>
+                            )}
                             <CardHeader>
                                 <CardTitle className="text-lg font-bold break-words">
                                     {session.title}
@@ -62,6 +67,9 @@ const LiveSession = () => {
                                 <p>
                                     <strong>Instructor:</strong> {session.instructor}
                                 </p>
+                                {/* <p>
+                                    <strong>Link:</strong> {session.link}
+                                </p> */}
 
                                 <div className="flex flex-wrap gap-2 mt-4">
                                     <LiveSessionForm session={session} />
@@ -75,7 +83,7 @@ const LiveSession = () => {
                                     </Button>
 
                                     <a
-                                        href={session.meetLink}
+                                        href={session.link}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="inline-block"

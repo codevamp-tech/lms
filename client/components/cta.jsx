@@ -63,7 +63,7 @@ export default function CTASection() {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 text-balance"
           >
-            Join 15,000+ English Learners Worldwide
+            Join 10,000+ English Learners Worldwide
           </motion.h2>
           
           <motion.p
@@ -92,7 +92,7 @@ export default function CTASection() {
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Link href="/courses">
+            {/* <Link href="/courses">
               <Button 
                 size="lg" 
                 variant="outline" 
@@ -100,7 +100,7 @@ export default function CTASection() {
               >
                 View Free Lessons
               </Button>
-            </Link>
+            </Link> */}
           </motion.div>
 
           <motion.p
