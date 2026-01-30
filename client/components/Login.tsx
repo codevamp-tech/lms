@@ -25,7 +25,7 @@ const Login = () => {
   const router = useRouter();
 
   // Auth method toggle
-  const [authMethod, setAuthMethod] = useState<"email" | "phone">("phone");
+  const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
 
   // OTP Flow States
   const [otpStep, setOtpStep] = useState<"phone" | "otp">("phone");
@@ -223,7 +223,7 @@ const Login = () => {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-3">
+              {/* <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15">
                   <Phone className="h-4 w-4 text-accent" />
                 </div>
@@ -233,7 +233,7 @@ const Login = () => {
                     Sign in instantly with your phone number via SMS OTP.
                   </p>
                 </div>
-              </div>
+              </div> */}
 
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15">
@@ -299,7 +299,7 @@ const Login = () => {
                 </CardHeader>
 
                 {/* Auth Method Toggle */}
-                <div className="flex gap-2 mb-4">
+                {/* <div className="flex gap-2 mb-4">
                   <Button
                     variant={authMethod === "phone" ? "default" : "outline"}
                     size="sm"
@@ -318,11 +318,11 @@ const Login = () => {
                     <Mail className="h-4 w-4 mr-2" />
                     Email
                   </Button>
-                </div>
+                </div> */}
 
                 <CardContent className="space-y-4 px-0">
                   {/* Phone OTP Login */}
-                  {authMethod === "phone" && (
+                  {/* {authMethod === "phone" && (
                     <>
                       {otpStep === "phone" ? (
                         // Step 1: Enter Phone Number
@@ -410,7 +410,7 @@ const Login = () => {
                         </div>
                       )}
                     </>
-                  )}
+                  )} */}
 
                   {/* Email Login */}
                   {authMethod === "email" && (

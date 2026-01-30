@@ -31,7 +31,7 @@ export default function LoginModal({
   const [tab, setTab] = useState(defaultTab);
 
   // Auth method toggle
-  const [authMethod, setAuthMethod] = useState<"email" | "phone">("phone");
+  const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
 
   // OTP Flow States
   const [otpStep, setOtpStep] = useState<"phone" | "otp">("phone");
@@ -209,7 +209,7 @@ export default function LoginModal({
           {/* LOGIN */}
           <TabsContent value="login">
             {/* Auth Method Toggle */}
-            <div className="flex gap-2 mb-4">
+            {/* <div className="flex gap-2 mb-4">
               <Button
                 variant={authMethod === "phone" ? "default" : "outline"}
                 size="sm"
@@ -228,11 +228,11 @@ export default function LoginModal({
                 <Mail className="h-4 w-4 mr-2" />
                 Email
               </Button>
-            </div>
+            </div> */}
 
             <div className="space-y-4">
               {/* Phone OTP Login */}
-              {authMethod === "phone" && (
+              {/* {authMethod === "phone" && (
                 <>
                   {otpStep === "phone" ? (
                     <>
@@ -312,7 +312,7 @@ export default function LoginModal({
                     </>
                   )}
                 </>
-              )}
+              )} */}
 
               {/* Email Login */}
               {authMethod === "email" && (
