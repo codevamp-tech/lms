@@ -64,12 +64,19 @@ export class CoursePurchaseService {
     let isExpired = false;
     let isRevoked = false;
 
+    // Check global course expiry
+    if (course['courseExpiryDate'] && new Date() > new Date(course['courseExpiryDate'])) {
+      isExpired = true;
+    }
+
     if (purchaseRecord && purchaseRecord.status === 'completed') {
       isRevoked = purchaseRecord.isRevoked === true;
       if (purchaseRecord.expiryDate) {
-        isExpired = new Date() > new Date(purchaseRecord.expiryDate);
+        const purchaseExpired = new Date() > new Date(purchaseRecord.expiryDate);
+        isExpired = isExpired || purchaseExpired;
       }
-      purchased = !isRevoked && !isExpired;
+
+      purchased = true; // Mark as purchased regardless of expiry so frontend can show "Expired" message
     }
 
     return {

@@ -483,22 +483,28 @@ const CourseDetail = () => {
                     </Button>
                   ) : (
                     <>
-                      {(isExpired || isRevoked) && purchased && (
+                      {/* Show expiry message if purchased but expired/revoked OR if the course itself is globally expired */}
+                      {(isExpired || isRevoked) && (
                         <p className="text-sm text-destructive text-center mb-2">
-                          {isRevoked ? "Your access has been revoked Please Contact Us." : "Your course access has expired Please Contact Us."}
+                          {isRevoked
+                            ? "Your access has been revoked."
+                            : isExpired
+                              ? "Course has expired."
+                              : null
+                          }
                         </p>
                       )}
-                      {(!isExpired && !isRevoked) && purchased && (
-                        <Button
-                          size="lg"
-                          variant="outline"
-                          onClick={handleBuyCourse}
-                          className="w-full"
-                        >
-                          Buy Now
-                        </Button>
-                      )}
 
+                      {/* Disable buy button if expired/revoked (whether purchased or global course expiry) */}
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        onClick={handleBuyCourse}
+                        disabled={isExpired || isRevoked}
+                        className="w-full"
+                      >
+                        {purchased ? "Buy Again (Expired)" : "Buy Now"}
+                      </Button>
                     </>
                   )}
                 </CardFooter>

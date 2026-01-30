@@ -37,6 +37,7 @@ const CourseTab = () => {
     courseMRP: "",
     companyId: "",
     is_3_month_validity: false,
+    courseExpiryDate: "",
   });
 
   const [thumbnail, setThumbnail] = useState<File | null>(null);
@@ -61,6 +62,7 @@ const CourseTab = () => {
         courseMRP: course.courseMRP || "",
         companyId: course.companyId || companyId || "",
         is_3_month_validity: course.is_3_month_validity || false,
+        courseExpiryDate: course.courseExpiryDate || "",
       });
       setPreviewThumbnail(course.courseThumbnail || "");
       refetch();
@@ -211,6 +213,17 @@ const CourseTab = () => {
               onCheckedChange={(checked) => setInput(prev => ({ ...prev, is_3_month_validity: checked }))}
             />
             <Label htmlFor="validity-mode">3 Month Validity</Label>
+          </div>
+          <div>
+            <Label htmlFor="courseExpiryDate">Course Expiry Date</Label>
+            <Input
+              id="courseExpiryDate"
+              type="date"
+              name="courseExpiryDate"
+              value={input.courseExpiryDate ? new Date(input.courseExpiryDate).toISOString().split('T')[0] : ''}
+              onChange={changeEventHandler}
+              className="w-fit"
+            />
           </div>
           <div>
             <Label htmlFor="courseThumbnail">Course Thumbnail</Label>

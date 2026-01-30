@@ -60,6 +60,9 @@ export class Course extends Document {
 
   @Prop({ default: false })
   is_3_month_validity: boolean;
+
+  @Prop({ type: Date })
+  courseExpiryDate: Date;
 }
 
 export const CourseSchema = SchemaFactory.createForClass(Course);
