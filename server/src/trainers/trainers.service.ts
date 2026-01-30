@@ -85,6 +85,24 @@ export class TrainersService {
         }
     }
 
+    async findActive() {
+        try {
+            const trainers = await this.trainerModel
+                .find({ isActive: true })
+                .populate('companyId')
+                .sort({ createdAt: -1 })
+                .lean();
+
+            return {
+                success: true,
+                trainers,
+            };
+        } catch (error) {
+            console.error('Error fetching active trainers:', error);
+            throw new Error('Failed to fetch active trainers');
+        }
+    }
+
     async findOne(id: string) {
         try {
             const trainer = await this.trainerModel

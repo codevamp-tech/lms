@@ -36,6 +36,7 @@ const CourseTab = () => {
     coursePrice: "",
     courseMRP: "",
     companyId: "",
+    is_3_month_validity: false,
   });
 
   const [thumbnail, setThumbnail] = useState<File | null>(null);
@@ -59,6 +60,7 @@ const CourseTab = () => {
         coursePrice: course.coursePrice || "",
         courseMRP: course.courseMRP || "",
         companyId: course.companyId || companyId || "",
+        is_3_month_validity: course.is_3_month_validity || false,
       });
       setPreviewThumbnail(course.courseThumbnail || "");
       refetch();
@@ -194,12 +196,21 @@ const CourseTab = () => {
               <Label htmlFor="courseMRP">Price (INR)</Label>
               <Input id="courseMRP" type="number" name="courseMRP" value={input.courseMRP} onChange={changeEventHandler} placeholder="599" className="w-fit" />
             </div>
-            <div className="flex flex-col space-y-2">
+            {/* <div className="flex flex-col space-y-2">
               <div className="flex items-center mt-2 space-x-2 bg-slate-50 p-3 rounded-lg">
                 <span className="text-sm font-medium">{course?.isPrivate ? 'Private Course' : 'Public Course'}</span>
                 <Switch checked={course?.isPrivate} onCheckedChange={privateCourseHandler} className="data-[state=checked]:bg-blue-600" />
               </div>
-            </div>
+            </div> */}
+          </div>
+
+          <div className="flex items-center space-x-2 mt-4">
+            <Switch
+              id="validity-mode"
+              checked={input.is_3_month_validity}
+              onCheckedChange={(checked) => setInput(prev => ({ ...prev, is_3_month_validity: checked }))}
+            />
+            <Label htmlFor="validity-mode">3 Month Validity</Label>
           </div>
           <div>
             <Label htmlFor="courseThumbnail">Course Thumbnail</Label>
@@ -212,7 +223,7 @@ const CourseTab = () => {
           </div>
         </div>
       </CardContent>
-    </Card>
+    </Card >
   );
 };
 

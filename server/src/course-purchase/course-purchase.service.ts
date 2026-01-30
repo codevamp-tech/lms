@@ -18,6 +18,8 @@ import { Lecture } from 'src/lectures/schemas/lecture.schema';
 import { RazorpayService } from 'src/razorpay/razorpay.service';
 import { PaymentsService } from 'src/payments/payments.service';
 import { PaymentFor, PaymentStatus } from 'src/payments/schemas/payment.schema';
+import { Fast2SmsService } from 'src/messaging/fast2sms.service';
+import { WatiService } from 'src/messaging/wati.service';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -31,6 +33,8 @@ export class CoursePurchaseService {
     private readonly razorpayService: RazorpayService,
     private readonly notificationsService: NotificationsService,
     private readonly paymentsService: PaymentsService,
+    private readonly fast2SmsService: Fast2SmsService,
+    private readonly watiService: WatiService,
   ) { }
 
   async getCourseDetailWithPurchaseStatus(
@@ -156,10 +160,18 @@ export class CoursePurchaseService {
     const valid = await this.verifyPaymentSignature(dto);
     if (!valid) throw new BadRequestException("Invalid payment");
 
-    // Calculate expiry date (3 months from now)
+    // 🔥 GET COURSE DETAILS
+    const course = await this.courseModel.findById(courseId);
+    if (!course) throw new BadRequestException("Course not found");
+
+    // Calculate expiry date (3 months from now) IF the course has validity enabled
     const purchaseDate = new Date();
-    const expiryDate = new Date();
-    expiryDate.setMonth(expiryDate.getMonth() + 3);
+    let expiryDate = null;
+
+    if (course.is_3_month_validity) {
+      expiryDate = new Date();
+      expiryDate.setMonth(expiryDate.getMonth() + 3);
+    }
 
     const updatedPurchase = await this.coursePurchaseModel.findOneAndUpdate(
       { orderId: razorpay_order_id },
@@ -190,10 +202,6 @@ export class CoursePurchaseService {
     // 🔥 GET USER DETAILS
     const user = await this.userModel.findById(userId);
     if (!user) throw new BadRequestException("User not found");
-
-    // 🔥 GET COURSE DETAILS
-    const course = await this.courseModel.findById(courseId);
-    if (!course) throw new BadRequestException("Course not found");
 
     // create a Payment record for this successful course purchase
     try {
@@ -248,6 +256,36 @@ export class CoursePurchaseService {
         });
       } catch (nErr) {
         console.error('❌ Notification creation failed:', nErr);
+      }
+
+      // 🔥 Send SMS notification
+      console.log('\n📱 ========== SMS NOTIFICATION DEBUG (COURSE) ==========');
+      console.log('📱 User ID:', userId);
+      console.log('📱 User phone number (number field):', (user as any).number || 'NOT SET');
+      console.log('📱 Course:', course.subTitle || course.courseTitle);
+      try {
+        if ((user as any).number) {
+          console.log('📱 Attempting to send SMS to:', (user as any).number);
+          const smsMessage = `🎉 Course Purchased! You have successfully enrolled in ${course.subTitle || course.courseTitle}. Payment ID: ${razorpay_payment_id}. Thank you for choosing Mr English Training Academy!`;
+          const smsResult = await this.fast2SmsService.sendSms((user as any).number, smsMessage);
+          console.log('📱 SMS result:', smsResult);
+
+          // 🔥 Send WhatsApp notification via WATI (COMMENTED - Using SMSBits only)
+          // console.log('📱 Attempting to send WhatsApp to:', (user as any).number);
+          // const waResult = await this.watiService.sendCoursePurchaseNotification(
+          //   (user as any).number,
+          //   course.subTitle || course.courseTitle,
+          //   razorpay_payment_id,
+          // );
+          // console.log('📱 WhatsApp result:', waResult);
+          console.log('📱 ========== END NOTIFICATION DEBUG ==========\n');
+        } else {
+          console.log('⚠️ User has no phone number - skipping SMS/WhatsApp notification');
+          console.log('📱 ========== END NOTIFICATION DEBUG ==========\n');
+        }
+      } catch (notifErr) {
+        console.error('❌ SMS/WhatsApp notification failed:', notifErr);
+        console.log('📱 ========== END NOTIFICATION DEBUG (ERROR) ==========\n');
       }
     } catch (emailError) {
       console.error("❌ Email sending failed:", emailError);

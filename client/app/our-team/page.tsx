@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { getInitials } from "../../lib/utils";
 
 export default function OurTeam() {
     const router = useRouter();
@@ -14,7 +15,7 @@ export default function OurTeam() {
     useEffect(() => {
         const fetchInstructors = async () => {
             try {
-                const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trainers`);
+                const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trainers/active`);
                 if (response.data.success) {
                     setInstructors(response.data.trainers);
                 }
@@ -62,11 +63,17 @@ export default function OurTeam() {
                             <div key={inst._id || inst.email} className="text-center">
                                 <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-full overflow-hidden bg-gray-100">
                                     {/* replace with next/image paths in production if using internal images */}
-                                    <img
-                                        src={inst.photoUrl || "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Aafreen-Nissar.png"} // Fallback image
-                                        alt={inst.name}
-                                        className="w-full h-full object-cover"
-                                    />
+                                    {inst.photoUrl ? (
+                                        <img
+                                            src={inst.photoUrl}
+                                            alt={inst.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 text-2xl font-bold">
+                                            {getInitials(inst.name)}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="mt-2 text-xs sm:text-sm lg:text-base text-gray-800 font-medium">{inst.name}</div>
                                 <div className="text-xs sm:text-sm text-gray-600 line-clamp-2">{inst.expertise}</div>

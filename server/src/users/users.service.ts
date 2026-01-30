@@ -80,27 +80,44 @@ export class UsersService {
 
   // users.service.ts
   async registerWithPhone(phone: string, name?: string) {
-    // 1. Check if user exists
-    let user = await this.userModel.findOne({ number: phone });
+    // Normalize phone number (same as findOrCreateByPhone)
+    const normalizedPhone = phone.replace(/[\s+\-]/g, '');
+    const phoneWithoutCountry = normalizedPhone.startsWith('91')
+      ? normalizedPhone.slice(2)
+      : normalizedPhone;
 
-    // 2. If not exists → create user
+    // Check if user exists with various phone formats
+    let user = await this.userModel.findOne({
+      $or: [
+        { number: phone },
+        { number: normalizedPhone },
+        { number: phoneWithoutCountry },
+        { number: `91${phoneWithoutCountry}` },
+        { number: `+91${phoneWithoutCountry}` },
+      ]
+    });
+
+    // If not exists → create user
     if (!user) {
       user = new this.userModel({
-        name: name || `User ${phone.slice(-4)}`,
-        number: phone,
+        name: name || `User ${phoneWithoutCountry.slice(-4)}`,
+        number: phoneWithoutCountry, // Store normalized format
         role: 'student',
       });
 
       await user.save();
     }
 
+    // Generate token for auto-login
+    const token = await this.generateToken(user);
 
     return {
       success: true,
       message: 'User authenticated successfully',
       userId: user._id,
+      token, // Include token for auto-login
       user: {
-        id: user._id,
+        _id: user._id,
         name: user.name,
         phone: user.number,
         role: user.role,
@@ -108,6 +125,87 @@ export class UsersService {
     };
   }
 
+  /**
+   * Find or create a user by phone number (for OTP flow)
+   */
+  async findOrCreateByPhone(phone: string, name?: string) {
+    // Normalize phone number
+    const normalizedPhone = phone.replace(/[\s+\-]/g, '');
+    const phoneWithoutCountry = normalizedPhone.startsWith('91')
+      ? normalizedPhone.slice(2)
+      : normalizedPhone;
+
+    // Check if user exists with this phone
+    let user = await this.userModel.findOne({
+      $or: [
+        { number: phone },
+        { number: normalizedPhone },
+        { number: phoneWithoutCountry },
+        { number: `91${phoneWithoutCountry}` },
+        { number: `+91${phoneWithoutCountry}` },
+      ]
+    });
+
+    // If not exists, create new user
+    if (!user) {
+      user = new this.userModel({
+        name: name || `User ${phoneWithoutCountry.slice(-4)}`,
+        number: phoneWithoutCountry,
+        role: 'student',
+        isPhoneVerified: false,
+      });
+      await user.save();
+    }
+
+    return user;
+  }
+
+  /**
+   * Login user with phone (after OTP verification)
+   */
+  async loginWithPhone(phone: string) {
+    // Normalize phone number
+    const normalizedPhone = phone.replace(/[\s+\-]/g, '');
+    const phoneWithoutCountry = normalizedPhone.startsWith('91')
+      ? normalizedPhone.slice(2)
+      : normalizedPhone;
+
+    // Find user by phone
+    const user = await this.userModel.findOne({
+      $or: [
+        { number: phone },
+        { number: normalizedPhone },
+        { number: phoneWithoutCountry },
+        { number: `91${phoneWithoutCountry}` },
+        { number: `+91${phoneWithoutCountry}` },
+      ]
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found with this phone number');
+    }
+
+    // Mark phone as verified
+    user.isPhoneVerified = true;
+    await user.save();
+
+    // Generate token
+    const token = await this.generateToken(user);
+
+    return {
+      success: true,
+      message: 'Login successful',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.number,
+        role: user.role,
+        companyId: user.companyId,
+      },
+      token,
+    };
+  }
 
   async login(email: string, password: string) {
     const user = await this.userModel.findOne({ email });
@@ -390,8 +488,6 @@ export class UsersService {
       message: 'Profile updated successfully.',
     };
   }
-
-
 
   async deleteAdmin(Id: string) {
     try {

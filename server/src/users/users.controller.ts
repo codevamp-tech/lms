@@ -30,10 +30,16 @@ import { CreateAdminDto } from './dto/create-admin';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateStudentDto } from './dto/update-student';
 import { RegisterWithPhoneDto } from './dto/register-with-phone.dto';
+import { SendOtpDto } from './dto/send-otp.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { Fast2SmsService } from '../messaging/fast2sms.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) { }
+  constructor(
+    private usersService: UsersService,
+    private fast2SmsService: Fast2SmsService,
+  ) { }
 
   @Post('signup')
   async signup(
@@ -112,7 +118,71 @@ export class UsersController {
     }
   }
 
+  // ================================
+  // OTP Authentication Endpoints
+  // ================================
 
+  @Post('send-otp')
+  async sendOtp(@Body() sendOtpDto: SendOtpDto) {
+    try {
+      // Send OTP via SMS Bits
+      const result = await this.fast2SmsService.sendOtp(
+        sendOtpDto.phone,
+      );
+
+      // Create or find user by phone
+      await this.usersService.findOrCreateByPhone(
+        sendOtpDto.phone,
+        sendOtpDto.name,
+      );
+
+      return {
+        success: true,
+        message: result.message,
+        requestId: result.requestId,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Failed to send OTP',
+        error.status || HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Post('verify-otp')
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    try {
+      // Verify OTP with SMS Bits
+      await this.fast2SmsService.verifyOtp(verifyOtpDto.phone, verifyOtpDto.otp);
+
+      // Get user and generate token
+      const result = await this.usersService.loginWithPhone(verifyOtpDto.phone);
+
+      return result;
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'OTP verification failed',
+        error.status || HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Post('resend-otp')
+  async resendOtp(
+    @Body() body: { phone: string; retryType?: 'text' | 'voice' },
+  ) {
+    try {
+      const result = await this.fast2SmsService.resendOtp(
+        body.phone,
+      );
+      return result;
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Failed to resend OTP',
+        error.status || HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
 
   @Get('students')
   async getStudents(

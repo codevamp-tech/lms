@@ -3,6 +3,7 @@ import { motion } from "framer-motion"
 import { Star, Award, Users } from "lucide-react"
 import { useEffect, useState } from "react"
 import axios from "axios"
+import { getInitials } from "../lib/utils"
 
 export default function Instructors() {
   const [instructors, setInstructors] = useState([]);
@@ -11,7 +12,7 @@ export default function Instructors() {
   useEffect(() => {
     const fetchInstructors = async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trainers`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/trainers/active`);
         if (response.data.success) {
           setInstructors(response.data.trainers);
         }
@@ -71,11 +72,17 @@ export default function Instructors() {
 
               <div className="relative text-center">
                 <div className="mb-6 relative inline-block">
-                  <img
-                    src={ins.photoUrl || "/placeholder.svg"}
-                    alt={ins.name}
-                    className="mx-auto h-32 w-32 rounded-full object-cover ring-4 ring-primary/20 group-hover:ring-primary/40 transition-all shadow-xl"
-                  />
+                  {ins.photoUrl ? (
+                    <img
+                      src={ins.photoUrl}
+                      alt={ins.name}
+                      className="mx-auto h-32 w-32 rounded-full object-cover ring-4 ring-primary/20 group-hover:ring-primary/40 transition-all shadow-xl"
+                    />
+                  ) : (
+                    <div className="mx-auto h-32 w-32 rounded-full flex items-center justify-center bg-primary/10 text-primary text-3xl font-bold ring-4 ring-primary/20 group-hover:ring-primary/40 transition-all shadow-xl">
+                      {getInitials(ins.name)}
+                    </div>
+                  )}
                   <div className="absolute -bottom-2 -right-2 bg-primary text-white rounded-full p-2 shadow-lg">
                     <Award className="w-5 h-5" />
                   </div>

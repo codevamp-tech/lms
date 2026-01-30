@@ -15,7 +15,7 @@ export class Course extends Document {
   @Prop()
   description: string;
 
-  @Prop({ required: true })
+  @Prop()
   category: string;
 
   @Prop({
@@ -57,6 +57,9 @@ export class Course extends Document {
 
   @Prop({ default: false })
   isPrivate: boolean;
+
+  @Prop({ default: false })
+  is_3_month_validity: boolean;
 }
 
 export const CourseSchema = SchemaFactory.createForClass(Course);

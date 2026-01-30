@@ -3,7 +3,7 @@
 import type React from "react"
 import Image from "next/image";
 
-import { loginUser, signupUser } from "@/features/api/users/route";
+import { loginUser, signupUser, sendOtp, verifyOtp, resendOtp } from "@/features/api/users/route";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,15 +14,27 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock, User, BookOpen } from "lucide-react";
-import { useState } from "react";
+import { Mail, Lock, User, BookOpen, Phone, ArrowLeft, MessageSquare } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
-import { number } from "framer-motion";
 
 const Login = () => {
+  const router = useRouter();
+
+  // Auth method toggle
+  const [authMethod, setAuthMethod] = useState<"email" | "phone">("phone");
+
+  // OTP Flow States
+  const [otpStep, setOtpStep] = useState<"phone" | "otp">("phone");
+  const [phoneInput, setPhoneInput] = useState("");
+  const [otpInput, setOtpInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  // Email/Password States
   const [signupInput, setSignupInput] = useState({
     name: "",
     email: "",
@@ -31,9 +43,14 @@ const Login = () => {
     number: "",
   });
   const [loginInput, setLoginInput] = useState({ email: "", password: "" });
-  const router = useRouter()
-  const [signupError, setSignupError] = useState<string | null>(null);
 
+  // Countdown timer for OTP resend
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
 
   const changeInputHandler = (e: React.ChangeEvent<HTMLInputElement>, type: "signup" | "login") => {
     const { name, value } = e.target;
@@ -44,62 +61,132 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = async (type: "signup" | "login") => {
-    console.log('type', type);
-    if (type === "signup") {
-      try {
-        await signupUser(signupInput);
-        setSignupInput({ name: "", email: "", password: "", role: "student", number: "" });
-
-        toast.success("Signup successful! You can now log in.");
-      } catch (error: any) {
-        if (error.response?.data?.message === 'Email already in use') {
-          toast.error("Email is already registered. Please try a different email.");
-        } else {
-          toast.error("Email is already registered.Please try a different email.");
-        }
-      }
-    } else {
-      try {
-        const response = await loginUser(loginInput);
-        setLoginInput({ email: "", password: "" });
-
-        if (response?.user) {
-          const { _id, companyId, role, name } = response.user;
-
-          if (companyId) {
-            localStorage.setItem("companyId", String(companyId));
-          }
-          if (_id) {
-            localStorage.setItem("userId", String(_id));
-          }
-          if (role) {
-            localStorage.setItem("userRole", role);
-          }
-          if (name) {
-            localStorage.setItem("userName", name);
-          }
-        }
-
-        toast.success("Login successful!");
-
-        if (response?.user?.role === "instructor") {
-          router.push("/admin/courses");
-        } else if (response?.user?.role === "student") {
-          router.push("/");
-        } else if (response?.user?.role === "admin") {
-          router.push("/admin/add-instructor");
-        } else if (response?.user?.role === "superadmin") {
-          router.push("/admin/company");
-        } else {
-          toast.error("Unsupported role detected. Please contact support.");
-        }
-      } catch (error) {
-        console.error("Login error:", error);
-        toast.error("Login failed. Please check your credentials.");
-
-      }
+  // Send OTP Handler
+  const handleSendOtp = async () => {
+    if (!phoneInput || phoneInput.length < 10) {
+      toast.error("Please enter a valid phone number");
+      return;
     }
+
+    setIsLoading(true);
+    try {
+      await sendOtp(phoneInput, "sms");
+      toast.success("OTP sent successfully!");
+      setOtpStep("otp");
+      setCountdown(30); // 30 seconds cooldown
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send OTP");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Verify OTP Handler
+  const handleVerifyOtp = async () => {
+    if (!otpInput || otpInput.length !== 6) {
+      toast.error("Please enter a valid 6-digit OTP");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await verifyOtp(phoneInput, otpInput);
+
+      if (response?.user) {
+        const { _id, companyId, role, name, phone } = response.user;
+
+        if (companyId) localStorage.setItem("companyId", String(companyId));
+        if (_id) localStorage.setItem("userId", String(_id));
+        if (role) localStorage.setItem("userRole", role);
+        if (name) localStorage.setItem("userName", name);
+      }
+
+      toast.success("Login successful!");
+
+      // Navigate based on role
+      if (response?.user?.role === "instructor") {
+        router.push("/admin/courses");
+      } else if (response?.user?.role === "student") {
+        router.push("/");
+      } else if (response?.user?.role === "admin") {
+        router.push("/admin/add-instructor");
+      } else if (response?.user?.role === "superadmin") {
+        router.push("/admin/company");
+      } else {
+        router.push("/");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Invalid OTP");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Resend OTP Handler
+  const handleResendOtp = async () => {
+    if (countdown > 0) return;
+
+    setIsLoading(true);
+    try {
+      await resendOtp(phoneInput, "text");
+      toast.success("OTP resent successfully!");
+      setCountdown(30);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to resend OTP");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Email/Password Login Handler
+  const handleEmailLogin = async () => {
+    try {
+      const response = await loginUser(loginInput);
+      setLoginInput({ email: "", password: "" });
+
+      if (response?.user) {
+        const { _id, companyId, role, name } = response.user;
+
+        if (companyId) localStorage.setItem("companyId", String(companyId));
+        if (_id) localStorage.setItem("userId", String(_id));
+        if (role) localStorage.setItem("userRole", role);
+        if (name) localStorage.setItem("userName", name);
+      }
+
+      toast.success("Login successful!");
+
+      if (response?.user?.role === "instructor") {
+        router.push("/admin/courses");
+      } else if (response?.user?.role === "student") {
+        router.push("/");
+      } else if (response?.user?.role === "admin") {
+        router.push("/admin/add-instructor");
+      } else if (response?.user?.role === "superadmin") {
+        router.push("/admin/company");
+      } else {
+        toast.error("Unsupported role detected. Please contact support.");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Login failed. Please check your credentials.");
+    }
+  };
+
+  // Signup Handler
+  const handleSignup = async () => {
+    try {
+      await signupUser(signupInput);
+      setSignupInput({ name: "", email: "", password: "", role: "student", number: "" });
+      toast.success("Signup successful! You can now log in.");
+    } catch (error: any) {
+      toast.error("Email is already registered. Please try a different email.");
+    }
+  };
+
+  // Reset OTP flow
+  const resetOtpFlow = () => {
+    setOtpStep("phone");
+    setOtpInput("");
   };
 
   return (
@@ -113,7 +200,6 @@ const Login = () => {
             <div className="absolute bottom-0 left-0 h-56 w-56 rounded-full bg-primary/30 blur-3xl" />
           </div>
 
-          {/* ⭐ UPDATED LEFT HEADER WITH LOGO */}
           <div className="relative z-10 space-y-10">
             <div className="flex flex-col items-start cursor-pointer" onClick={() => router.push("/")}>
               <Image
@@ -125,7 +211,6 @@ const Login = () => {
                 priority
               />
             </div>
-
 
             <div className="space-y-4">
               <h1 className="text-3xl xl:text-4xl font-serif font-semibold tracking-tight">
@@ -140,17 +225,12 @@ const Login = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15">
-                  <Image
-                    src="/img/MrLogo.png"
-                    alt="Academy Icon"
-                    width={20}
-                    height={20}
-                  />
+                  <Phone className="h-4 w-4 text-accent" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Certified instructors</p>
+                  <p className="text-sm font-medium">Quick OTP Login</p>
                   <p className="text-xs text-secondary-foreground/70">
-                    Learn from experienced trainers who specialise in spoken English.
+                    Sign in instantly with your phone number via SMS OTP.
                   </p>
                 </div>
               </div>
@@ -207,7 +287,7 @@ const Login = () => {
                 </TabsTrigger>
               </TabsList>
 
-              {/* Login */}
+              {/* Login Tab */}
               <TabsContent value="login">
                 <CardHeader className="space-y-2 pb-4 px-0">
                   <CardTitle className="text-2xl font-serif font-semibold tracking-tight">
@@ -218,68 +298,186 @@ const Login = () => {
                   </p>
                 </CardHeader>
 
-                <CardContent className="space-y-4 px-0">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email" className="text-sm font-medium">Email</Label>
-                    <div className="relative">
-                      <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="login-email"
-                        name="email"
-                        type="email"
-                        value={loginInput.email}
-                        onChange={(e) => changeInputHandler(e, "login")}
-                        placeholder="you@example.com"
-                        className="h-11 pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="login-password" className="text-sm font-medium">Password</Label>
-
-                      <Link
-                        href="/forget-password"
-                        className="text-xs font-medium text-accent hover:underline"
-                      >
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <div className="relative">
-                      <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="login-password"
-                        name="password"
-                        type="password"
-                        value={loginInput.password}
-                        onChange={(e) => changeInputHandler(e, "login")}
-                        placeholder="Enter your password"
-                        className="h-11 pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-4 pt-4 px-0">
+                {/* Auth Method Toggle */}
+                <div className="flex gap-2 mb-4">
                   <Button
-                    onClick={() => handleSubmit("login")}
-                    className="h-11 w-full font-semibold"
+                    variant={authMethod === "phone" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => { setAuthMethod("phone"); resetOtpFlow(); }}
+                    className="flex-1"
                   >
-                    Sign in
+                    <Phone className="h-4 w-4 mr-2" />
+                    Phone OTP
                   </Button>
+                  <Button
+                    variant={authMethod === "email" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setAuthMethod("email")}
+                    className="flex-1"
+                  >
+                    <Mail className="h-4 w-4 mr-2" />
+                    Email
+                  </Button>
+                </div>
+
+                <CardContent className="space-y-4 px-0">
+                  {/* Phone OTP Login */}
+                  {authMethod === "phone" && (
+                    <>
+                      {otpStep === "phone" ? (
+                        // Step 1: Enter Phone Number
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
+                            <div className="relative">
+                              <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                              <Input
+                                id="phone"
+                                type="tel"
+                                value={phoneInput}
+                                onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                placeholder="Enter 10-digit number"
+                                className="h-11 pl-10"
+                                maxLength={10}
+                              />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              We'll send you a 6-digit OTP via SMS
+                            </p>
+                          </div>
+
+                          <Button
+                            onClick={handleSendOtp}
+                            disabled={isLoading || phoneInput.length < 10}
+                            className="h-11 w-full font-semibold"
+                          >
+                            {isLoading ? "Sending..." : "Send OTP"}
+                          </Button>
+                        </div>
+                      ) : (
+                        // Step 2: Enter OTP
+                        <div className="space-y-4">
+                          <button
+                            onClick={resetOtpFlow}
+                            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                          >
+                            <ArrowLeft className="h-4 w-4" />
+                            Change number
+                          </button>
+
+                          <div className="p-3 bg-muted/50 rounded-lg">
+                            <p className="text-sm">
+                              OTP sent to <span className="font-semibold">+91 {phoneInput}</span>
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="otp" className="text-sm font-medium">Enter OTP</Label>
+                            <Input
+                              id="otp"
+                              type="text"
+                              value={otpInput}
+                              onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                              placeholder="Enter 6-digit OTP"
+                              className="h-11 text-center text-lg tracking-widest"
+                              maxLength={6}
+                            />
+                          </div>
+
+                          <Button
+                            onClick={handleVerifyOtp}
+                            disabled={isLoading || otpInput.length !== 6}
+                            className="h-11 w-full font-semibold"
+                          >
+                            {isLoading ? "Verifying..." : "Verify & Login"}
+                          </Button>
+
+                          <div className="text-center">
+                            {countdown > 0 ? (
+                              <p className="text-sm text-muted-foreground">
+                                Resend OTP in {countdown}s
+                              </p>
+                            ) : (
+                              <button
+                                onClick={handleResendOtp}
+                                disabled={isLoading}
+                                className="text-sm text-accent hover:underline"
+                              >
+                                Resend OTP
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Email Login */}
+                  {authMethod === "email" && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="login-email" className="text-sm font-medium">Email</Label>
+                        <div className="relative">
+                          <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            id="login-email"
+                            name="email"
+                            type="email"
+                            value={loginInput.email}
+                            onChange={(e) => changeInputHandler(e, "login")}
+                            placeholder="you@example.com"
+                            className="h-11 pl-10"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="login-password" className="text-sm font-medium">Password</Label>
+                          <Link
+                            href="/forget-password"
+                            className="text-xs font-medium text-accent hover:underline"
+                          >
+                            Forgot password?
+                          </Link>
+                        </div>
+                        <div className="relative">
+                          <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            id="login-password"
+                            name="password"
+                            type="password"
+                            value={loginInput.password}
+                            onChange={(e) => changeInputHandler(e, "login")}
+                            placeholder="Enter your password"
+                            className="h-11 pl-10"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <Button
+                        onClick={handleEmailLogin}
+                        className="h-11 w-full font-semibold"
+                      >
+                        Sign in
+                      </Button>
+                    </>
+                  )}
+                </CardContent>
+
+                <CardFooter className="flex flex-col gap-4 pt-4 px-0">
                   <p className="text-sm text-center text-muted-foreground">
                     New to the academy?{" "}
-                    <span className="font-medium text-blue-500 hover:underline">
+                    <span className="font-medium text-blue-500 hover:underline cursor-pointer">
                       Create your free account.
                     </span>
                   </p>
                 </CardFooter>
-
               </TabsContent>
 
-              {/* Signup */}
+              {/* Signup Tab */}
               <TabsContent value="signup">
                 <CardHeader className="space-y-2 pb-4 px-0">
                   <CardTitle className="text-2xl font-serif font-semibold tracking-tight">
@@ -338,26 +536,25 @@ const Login = () => {
                         required
                       />
                     </div>
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-mobile" className="text-sm font-medium">Mobile Number</Label>
-                      <div className="relative">
-                        <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          id="signup-mobile"
-                          name="number"
-                          type="tel"
-                          value={signupInput.number} // make sure this exists in your state
-                          onChange={(e) => changeInputHandler(e, "signup")}
-                          placeholder="+91 9876543210"
-                          className="h-11 pl-10"
-                          required
-                        />
-                      </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-mobile" className="text-sm font-medium">Mobile Number</Label>
+                    <div className="relative">
+                      <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        id="signup-mobile"
+                        name="number"
+                        type="tel"
+                        value={signupInput.number}
+                        onChange={(e) => changeInputHandler(e, "signup")}
+                        placeholder="9876543210"
+                        className="h-11 pl-10"
+                        required
+                      />
                     </div>
-
                     <p className="text-xs text-muted-foreground">
-                      At least 8 characters, with letters and numbers.
+                      You can use this for quick OTP login later.
                     </p>
                   </div>
 
@@ -373,7 +570,7 @@ const Login = () => {
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4 pt-4 px-0">
                   <Button
-                    onClick={() => handleSubmit("signup")}
+                    onClick={handleSignup}
                     className="h-11 w-full font-semibold"
                   >
                     Create account
@@ -391,11 +588,11 @@ const Login = () => {
                 </CardFooter>
               </TabsContent>
             </Tabs>
-          </div >
-        </div >
+          </div>
+        </div>
 
-      </div >
-    </div >
+      </div>
+    </div>
   )
 }
 

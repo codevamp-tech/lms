@@ -36,6 +36,9 @@ export class User extends Document {
 
   @Prop({ default: false })
   isStatus: boolean;
+
+  @Prop({ default: false })
+  isPhoneVerified: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
