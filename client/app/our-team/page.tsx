@@ -24,14 +24,6 @@ export default function OurTeam() {
             rating: 4.9
         },
         {
-            name: "Juzlain Tanzeem",
-            title: "Conversation & Fluency Coach",
-            img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Juzlain-Tanzeem.png",
-            experience: "3+ years",
-            students: "1400+",
-            rating: 4.8
-        },
-        {
             name: "Waqas Masoodi",
             title: "IELTS & TOEFL Expert",
             img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Waqas-Masoodi.png",

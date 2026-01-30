@@ -3,85 +3,77 @@ import { motion } from "framer-motion"
 import { Star, Award, Users } from "lucide-react"
 
 const instructors = [
-  { 
-    name: "Aafreen Nissar", 
-    title: "IELTS & TOEFL Expert", 
+  {
+    name: "Aafreen Nissar",
+    title: "IELTS & TOEFL Expert",
     img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Aafreen-Nissar.png",
     experience: "3+ years",
     students: "1350+",
     rating: 4.8
   },
-  { 
-    name: "Mir Mohammad Wahid", 
-    title: "Business English Specialist", 
+  {
+    name: "Mir Mohammad Wahid",
+    title: "Business English Specialist",
     img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Mir-Wahid.png",
     experience: "3+ years",
     students: "1400+",
     rating: 4.9
   },
-  { 
-    name: "Juzlain Tanzeem", 
-    title: "Conversation & Fluency Coach", 
-    img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Juzlain-Tanzeem.png",
-    experience: "3+ years",
-    students: "1400+",
-    rating: 4.8
-  },
-  { 
-    name: "Waqas Masoodi", 
-    title: "IELTS & TOEFL Expert", 
+  {
+    name: "Waqas Masoodi",
+    title: "IELTS & TOEFL Expert",
     img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Waqas-Masoodi.png",
     experience: "2+ years",
     students: "1300+",
     rating: 4.7
   },
-  { 
-    name: "Mir Tazeem", 
-    title: "Business English Specialist", 
+  {
+    name: "Mir Tazeem",
+    title: "Business English Specialist",
     img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Mir-Tazeem.png",
     experience: "1+ years",
     students: "1200+",
     rating: 4.8
   },
-  { 
-    name: "Mursaleen Nisar", 
-    title: "Conversation & Fluency Coach", 
+  {
+    name: "Mursaleen Nisar",
+    title: "Conversation & Fluency Coach",
     img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Mursaleen-Nisar-1.png",
     experience: "3+ years",
     students: "1300+",
     rating: 4.8
   },
-  { 
-    name: "Aman Gowhar", 
-    title: "Conversation & Fluency Coach", 
+  {
+    name: "Aman Gowhar",
+    title: "Conversation & Fluency Coach",
     img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Aman-Gowhar.png",
     experience: "1+ years",
     students: "1200+",
     rating: 4.7
   },
-  { 
-    name: "Asra Rehman", 
-    title: "Business English Specialist", 
+  {
+    name: "Asra Rehman",
+    title: "Business English Specialist",
     img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Asra-Rehman.png",
     experience: "2+ years",
     students: "1300+",
     rating: 4.8
   },
-  { 
-    name: "Tufail", 
-    title: "Conversation & Fluency Coach", 
+  {
+    name: "Tufail",
+    title: "Conversation & Fluency Coach",
     img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Tufail.png",
     experience: "3+ years",
     students: "1400+",
     rating: 4.7
   },
-  { 
-    name: "Zubana Zair", 
-    title: "Conversation & Fluency Coach", 
+  {
+    name: "Zubana Zair",
+    title: "Conversation & Fluency Coach",
     img: "https://cornflowerblue-snake-295407.hostingersite.com/wp-content/uploads/2025/07/Zubana-Zair.png",
     experience: "2+ years",
     students: "1250+",
-    rating: 4.8 
+    rating: 4.8
   },
 ]
 
@@ -119,7 +111,7 @@ export default function Instructors() {
               className="group relative rounded-2xl border-2 border-border bg-card p-8 hover:border-primary/50 transition-all shadow-lg hover:shadow-2xl overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              
+
               <div className="relative text-center">
                 <div className="mb-6 relative inline-block">
                   <img
