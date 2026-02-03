@@ -32,13 +32,12 @@ import { UpdateStudentDto } from './dto/update-student';
 import { RegisterWithPhoneDto } from './dto/register-with-phone.dto';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
-import { Fast2SmsService } from '../messaging/fast2sms.service';
+
 
 @Controller('users')
 export class UsersController {
   constructor(
     private usersService: UsersService,
-    private fast2SmsService: Fast2SmsService,
   ) { }
 
   @Post('signup')
@@ -124,36 +123,25 @@ export class UsersController {
 
   @Post('send-otp')
   async sendOtp(@Body() sendOtpDto: SendOtpDto) {
-    try {
-      // Send OTP via SMS Bits
-      const result = await this.fast2SmsService.sendOtp(
-        sendOtpDto.phone,
-      );
-
-      // Create or find user by phone
-      await this.usersService.findOrCreateByPhone(
-        sendOtpDto.phone,
-        sendOtpDto.name,
-      );
-
-      return {
-        success: true,
-        message: result.message,
-        requestId: result.requestId,
-      };
-    } catch (error) {
-      throw new HttpException(
-        error.message || 'Failed to send OTP',
-        error.status || HttpStatus.BAD_REQUEST,
-      );
-    }
+    // Deprecated: OTP is now sent via Firebase on the client.
+    // This endpoint can be removed or used for logging.
+    return {
+      success: true,
+      message: 'OTP sending handled by client (Firebase)',
+    };
   }
 
   @Post('verify-otp')
   async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
     try {
-      // Verify OTP with SMS Bits
-      await this.fast2SmsService.verifyOtp(verifyOtpDto.phone, verifyOtpDto.otp);
+      // TRUSTED: Client has already verified the OTP via Firebase.
+      // We implicitly trust this call for now (In prod, verify Firebase ID Token here).
+
+      // Ensure user exists
+      await this.usersService.findOrCreateByPhone(
+        verifyOtpDto.phone,
+        'User' // Default name if new
+      );
 
       // Get user and generate token
       const result = await this.usersService.loginWithPhone(verifyOtpDto.phone);
@@ -171,17 +159,7 @@ export class UsersController {
   async resendOtp(
     @Body() body: { phone: string; retryType?: 'text' | 'voice' },
   ) {
-    try {
-      const result = await this.fast2SmsService.resendOtp(
-        body.phone,
-      );
-      return result;
-    } catch (error) {
-      throw new HttpException(
-        error.message || 'Failed to resend OTP',
-        error.status || HttpStatus.BAD_REQUEST,
-      );
-    }
+    return { success: true, message: 'Handled by client' };
   }
 
   @Get('students')

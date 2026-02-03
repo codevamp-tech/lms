@@ -10,7 +10,6 @@ import { sendMail } from '../../utils/mail';
 import axios from 'axios';
 import { NotificationsService } from 'src/notification/notifications.service';
 import { ChatBuddy, ChatBuddyDocument } from 'src/chat-buddy/schemas/chatbuddy.schema';
-import { Fast2SmsService } from 'src/messaging/fast2sms.service';
 import { WatiService } from 'src/messaging/wati.service';
 
 @Injectable()
@@ -20,7 +19,6 @@ export class EnquiryService {
     @InjectModel(ChatBuddy.name) private readonly chatBuddyModel: Model<ChatBuddyDocument>,
     private readonly notificationsService: NotificationsService,
     private readonly paymentsService: PaymentsService,
-    private readonly fast2SmsService: Fast2SmsService,
     private readonly watiService: WatiService,
   ) { }
 
@@ -82,9 +80,12 @@ export class EnquiryService {
 
       // 📱 SMS NOTIFICATION (NON-BLOCKING)
       if (savedEnquiry.whatsapp) {
+        console.log('⚠️ SMS Notifications disabled (Fast2SMS removed)');
+        /*
         const smsMessage = `Thank you ${savedEnquiry.name}! Your enquiry has been received. Our team at Mr English Training Academy will contact you soon.`;
         this.fast2SmsService.sendSms(savedEnquiry.whatsapp, smsMessage)
           .catch(err => console.error('SMS notification failed:', err.message));
+        */
 
         // 📲 WHATSAPP NOTIFICATION (COMMENTED - Using SMSBits only)
         // this.watiService.sendEnquiryConfirmation(savedEnquiry.whatsapp, savedEnquiry.name)

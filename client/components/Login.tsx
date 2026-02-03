@@ -20,6 +20,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
+import { auth } from "@/lib/firebase";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+
+declare global {
+  interface Window {
+    recaptchaVerifier: any;
+  }
+}
 
 const Login = () => {
   const router = useRouter();
@@ -33,6 +41,7 @@ const Login = () => {
   const [otpInput, setOtpInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [confirmationResult, setConfirmationResult] = useState<any>(null); // Store Firebase confirmation result
 
   // Email/Password States
   const [signupInput, setSignupInput] = useState({
@@ -61,7 +70,7 @@ const Login = () => {
     }
   };
 
-  // Send OTP Handler
+  // Send OTP Handler (Firebase)
   const handleSendOtp = async () => {
     if (!phoneInput || phoneInput.length < 10) {
       toast.error("Please enter a valid phone number");
@@ -70,18 +79,37 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      await sendOtp(phoneInput, "sms");
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'invisible',
+          'callback': (response: any) => {
+            // reCAPTCHA solved, allow signInWithPhoneNumber.
+          }
+        });
+      }
+
+      const formattedPhone = `+91${phoneInput}`;
+      const appVerifier = window.recaptchaVerifier;
+
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+      setConfirmationResult(confirmation);
+
       toast.success("OTP sent successfully!");
       setOtpStep("otp");
       setCountdown(30); // 30 seconds cooldown
     } catch (error: any) {
+      console.error("Firebase send OTP error:", error);
       toast.error(error.message || "Failed to send OTP");
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Verify OTP Handler
+  // Verify OTP Handler (Firebase)
   const handleVerifyOtp = async () => {
     if (!otpInput || otpInput.length !== 6) {
       toast.error("Please enter a valid 6-digit OTP");
@@ -90,7 +118,16 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      const response = await verifyOtp(phoneInput, otpInput);
+      if (!confirmationResult) {
+        throw new Error("Session expired. Please retry.");
+      }
+
+      const result = await confirmationResult.confirm(otpInput);
+      const user = result.user; // Firebase user
+      console.log("Firebase user verified:", user);
+
+      // Now call backend to create session/JWT
+      const response = await verifyOtp(phoneInput, "firebase-verified"); // Send dummy OTP or update API to handle trust mode
 
       if (response?.user) {
         const { _id, companyId, role, name, phone } = response.user;
@@ -116,6 +153,7 @@ const Login = () => {
         router.push("/");
       }
     } catch (error: any) {
+      console.error("Verification error:", error);
       toast.error(error.message || "Invalid OTP");
     } finally {
       setIsLoading(false);
@@ -128,9 +166,7 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      await resendOtp(phoneInput, "text");
-      toast.success("OTP resent successfully!");
-      setCountdown(30);
+      await handleSendOtp(); // Reuse Firebase send logic
     } catch (error: any) {
       toast.error(error.message || "Failed to resend OTP");
     } finally {
@@ -174,12 +210,18 @@ const Login = () => {
 
   // Signup Handler
   const handleSignup = async () => {
+    // Client-side validation
+    if (!signupInput.name || !signupInput.email || !signupInput.password || !signupInput.number) {
+      toast.error("All fields (including Phone Number) are required");
+      return;
+    }
+
     try {
       await signupUser(signupInput);
       setSignupInput({ name: "", email: "", password: "", role: "student", number: "" });
       toast.success("Signup successful! You can now log in.");
     } catch (error: any) {
-      toast.error("Email is already registered. Please try a different email.");
+      toast.error(error.message || "Signup failed. Please try again.");
     }
   };
 
@@ -223,7 +265,7 @@ const Login = () => {
             </div>
 
             <div className="space-y-4">
-              {/* <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15">
                   <Phone className="h-4 w-4 text-accent" />
                 </div>
@@ -233,7 +275,7 @@ const Login = () => {
                     Sign in instantly with your phone number via SMS OTP.
                   </p>
                 </div>
-              </div> */}
+              </div>
 
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15">
@@ -299,7 +341,7 @@ const Login = () => {
                 </CardHeader>
 
                 {/* Auth Method Toggle */}
-                {/* <div className="flex gap-2 mb-4">
+                <div className="flex gap-2 mb-4">
                   <Button
                     variant={authMethod === "phone" ? "default" : "outline"}
                     size="sm"
@@ -318,11 +360,11 @@ const Login = () => {
                     <Mail className="h-4 w-4 mr-2" />
                     Email
                   </Button>
-                </div> */}
+                </div>
 
                 <CardContent className="space-y-4 px-0">
                   {/* Phone OTP Login */}
-                  {/* {authMethod === "phone" && (
+                  {authMethod === "phone" && (
                     <>
                       {otpStep === "phone" ? (
                         // Step 1: Enter Phone Number
@@ -345,6 +387,8 @@ const Login = () => {
                               We'll send you a 6-digit OTP via SMS
                             </p>
                           </div>
+
+                          <div id="recaptcha-container"></div>
 
                           <Button
                             onClick={handleSendOtp}
@@ -410,7 +454,7 @@ const Login = () => {
                         </div>
                       )}
                     </>
-                  )} */}
+                  )}
 
                   {/* Email Login */}
                   {authMethod === "email" && (

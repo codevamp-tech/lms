@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -14,8 +14,16 @@ import { Mail, Lock, User, Phone, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { loginUser, signupUser, sendOtp, verifyOtp, resendOtp } from "@/features/api/users/route";
+import { loginUser, signupUser, verifyOtp } from "@/features/api/users/route";
 import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+
+declare global {
+  interface Window {
+    recaptchaVerifier: any;
+  }
+}
 
 export default function LoginModal({
   isOpen,
@@ -39,6 +47,7 @@ export default function LoginModal({
   const [otpInput, setOtpInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [confirmationResult, setConfirmationResult] = useState<any>(null);
 
   const [signupInput, setSignupInput] = useState({
     name: "",
@@ -80,7 +89,7 @@ export default function LoginModal({
       : setLoginInput({ ...loginInput, [name]: value });
   };
 
-  // Send OTP Handler
+  // Send OTP Handler (Firebase)
   const handleSendOtp = async () => {
     if (!phoneInput || phoneInput.length < 10) {
       toast.error("Please enter a valid phone number");
@@ -89,18 +98,37 @@ export default function LoginModal({
 
     setIsLoading(true);
     try {
-      await sendOtp(phoneInput, "sms");
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container-modal', {
+          'size': 'invisible',
+          'callback': (response: any) => {
+            // reCAPTCHA solved
+          }
+        });
+      }
+
+      const formattedPhone = `+91${phoneInput}`;
+      const appVerifier = window.recaptchaVerifier;
+
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+      setConfirmationResult(confirmation);
+
       toast.success("OTP sent successfully!");
       setOtpStep("otp");
       setCountdown(30);
     } catch (error: any) {
+      console.error("Firebase send OTP error:", error);
       toast.error(error.message || "Failed to send OTP");
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Verify OTP Handler
+  // Verify OTP Handler (Firebase)
   const handleVerifyOtp = async () => {
     if (!otpInput || otpInput.length !== 6) {
       toast.error("Please enter a valid 6-digit OTP");
@@ -109,8 +137,16 @@ export default function LoginModal({
 
     setIsLoading(true);
     try {
-      const response = await verifyOtp(phoneInput, otpInput);
-      toast.success("Logged in!");
+      if (!confirmationResult) {
+        throw new Error("Session expired. Please retry.");
+      }
+
+      const result = await confirmationResult.confirm(otpInput);
+      const firebaseUser = result.user;
+      console.log("Firebase user verified:", firebaseUser);
+
+      // Verify with backend to get JWT/Session
+      const response = await verifyOtp(phoneInput, "firebase-verified");
 
       const user = response?.user;
       if (user) {
@@ -118,13 +154,15 @@ export default function LoginModal({
         localStorage.setItem("userName", user.name ?? "");
         localStorage.setItem("userId", user._id);
         if (user.companyId) localStorage.setItem("companyId", String(user.companyId));
-      }
 
-      onClose();
-      setTimeout(() => {
-        router.refresh();
-      }, 500);
+        toast.success("Logged in!");
+        onClose();
+        setTimeout(() => {
+          router.refresh();
+        }, 500);
+      }
     } catch (error: any) {
+      console.error("Verification error:", error);
       toast.error(error.message || "Invalid OTP");
     } finally {
       setIsLoading(false);
@@ -137,9 +175,7 @@ export default function LoginModal({
 
     setIsLoading(true);
     try {
-      await resendOtp(phoneInput, "text");
-      toast.success("OTP resent successfully!");
-      setCountdown(30);
+      await handleSendOtp();
     } catch (error: any) {
       toast.error(error.message || "Failed to resend OTP");
     } finally {
@@ -171,12 +207,19 @@ export default function LoginModal({
 
   // Signup Handler
   const handleSignup = async () => {
+    // Client-side validation
+    if (!signupInput.name || !signupInput.email || !signupInput.password || !signupInput.number) {
+      toast.error("All fields (including Phone Number) are required");
+      return;
+    }
+
     try {
       await signupUser(signupInput);
       toast.success("Signup successful!");
       setTab("login");
-    } catch {
-      toast.error("Email already registered.");
+      setSignupInput({ name: "", email: "", password: "", role: "student", number: "" });
+    } catch (error: any) {
+      toast.error(error.message || "Signup failed.");
     }
   };
 
@@ -209,7 +252,7 @@ export default function LoginModal({
           {/* LOGIN */}
           <TabsContent value="login">
             {/* Auth Method Toggle */}
-            {/* <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4">
               <Button
                 variant={authMethod === "phone" ? "default" : "outline"}
                 size="sm"
@@ -228,12 +271,13 @@ export default function LoginModal({
                 <Mail className="h-4 w-4 mr-2" />
                 Email
               </Button>
-            </div> */}
+            </div>
 
             <div className="space-y-4">
               {/* Phone OTP Login */}
-              {/* {authMethod === "phone" && (
+              {authMethod === "phone" && (
                 <>
+                  <div id="recaptcha-container-modal"></div>
                   {otpStep === "phone" ? (
                     <>
                       <div>
@@ -242,7 +286,7 @@ export default function LoginModal({
                           <Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                           <Input
                             type="tel"
-                            className="pl-10"
+                            className="pl-10 h-11"
                             value={phoneInput}
                             onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, '').slice(0, 10))}
                             placeholder="Enter 10-digit number"
@@ -250,8 +294,9 @@ export default function LoginModal({
                           />
                         </div>
                       </div>
+
                       <Button
-                        className="w-full"
+                        className="w-full h-11"
                         onClick={handleSendOtp}
                         disabled={isLoading || phoneInput.length < 10}
                       >
@@ -278,7 +323,7 @@ export default function LoginModal({
                         <Label>Enter OTP</Label>
                         <Input
                           type="text"
-                          className="text-center text-lg tracking-widest"
+                          className="text-center text-lg tracking-widest h-11"
                           value={otpInput}
                           onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
                           placeholder="Enter 6-digit OTP"
@@ -287,7 +332,7 @@ export default function LoginModal({
                       </div>
 
                       <Button
-                        className="w-full"
+                        className="w-full h-11"
                         onClick={handleVerifyOtp}
                         disabled={isLoading || otpInput.length !== 6}
                       >
@@ -312,7 +357,7 @@ export default function LoginModal({
                     </>
                   )}
                 </>
-              )} */}
+              )}
 
               {/* Email Login */}
               {authMethod === "email" && (

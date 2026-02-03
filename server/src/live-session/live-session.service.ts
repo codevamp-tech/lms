@@ -13,7 +13,6 @@ import * as crypto from 'crypto';
 import * as nodemailer from 'nodemailer';
 import { google } from 'googleapis';
 import { sendMail } from '../../utils/mail';
-import { Fast2SmsService } from 'src/messaging/fast2sms.service';
 import { WatiService } from 'src/messaging/wati.service';
 
 @Injectable()
@@ -25,7 +24,6 @@ export class LiveSessionService {
         private readonly usersService: UsersService,
         private readonly notificationsService: NotificationsService,
         private readonly paymentsService: PaymentsService,
-        private readonly fast2SmsService: Fast2SmsService,
         private readonly watiService: WatiService,
     ) {
         console.log('🔧 ========== CONSTRUCTOR START ==========');
@@ -134,10 +132,13 @@ export class LiveSessionService {
                 const sessionDate = session.date ? new Date(session.date).toLocaleString() : 'TBD';
 
                 // Send SMS
+                console.log('⚠️ SMS Notifications disabled (Fast2SMS removed)');
+                /*
                 console.log('📱 Attempting to send SMS to:', userData.number);
                 const smsMessage = `🎓 Live Session Enrolled! You are enrolled in "${sessionTitle}" on ${sessionDate}. Thank you for choosing Mr English Training Academy!`;
                 const smsResult = await this.fast2SmsService.sendSms(userData.number, smsMessage);
                 console.log('📱 SMS result:', smsResult);
+                */
 
                 // Send WhatsApp via WATI (COMMENTED - Using SMSBits only)
                 // console.log('📱 Attempting to send WhatsApp to:', userData.number);
@@ -547,10 +548,13 @@ export class LiveSessionService {
                 const sessionDate = session.date ? new Date(session.date).toLocaleString() : 'TBD';
 
                 // Send SMS
+                console.log('⚠️ SMS Notifications disabled (Fast2SMS removed)');
+                /*
                 console.log('📱 Attempting to send SMS to:', userData.number);
                 const smsMessage = `🎓 Live Session Enrolled! You are enrolled in "${sessionTitle}" on ${sessionDate}. Thank you for choosing Mr English Training Academy!`;
                 const smsResult = await this.fast2SmsService.sendSms(userData.number, smsMessage);
                 console.log('📱 SMS result:', smsResult);
+                */
 
                 // Send WhatsApp via WATI (COMMENTED - Using SMSBits only)
                 // console.log('📱 Attempting to send WhatsApp to:', userData.number);
