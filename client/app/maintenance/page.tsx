@@ -28,7 +28,7 @@ const MaintenancePage = () => {
                 </h1>
 
                 <p className="max-w-md text-lg text-gray-600">
-                    This site is currently blocked for maintenance. Usage is temporarily restricted.
+                    Usage is temporarily restricted.
                     <br />
                     Please try again later.
                 </p>
