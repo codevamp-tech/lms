@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+throw new Error('Site temporarily disabled')
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
