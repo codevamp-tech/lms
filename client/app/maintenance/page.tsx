@@ -2,36 +2,28 @@ import React from "react";
 
 const MaintenancePage = () => {
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 text-center">
-            <div className="flex flex-col items-center space-y-6">
-                {/* Blocked/Restriction Icon */}
-                <div className="rounded-full bg-red-100 p-6">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="64"
-                        height="64"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="text-red-600"
-                    >
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
-                    </svg>
-                </div>
-
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                    Site Access Blocked
+        <div className="flex min-h-screen w-full flex-col items-center justify-center bg-black text-white font-sans antialiased">
+            <div className="flex flex-col items-center sm:flex-row">
+                <h1 className="text-5xl font-medium leading-tight tracking-tight sm:mr-8 sm:border-r sm:border-gray-800 sm:pr-8 sm:text-6xl text-white">
+                    500
                 </h1>
-
-                <p className="max-w-md text-lg text-gray-600">
-                    Usage is temporarily restricted.
-                    <br />
-                    Please try again later.
-                </p>
+                <div className="mt-4 text-center sm:mt-0 sm:text-left">
+                    <h2 className="text-lg font-normal sm:text-xl text-white">
+                        Build error occurred
+                    </h2>
+                    <div className="mt-4 text-left">
+                        <code className="text-sm font-mono text-red-500">
+                            Error: Site temporarily disabled
+                        </code>
+                        <p className="mt-2 text-xs font-mono text-gray-500">
+                            at Object.&lt;anonymous&gt; (next.config.js:1:1)
+                            <br />
+                            at Module._compile (node:internal/modules/cjs/loader:1256:14)
+                            <br />
+                            at Object.Module._extensions..js (node:internal/modules/cjs/loader:1310:10)
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     );
