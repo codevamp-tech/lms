@@ -1,6 +1,6 @@
 // src/courses/dto/edit-course.dto.ts
-import { IsOptional, IsString, IsNumber } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsString, IsNumber, IsBoolean } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 
 export class EditCourseDto {
   @IsString()
@@ -35,4 +35,13 @@ export class EditCourseDto {
 
   @IsOptional()
   companyId?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  is_3_month_validity?: boolean;
+
+  @IsOptional()
+  @Type(() => Date)
+  courseExpiryDate?: Date;
 }

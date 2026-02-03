@@ -31,7 +31,6 @@ export default function ChatBuddyPage() {
   const [form, setForm] = useState({
     name: "",
     bio: "",
-    status: "offline",
   });
 
   /* ---------------- FETCH LIST ---------------- */
@@ -42,8 +41,8 @@ export default function ChatBuddyPage() {
         `${API_URL}/chat-buddy?skip=${skip}&limit=${itemsPerPage}`
       );
       const data = await res.json();
-      setBuddies(data.buddies || data);
-      setTotalBuddies(data.total || data.length);
+      setBuddies(data.buddies || []);
+      setTotalBuddies(data.total || 0);
     } catch (err) {
       console.error(err);
     } finally {
@@ -57,7 +56,7 @@ export default function ChatBuddyPage() {
 
   /* ---------------- RESET FORM ---------------- */
   const resetForm = () => {
-    setForm({ name: "", bio: "", status: "offline" });
+    setForm({ name: "", bio: "" });
     setPhoto(null);
     setEditingId(null);
     setShowForm(false);
@@ -70,7 +69,6 @@ export default function ChatBuddyPage() {
     const formData = new FormData();
     formData.append("name", form.name);
     formData.append("bio", form.bio);
-    formData.append("status", form.status);
     if (photo) formData.append("photo", photo);
 
     const url = editingId
@@ -97,7 +95,6 @@ export default function ChatBuddyPage() {
     setForm({
       name: buddy.name,
       bio: buddy.bio || "",
-      status: buddy.status,
     });
     setShowForm(true);
   };

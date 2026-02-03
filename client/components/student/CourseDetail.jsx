@@ -43,6 +43,7 @@ const CourseDetail = () => {
   const [isInCart, setIsInCart] = useState(false);
   const [activePreviewVideo, setActivePreviewVideo] = useState(0);
   const [razorpayPhone, setRazorpayPhone] = useState(null);
+  const [userLoggedInManually, setUserLoggedInManually] = useState(false);
 
   const {
     data: courseData,
@@ -99,23 +100,28 @@ const CourseDetail = () => {
       }
 
       const userData = await response.json();
-      console.log("useerData??", userData);
-      // Store user data
-      localStorage.setItem("userId", userData.userId || userData._id);
-      localStorage.setItem("token", userData.token);
+      console.log("userData response:", userData);
 
-      toast.success("Account created automatically!");
-
+      // Get the user ID from response
       const newUserId = userData.userId || userData.user?._id || userData._id;
 
-      // Now verify payment with the new userId
+      // Store all user data properly for auto-login
+      localStorage.setItem("userId", newUserId);
+      if (userData.token) {
+        localStorage.setItem("token", userData.token);
+      }
+      localStorage.setItem("userName", userData.user?.name || `User ${phoneNumber.slice(-4)}`);
+      localStorage.setItem("userRole", userData.user?.role || "student");
+
+      toast.success("Account created successfully!");
+
+      // Verify payment with the new userId - this will also enroll the student in the course
       await verifyNow({
         ...paymentData,
-        userId: newUserId, // ✅ THIS IS THE KEY
+        userId: newUserId,
       });
 
-
-      return userData.userId || userData.user._id;
+      return newUserId;
     } catch (err) {
       console.error("Account creation error:", err);
       toast.error("Failed to create account automatically.");
@@ -126,10 +132,24 @@ const CourseDetail = () => {
   const handleLoginModalClose = async () => {
     setLoginPopup(false);
 
-    // If user closes modal and has pending payment, create account automatically
+    // If user logged in manually, don't create account - everything is handled
+    if (userLoggedInManually) {
+      setUserLoggedInManually(false);
+      setPendingPayment(null);
+      setRazorpayPhone(null);
+      return;
+    }
+
+    // If user closes modal WITHOUT logging in and has pending payment, create account automatically
     if (pendingPayment && razorpayPhone) {
       toast.loading("Creating your account automatically...");
-      await createAccountWithPhone(razorpayPhone, pendingPayment);
+      const newUserId = await createAccountWithPhone(razorpayPhone, pendingPayment);
+
+      if (newUserId) {
+        // Refresh to update the course purchase status
+        router.refresh();
+      }
+
       setPendingPayment(null);
       setRazorpayPhone(null);
     } else if (pendingPayment && !razorpayPhone) {
@@ -252,11 +272,15 @@ const CourseDetail = () => {
       const id = getUserIdFromToken();
       if (id) {
         clearInterval(checkLogin);
+        // Mark that user logged in manually so we don't create account on modal close
+        setUserLoggedInManually(true);
         // User logged in manually, verify payment
         verifyNow({ ...pendingPayment, userId: id });
         setPendingPayment(null);
         setRazorpayPhone(null);
         setLoginPopup(false);
+        // Reload the page to refresh state
+        window.location.reload();
       }
     }, 500);
 
@@ -459,18 +483,27 @@ const CourseDetail = () => {
                     </Button>
                   ) : (
                     <>
-                      {(isExpired || isRevoked) && purchased && (
+                      {/* Show expiry message if purchased but expired/revoked OR if the course itself is globally expired */}
+                      {(isExpired || isRevoked) && (
                         <p className="text-sm text-destructive text-center mb-2">
-                          {isRevoked ? "Your access has been revoked." : "Your course access has expired."}
+                          {isRevoked
+                            ? "Your access has been revoked."
+                            : isExpired
+                              ? "Course has expired."
+                              : null
+                          }
                         </p>
                       )}
+
+                      {/* Disable buy button if expired/revoked (whether purchased or global course expiry) */}
                       <Button
                         size="lg"
                         variant="outline"
                         onClick={handleBuyCourse}
+                        disabled={isExpired || isRevoked}
                         className="w-full"
                       >
-                        Buy Now
+                        {purchased ? "Buy Again (Expired)" : "Buy Now"}
                       </Button>
                     </>
                   )}
