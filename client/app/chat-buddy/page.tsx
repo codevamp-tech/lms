@@ -8,6 +8,13 @@ import { Label } from "@/components/ui/label";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import SuccessModal from "@/components/SuccessModal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 declare global {
   interface Window {
@@ -187,23 +194,23 @@ const ChatBuddyPage = () => {
     });
   };
 
-  /* Pagination State */
+  /* Pagination State - Removed */
   const [buddies, setBuddies] = useState<ChatBuddy[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const [totalPages, setTotalPages] = useState(1);
   const [loadingBuddies, setLoadingBuddies] = useState(true);
-  const ITEMS_PER_PAGE = 5;
+  // const ITEMS_PER_PAGE = 5;
 
-  const fetchChatBuddies = async (page = 1) => {
+  const fetchChatBuddies = async () => {
     try {
       setLoadingBuddies(true);
-      const skip = (page - 1) * ITEMS_PER_PAGE;
-      const res = await fetch(`${API_URL}/chat-buddy?skip=${skip}&limit=${ITEMS_PER_PAGE}`);
+      const res = await fetch(`${API_URL}/chat-buddy?limit=100`);
       const data = await res.json();
 
       if (data.buddies && Array.isArray(data.buddies)) {
         setBuddies(data.buddies);
-        setTotalPages(Math.ceil(data.total / ITEMS_PER_PAGE));
+
+        // setTotalPages(Math.ceil(data.total / ITEMS_PER_PAGE));
       } else if (Array.isArray(data)) {
         setBuddies(data);
       } else {
@@ -219,8 +226,8 @@ const ChatBuddyPage = () => {
   };
 
   useEffect(() => {
-    fetchChatBuddies(currentPage);
-  }, [currentPage]);
+    fetchChatBuddies();
+  }, []);
 
 
   const SlotTicks = ({ bookedSlots = 0 }: { bookedSlots: number }) => {
@@ -290,7 +297,7 @@ const ChatBuddyPage = () => {
               <p className="text-gray-500">No chat buddies available</p>
             ) : (
               <>
-                <div className="space-y-4">
+                <div className="space-y-4 h-[750px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-orange-200 scrollbar-track-transparent">
                   {buddies.map((buddy) => (
                     <div
                       key={buddy._id}
@@ -339,28 +346,9 @@ const ChatBuddyPage = () => {
                   ))}
                 </div>
 
-                {/* Pagination Controls */}
-                {totalPages > 1 && (
-                  <div className="flex justify-between items-center mt-6">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <span className="text-sm font-medium text-gray-600">
-                      Page {currentPage} of {totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
+
+
+                {/* Pagination Controls Removed */}
               </>
             )}
           </div>
@@ -409,26 +397,25 @@ const ChatBuddyPage = () => {
                       <Label htmlFor="buddy" className="text-sm font-medium text-gray-700">
                         Select Chat Buddy
                       </Label>
-                      <select
-                        id="buddy"
-                        name="buddy"
-                        required
+                      <Select
                         value={selectedBuddyId}
-                        onChange={(e) => setSelectedBuddyId(e.target.value)}
-                        className="h-12 text-lg rounded-md border border-input bg-background px-3"
+                        onValueChange={(value) => setSelectedBuddyId(value)}
                       >
-                        <option value="">Choose your buddy</option>
-                        {buddies.map((buddy) => (
-                          <option
-                            key={buddy._id}
-                            value={buddy._id}
-                            disabled={buddy.bookedSlots >= MAX_SLOTS}
-                          >
-                            {buddy.name} {buddy.bookedSlots >= MAX_SLOTS ? "(Full)" : ""}
-                          </option>
-                        ))}
-
-                      </select>
+                        <SelectTrigger className="h-10 text-base">
+                          <SelectValue placeholder="Choose your buddy" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[250px]">
+                          {buddies.map((buddy) => (
+                            <SelectItem
+                              key={buddy._id}
+                              value={buddy._id}
+                              disabled={buddy.bookedSlots >= MAX_SLOTS}
+                            >
+                              {buddy.name} {buddy.bookedSlots >= MAX_SLOTS ? "(Full)" : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                   </div>
@@ -498,7 +485,7 @@ const ChatBuddyPage = () => {
         message="We have received your payment and booking details. Our team will contact you shortly on your WhatsApp number."
         buttonText="Awesome, thanks!"
       />
-    </div>
+    </div >
   );
 };
 
