@@ -10,7 +10,5 @@ export class VerifyOtpDto {
 
     @IsNotEmpty({ message: 'OTP is required' })
     @IsString()
-    @Length(6, 6, { message: 'OTP must be 6 digits' })
-    @Matches(/^\d{6}$/, { message: 'OTP must contain only digits' })
     otp: string;
 }

@@ -18,7 +18,7 @@ import { Lecture } from 'src/lectures/schemas/lecture.schema';
 import { RazorpayService } from 'src/razorpay/razorpay.service';
 import { PaymentsService } from 'src/payments/payments.service';
 import { PaymentFor, PaymentStatus } from 'src/payments/schemas/payment.schema';
-import { Fast2SmsService } from 'src/messaging/fast2sms.service';
+
 import { WatiService } from 'src/messaging/wati.service';
 import * as crypto from 'crypto';
 
@@ -33,7 +33,7 @@ export class CoursePurchaseService {
     private readonly razorpayService: RazorpayService,
     private readonly notificationsService: NotificationsService,
     private readonly paymentsService: PaymentsService,
-    private readonly fast2SmsService: Fast2SmsService,
+
     private readonly watiService: WatiService,
   ) { }
 
@@ -272,10 +272,13 @@ export class CoursePurchaseService {
       console.log('📱 Course:', course.subTitle || course.courseTitle);
       try {
         if ((user as any).number) {
+          console.log('⚠️ SMS Notifications disabled (Fast2SMS removed)');
+          /*
           console.log('📱 Attempting to send SMS to:', (user as any).number);
           const smsMessage = `🎉 Course Purchased! You have successfully enrolled in ${course.subTitle || course.courseTitle}. Payment ID: ${razorpay_payment_id}. Thank you for choosing Mr English Training Academy!`;
           const smsResult = await this.fast2SmsService.sendSms((user as any).number, smsMessage);
           console.log('📱 SMS result:', smsResult);
+          */
 
           // 🔥 Send WhatsApp notification via WATI (COMMENTED - Using SMSBits only)
           // console.log('📱 Attempting to send WhatsApp to:', (user as any).number);

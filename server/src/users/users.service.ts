@@ -33,6 +33,16 @@ export class UsersService {
       throw new Error('Email is already registered');
     }
 
+    // 1.1 Check if phone number is provided and unique
+    if (!data.number) {
+      throw new Error('Phone number is required');
+    }
+
+    const existingPhone = await this.userModel.findOne({ number: data.number }).exec();
+    if (existingPhone) {
+      throw new Error('Phone number is already registered');
+    }
+
     // 2. Hash password
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
