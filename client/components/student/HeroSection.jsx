@@ -209,7 +209,7 @@ const HeroSection = () => {
                 {
                   title: "English Course",
                   sub: "course",
-                  price: "1499",
+                  price: "2999",
                   icon: BookOpen,
                   route: "course/course-detail/68e39b7bc3c6876a13d052dd",
                   className: "bg-gradient-to-r from-blue-500 to-cyan-500",
