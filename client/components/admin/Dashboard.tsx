@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { getUserIdFromToken } from "@/utils/helpers"
 import useCourses from "@/hooks/useCourses"
-import { TrendingUp, ShoppingCart, DollarSign, BookOpen, IndianRupee } from "lucide-react"
+import { TrendingUp, ShoppingCart, DollarSign, BookOpen, IndianRupee, Users } from "lucide-react"
 
 import {
   LineChart,
@@ -83,7 +83,11 @@ interface CapturedPayment {
 const Dashboard: React.FC = () => {
   const [capturedPayments, setCapturedPayments] = useState<CapturedPayment[]>([])
   const [capturedPaymentsLoading, setCapturedPaymentsLoading] = useState(false)
-  
+
+  // Student count state
+  const [totalStudents, setTotalStudents] = useState<number>(0)
+  const [studentsLoading, setStudentsLoading] = useState<boolean>(true)
+
   const { useAnalyticsSummary } = useCourses()
   const userId = getUserIdFromToken()
   const { data: response, isLoading, error } = useAnalyticsSummary()
@@ -109,6 +113,28 @@ const Dashboard: React.FC = () => {
     fetchCapturedPayments()
   }, [])
 
+  // Fetch student count
+  useEffect(() => {
+    const fetchStudentCount = async () => {
+      try {
+        setStudentsLoading(true)
+        // Fetch only 1 student to get the meta count, saving bandwidth
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/students?limit=1`)
+        if (!res.ok) throw new Error("Failed to fetch students")
+        const data = await res.json()
+        if (data.success && typeof data.totalStudents === 'number') {
+          setTotalStudents(data.totalStudents)
+        }
+      } catch (err) {
+        console.error("Error fetching student count:", err)
+      } finally {
+        setStudentsLoading(false)
+      }
+    }
+
+    fetchStudentCount()
+  }, [])
+
   const totalCourses = response?.totalCourses ?? 0
   const totalSales = capturedPayments.length ?? 0
   const totalRevenue = response?.totalRevenue ?? 0
@@ -117,17 +143,17 @@ const Dashboard: React.FC = () => {
   // Generate sales data grouped by date (all available data)
   const generateSalesData = () => {
     const dateMap: { [key: string]: { date: string; sales: number } } = {}
-    
+
     capturedPayments.forEach((payment) => {
       const date = new Date(payment.created_at * 1000)
       const dateStr = date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })
-      
+
       if (!dateMap[dateStr]) {
         dateMap[dateStr] = { date: dateStr, sales: 0 }
       }
       dateMap[dateStr].sales += payment.amount / 100 // Convert paise to rupees
     })
-    
+
     return Object.values(dateMap)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) // Sort chronologically
   }
@@ -135,17 +161,17 @@ const Dashboard: React.FC = () => {
   // Generate product distribution data
   const generateProductDistribution = () => {
     const productMap: { [key: string]: { name: string; value: number; count: number } } = {}
-    
+
     capturedPayments.forEach((payment) => {
       const productName = payment.description || "Unknown"
-      
+
       if (!productMap[productName]) {
         productMap[productName] = { name: productName, value: 0, count: 0 }
       }
       productMap[productName].value += payment.amount / 100
       productMap[productName].count += 1
     })
-    
+
     return Object.values(productMap).sort((a, b) => b.value - a.value)
   }
 
@@ -192,6 +218,13 @@ const Dashboard: React.FC = () => {
           icon={<BookOpen className="w-5 h-5" />}
         />
         <StatCard
+          label="Total Students"
+          value={totalStudents}
+          icon={<Users className="w-5 h-5" />}
+          href="/admin/student-list"
+          isLoading={studentsLoading}
+        />
+        <StatCard
           label="Total Sales"
           value={totalSales}
           icon={<ShoppingCart className="w-5 h-5" />}
@@ -225,15 +258,15 @@ const Dashboard: React.FC = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={salesData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="date" 
-                    angle={-45} 
-                    textAnchor="end" 
+                  <XAxis
+                    dataKey="date"
+                    angle={-45}
+                    textAnchor="end"
                     height={100}
                     tick={{ fontSize: 12 }}
                   />
                   <YAxis />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value) => `₹${value.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
                     label={{ value: "Sales", position: "insideLeft", offset: -5 }}
                   />
@@ -274,7 +307,7 @@ const Dashboard: React.FC = () => {
                           <Cell key={index} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value) => `₹${value.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
                         contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px' }}
                       />
@@ -289,7 +322,7 @@ const Dashboard: React.FC = () => {
                     const percentage = ((product.value / (totalCapturedAmount / 100)) * 100).toFixed(1)
                     return (
                       <div key={index} className="flex items-start gap-3 pb-3 border-b border-border last:border-0">
-                        <div 
+                        <div
                           className="w-3 h-3 rounded-full flex-shrink-0 mt-1.5"
                           style={{ backgroundColor: COLORS[index % COLORS.length] }}
                         />
@@ -306,9 +339,9 @@ const Dashboard: React.FC = () => {
                             </p>
                           </div>
                           <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                            <div 
+                            <div
                               className="h-full rounded-full transition-all"
-                              style={{ 
+                              style={{
                                 width: `${percentage}%`,
                                 backgroundColor: COLORS[index % COLORS.length]
                               }}
