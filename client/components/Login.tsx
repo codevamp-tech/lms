@@ -179,7 +179,11 @@ const Login = () => {
       setSignupInput({ name: "", email: "", password: "", role: "student", number: "" });
       toast.success("Signup successful! You can now log in.");
     } catch (error: any) {
-      toast.error("Email is already registered. Please try a different email.");
+      if (error.message.includes("Email")) {
+        toast.error("Email is already registered. Please try a different email.");
+      } else {
+        toast.error(error.message || "Signup failed. Please try again.");
+      }
     }
   };
 
