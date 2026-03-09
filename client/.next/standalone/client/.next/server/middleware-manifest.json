@@ -1,0 +1,57 @@
+{
+  "version": 3,
+  "middleware": {
+    "/": {
+      "files": [
+        "server/edge/chunks/1e749_next_dist_esm_build_templates_edge-wrapper_669aa508.js",
+        "server/edge/chunks/[root-of-the-server]__0086d2be._.js",
+        "server/edge/chunks/ecb14_next_dist_esm_build_templates_edge-wrapper_77882617.js"
+      ],
+      "name": "middleware",
+      "page": "/",
+      "matchers": [
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/profile(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/profile"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/my-learning(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/my-learning"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/create-blog(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/create-blog"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/favorites(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/favorites"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/cart(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/cart"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/course\\/course-progress(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/course/course-progress/:path*"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/admin(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/admin/:path*"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "YWGpR_I2nI89MuYl6wZk1",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "bXNDI/KT3XtyJjLxO0j0mCzvwUr+QtXlou69d6hWNic=",
+        "__NEXT_PREVIEW_MODE_ID": "6879474cb347aaad3caf1dbc13ef869e",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "3abdda9ee08d280ce54b09d0925e1f978e701753533dae98d8520c68182d1fb6",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "4f09940c83f0eba2154813b839bbea5cf8acaff592df0a2649ce4629c39776ae"
+      }
+    }
+  },
+  "sortedMiddleware": [
+    "/"
+  ],
+  "functions": {}
+}

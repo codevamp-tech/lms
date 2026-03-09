@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/course/layout,_N_T_/course/course-payment/layout,_N_T_/course/course-payment/page,_N_T_/course/course-payment"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/course/course-payment/__PAGE__",
+    "/course/course-payment",
+    "/course",
+    "/_index",
+    "/_head"
+  ]
+}
