@@ -105,7 +105,7 @@
         "transform": "lodash/{{member}}"
       }
     },
-    "outputFileTracingRoot": "D:\\projects\\lms",
+    "outputFileTracingRoot": "C:\\Users\\mohsi\\Desktop\\Codevamp\\lms",
     "cacheComponents": false,
     "cacheLife": {
       "default": {
@@ -298,11 +298,11 @@
       "ignoreDuringBuilds": true
     },
     "turbopack": {
-      "root": "D:\\projects\\lms"
+      "root": "C:\\Users\\mohsi\\Desktop\\Codevamp\\lms"
     },
     "distDirRoot": ".next"
   },
-  "appDir": "D:\\projects\\lms\\client",
+  "appDir": "C:\\Users\\mohsi\\Desktop\\Codevamp\\lms\\client",
   "relativeAppDir": "client",
   "files": [
     ".next\\routes-manifest.json",
