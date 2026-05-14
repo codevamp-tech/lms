@@ -175,8 +175,14 @@ export default function LoginModal({
       await signupUser(signupInput);
       toast.success("Signup successful!");
       setTab("login");
-    } catch {
-      toast.error("Email already registered.");
+    } catch (error: any) {
+      if (error.message?.includes("use another number")) {
+        toast.error("use another number");
+      } else if (error.message?.includes("use another email")) {
+        toast.error("use another email");
+      } else {
+        toast.error(error.message || "Signup failed. Please try again.");
+      }
     }
   };
 

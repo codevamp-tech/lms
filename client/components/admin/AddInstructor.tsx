@@ -88,7 +88,13 @@ const AddInstructor: React.FC = () => {
         });
         setShowAddForm(false);
       } else {
-        toast.error("This email is already registered.");
+        if (data.message?.includes("use another number")) {
+          toast.error("use another number");
+        } else if (data.message?.includes("use another email")) {
+          toast.error("use another email");
+        } else {
+          toast.error(data.message || "Failed to add instructor.");
+        }
       }
     } catch (err: any) {
       toast.error(err.message || "An unknown error occurred");

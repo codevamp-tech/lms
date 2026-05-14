@@ -43,15 +43,21 @@ export class UsersController {
 
   @Post('signup')
   async signup(
-    @Body() body: { name: string; email: string; password: string },
+    @Body() body: { name: string; email: string; password: string; number?: string; role?: string },
   ) {
     try {
       return await this.usersService.signup(body);
     } catch (error) {
       // Check if the error is related to an existing email
-      if (error.message === 'Email is already registered') {
+      if (error.message === 'use another email') {
         throw new HttpException(
-          'Email is already registered',
+          'use another email',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (error.message === 'use another number') {
+        throw new HttpException(
+          'use another number',
           HttpStatus.BAD_REQUEST,
         );
       }
@@ -78,7 +84,14 @@ export class UsersController {
 
   @Post('addinstructor')
   async addInstructor(@Body() createInstructorDto: CreateInstructorDto) {
-    return await this.usersService.addInstructor(createInstructorDto);
+    try {
+      return await this.usersService.addInstructor(createInstructorDto);
+    } catch (error) {
+      if (error.message === 'use another email' || error.message === 'use another number') {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+      throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Post('addAdmin')
