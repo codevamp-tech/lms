@@ -30,7 +30,14 @@ export class UsersService {
     // 1. Check if user already exists
     const existingUser = await this.userModel.findOne({ email: data.email }).exec();
     if (existingUser) {
-      throw new Error('Email is already registered');
+      throw new Error('use another email');
+    }
+
+    if (data.number) {
+      const existingPhone = await this.userModel.findOne({ number: data.number }).exec();
+      if (existingPhone) {
+        throw new Error('use another number');
+      }
     }
 
     // 2. Hash password
@@ -265,9 +272,19 @@ export class UsersService {
 
     if (existingAdmin) {
       throw new HttpException(
-        'Email is already registered',
+        'use another email',
         HttpStatus.BAD_REQUEST,
       );
+    }
+
+    if (createAdminDto.number) {
+      const existingPhone = await this.userModel.findOne({ number: createAdminDto.number });
+      if (existingPhone) {
+        throw new HttpException(
+          'use another number',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
     }
 
     const hashedPassword = await bcrypt.hash(createAdminDto.password, 10);
@@ -328,7 +345,14 @@ export class UsersService {
       });
 
       if (existingInstructor) {
-        throw new Error('Email already in use');
+        throw new Error('use another email');
+      }
+
+      if (createInstructorDto.number) {
+        const existingPhone = await this.userModel.findOne({ number: createInstructorDto.number });
+        if (existingPhone) {
+          throw new Error('use another number');
+        }
       }
 
       // Hash the password

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { ChevronDown, ChevronUp, Users, BookOpen, Mail, User } from "lucide-react";
 import useCourses from "@/hooks/useCourses";
+import useLiveSessions from "@/hooks/useLiveSessions";
 import { useUserProfile } from "@/hooks/useUsers";
 import { getUserIdFromToken } from "@/utils/helpers";
 
@@ -20,6 +21,7 @@ interface Course {
   coursePrice?: string;
   enrolledStudents: User[];
   totalEnrolled: number;
+  isLiveSession?: boolean;
 }
 
 
@@ -49,17 +51,41 @@ export default function CoursesWithStudents() {
     currentPage.toString()
   );
 
+  const { getLiveSessionsQuery } = useLiveSessions();
+  const { data: liveSessionsData, isLoading: liveSessionsLoading } = getLiveSessionsQuery();
+
   useEffect(() => {
+    let combinedCourses: Course[] = [];
+
     if (data?.courses) {
-      setCourses(
-        data.courses.map((course: any) => ({
+      combinedCourses = [
+        ...combinedCourses,
+        ...data.courses.map((course: any) => ({
           ...course,
           enrolledStudents: [],
           totalEnrolled: course.enrolledStudents?.length || 0,
+          isLiveSession: false,
         }))
-      );
+      ];
     }
-  }, [data]);
+
+    if (liveSessionsData) {
+      combinedCourses = [
+        ...combinedCourses,
+        ...liveSessionsData.map((session: any) => ({
+          ...session,
+          _id: session._id,
+          courseTitle: session.title,
+          coursePrice: session.price,
+          enrolledStudents: [],
+          totalEnrolled: session.enrolledUsers?.length || 0,
+          isLiveSession: true,
+        }))
+      ];
+    }
+
+    setCourses(combinedCourses);
+  }, [data, liveSessionsData]);
 
   const toggleAccordion = async (courseId: string) => {
     if (expandedCourse === courseId) {
@@ -70,23 +96,42 @@ export default function CoursesWithStudents() {
     try {
       setLoading(true);
 
-      const res = await axios.get(
-        `${API_URL}/courses/${courseId}/sales`
-      );
+      const targetCourse = courses.find((c) => c._id === courseId);
 
-      const salesData = res.data.data;
+      if (targetCourse?.isLiveSession) {
+        const res = await axios.get(`${API_URL}/live-session/${courseId}/enrolled-students`);
+        const students = res.data.students || [];
 
-      setCourses((prev) =>
-        prev.map((course) =>
-          course._id === courseId
-            ? {
-                ...course,
-                enrolledStudents: salesData.enrolledUsers,
-                totalEnrolled: salesData.totalEnrolled,
-              }
-            : course
-        )
-      );
+        setCourses((prev) =>
+          prev.map((course) =>
+            course._id === courseId
+              ? {
+                  ...course,
+                  enrolledStudents: students,
+                  totalEnrolled: students.length,
+                }
+              : course
+          )
+        );
+      } else {
+        const res = await axios.get(
+          `${API_URL}/courses/${courseId}/sales`
+        );
+
+        const salesData = res.data.data;
+
+        setCourses((prev) =>
+          prev.map((course) =>
+            course._id === courseId
+              ? {
+                  ...course,
+                  enrolledStudents: salesData.enrolledUsers,
+                  totalEnrolled: salesData.totalEnrolled,
+                }
+              : course
+          )
+        );
+      }
 
       setExpandedCourse(courseId);
     } catch (err) {
@@ -158,7 +203,7 @@ export default function CoursesWithStudents() {
         </div>
 
         {/* Loading State */}
-        {isLoading && (
+        {(isLoading || liveSessionsLoading) && (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
@@ -259,7 +304,7 @@ export default function CoursesWithStudents() {
           ))}
         </div>
 
-        {courses.length === 0 && !isLoading && (
+        {courses.length === 0 && !isLoading && !liveSessionsLoading && (
           <div className="text-center py-16">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-4">
               <BookOpen className="w-10 h-10 text-gray-400" />

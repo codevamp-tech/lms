@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { getUserIdFromToken } from "@/utils/helpers"
 import useCourses from "@/hooks/useCourses"
+import useLiveSessions from "@/hooks/useLiveSessions"
 import { TrendingUp, ShoppingCart, DollarSign, BookOpen, IndianRupee, Users } from "lucide-react"
 
 import {
@@ -89,8 +90,11 @@ const Dashboard: React.FC = () => {
   const [studentsLoading, setStudentsLoading] = useState<boolean>(true)
 
   const { useAnalyticsSummary } = useCourses()
+  const { getLiveSessionsQuery } = useLiveSessions()
   const userId = getUserIdFromToken()
   const { data: response, isLoading, error } = useAnalyticsSummary()
+  
+  const { data: liveSessionsData, isLoading: liveSessionsLoading } = getLiveSessionsQuery()
 
   console.log("Dashboard API Response ===>", response)
 
@@ -135,7 +139,9 @@ const Dashboard: React.FC = () => {
     fetchStudentCount()
   }, [])
 
-  const totalCourses = response?.totalCourses ?? 0
+  const totalCoursesCount = response?.totalCourses ?? 0
+  const totalLiveSessions = liveSessionsData?.length || 0
+  const totalCourses = totalCoursesCount + totalLiveSessions
   const totalSales = capturedPayments.length ?? 0
   const totalRevenue = response?.totalRevenue ?? 0
   const totalCapturedAmount = capturedPayments.reduce((sum, payment) => sum + payment.amount, 0)
@@ -178,7 +184,7 @@ const Dashboard: React.FC = () => {
   const salesData = generateSalesData()
   const productDistribution = generateProductDistribution()
 
-  if (isLoading) {
+  if (isLoading || liveSessionsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[500px]">
         <div className="text-center space-y-4">
