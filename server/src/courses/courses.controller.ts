@@ -83,7 +83,7 @@ export class CoursesController {
     @Query('page') page = 1,
   ) {
     const courses =
-      userRole === 'admin'
+      (userRole === 'admin' || userRole === 'superadmin')
         ? await this.coursesService.findAll()
         : await this.coursesService.findByCreator(userId);
 

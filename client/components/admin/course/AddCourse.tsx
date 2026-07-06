@@ -71,7 +71,12 @@ const AddCourse = () => {
     // }
 
     try {
-      await createNewCourse({ courseTitle, creatorId: userId, companyId: companyId || "" });
+      const activeCompanyId = companyId || (typeof window !== "undefined" ? localStorage.getItem("companyId") : "") || "";
+      await createNewCourse({ 
+        courseTitle, 
+        creatorId: userId || "", 
+        companyId: activeCompanyId 
+      });
       toast.success("Course created successfully.");
 
       // Keep all categories, and pre-select the current category
