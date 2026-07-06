@@ -32,10 +32,18 @@ export class CoursesService {
         throw new Error('Course title is required.');
       }
 
+      let finalCompanyId = companyId;
+      if ((!finalCompanyId || finalCompanyId.trim() === '') && creatorId) {
+        const creator = await this.userModel.findById(creatorId);
+        if (creator && creator.companyId) {
+          finalCompanyId = creator.companyId.toString();
+        }
+      }
+
       const course = await this.courseModel.create({
         courseTitle,
         creator: creatorId,
-        companyId,
+        companyId: finalCompanyId,
       });
 
       return {
@@ -234,7 +242,7 @@ export class CoursesService {
 
   async findByCreator(userId: any): Promise<Course[]> {
     return this.courseModel
-      .find({ creatorId: userId })
+      .find({ creator: userId })
       .populate('creator enrolledStudents lectures')
       .sort({ createdAt: -1 })
       .exec();

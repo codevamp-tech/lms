@@ -112,7 +112,7 @@ const useCourses = () => {
     return query;
   };
 
-  const getAdminCoursesQuery = (userRole: string, page: any, userId?: string) => {
+  const getAdminCoursesQuery = (userRole: string, userId?: string, page: any = 1) => {
     return useQuery({
       queryKey: ['courses', userRole, userId, page],
       queryFn: () => getCourses(userRole, userId, page),

@@ -8,6 +8,7 @@ export interface CourseData {
   courseTitle: string;
   category: string;
   creatorId: string;
+  companyId?: string;
 }
 
 export interface CreateCourseResponse {
@@ -20,12 +21,20 @@ export interface CreateCourseResponse {
 }
 
 export const createCourse = async (courseData: CourseData) => {
-  // const companyId = localStorage.getItem("companyId");
-  const companyId = "";
+  let localCompanyId = "";
+  if (typeof window !== "undefined") {
+    localCompanyId = localStorage.getItem("companyId") || "";
+  }
+
+  const payload = {
+    ...courseData,
+    companyId: courseData.companyId || localCompanyId,
+  };
+
   try {
-    const { data } = await axios.post(`${API_BASE_URL}`, courseData, {
+    const { data } = await axios.post(`${API_BASE_URL}`, payload, {
       headers: {
-        Authorization: `Bearer ${companyId}`,
+        Authorization: `Bearer ${localCompanyId}`,
         "Content-Type": "application/json",
       },
     });

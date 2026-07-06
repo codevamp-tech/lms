@@ -218,11 +218,19 @@ export class UsersController {
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 7,
   ) {
-    const companyId = Auth.split(' ')[1];
+    const companyId = Auth ? Auth.split(' ')[1] : '';
     console.log(Auth, 'auth header controller');
+    if (!companyId) {
+      return {
+        success: true,
+        instructors: [],
+        totalPages: 1,
+        currentPage: 1,
+        totalInstructors: 0,
+      };
+    }
     return this.usersService.getInstructors(
       companyId,
-      //  '68e36d0271cf3cfa6140be6b',
       Number(page),
       Number(limit),
     );
