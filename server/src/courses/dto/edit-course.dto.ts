@@ -42,6 +42,12 @@ export class EditCourseDto {
   is_3_month_validity?: boolean;
 
   @IsOptional()
-  @Type(() => Date)
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '' || value === 'Invalid Date') {
+      return null;
+    }
+    const date = new Date(value);
+    return isNaN(date.getTime()) ? null : date;
+  })
   courseExpiryDate?: Date;
 }

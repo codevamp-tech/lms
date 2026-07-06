@@ -106,13 +106,23 @@ export class CoursesService {
         throw new Error(`Thumbnail upload failed: ${error.message}`);
       }
     }
+    const updateData: any = {
+      ...editCourseDto,
+      courseThumbnail, // Update thumbnail
+    };
+
+    if (
+      updateData.courseExpiryDate === 'Invalid Date' ||
+      (updateData.courseExpiryDate instanceof Date && isNaN(updateData.courseExpiryDate.getTime())) ||
+      updateData.courseExpiryDate === ''
+    ) {
+      updateData.courseExpiryDate = null;
+    }
+
     // Update the course with new data
     const updatedCourse = await this.courseModel.findByIdAndUpdate(
       courseId,
-      {
-        ...editCourseDto,
-        courseThumbnail, // Update thumbnail
-      },
+      updateData,
       { new: true },
     );
 
